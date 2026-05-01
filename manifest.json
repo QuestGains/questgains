@@ -1,0 +1,29 @@
+{
+  "name": "QuestGains",
+  "short_name": "QuestGains",
+  "description": "Level Up Your Body - Gamified Fitness RPG",
+  "start_url": "/questgains/",
+  "scope": "/questgains/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030712",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "800x800",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}
