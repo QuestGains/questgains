@@ -27,6 +27,7 @@ const DEFAULT_CHARACTER = {
     deadlift: 0,
     ohp: 0
   },
+  oneRMsLastUpdated: null,
   waterGoal: 8,
   waterToday: 0,
   waterDate: null,
@@ -72,6 +73,7 @@ let character = {
     ...DEFAULT_CHARACTER.oneRMs,
     ...(savedCharacter.oneRMs || {})
   },
+  oneRMsLastUpdated: savedCharacter.oneRMsLastUpdated || null,
   waterGoal: savedCharacter.waterGoal || 8,
   waterToday: savedCharacter.waterToday || 0,
   waterDate: savedCharacter.waterDate || null,
@@ -1072,6 +1074,7 @@ window.saveOneRM = function saveOneRM(key) {
   const input = document.getElementById(`1rm-${key}`);
   const value = Math.max(0, parseFloat(input.value) || 0);
   character.oneRMs[key] = value;
+  character.oneRMsLastUpdated = new Date().toDateString();
   saveData();
   renderProgress();
   alert(`Saved ${key.toUpperCase()} 1RM: ${value > 0 ? `${value} lbs` : 'Not set'}`);
@@ -1474,6 +1477,23 @@ function getCurrentWeekWorkoutEntries() {
   return workoutLog.filter((entry) => getWeekStampForDate(entry.date) === currentWeek);
 }
 
+function getCurrentWeekWorkoutDates() {
+  return new Set(getCurrentWeekWorkoutEntries().map((entry) => entry.date).filter(Boolean));
+}
+
+function hasRecoveryDayThisWeek() {
+  const daysIntoWeek = new Date().getDay();
+  if (daysIntoWeek < 1) return false;
+  return getCurrentWeekWorkoutDates().size < 7;
+}
+
+function hasUpdatedOneRMThisWeek() {
+  if (!character.oneRMsLastUpdated) return false;
+  const updatedAt = new Date(character.oneRMsLastUpdated);
+  if (Number.isNaN(updatedAt.getTime())) return false;
+  return getWeekStampForDate(updatedAt.toISOString().slice(0, 10)) === getCurrentWeekStamp();
+}
+
 function hasNewExerciseThisWeek() {
   const currentWeek = getCurrentWeekStamp();
   const previousExercises = new Set();
@@ -1492,18 +1512,21 @@ function hasNewExerciseThisWeek() {
 
 function isHonorSystem(type, questId) {
   const honorSystemIds = {
-    daily: [1, 4],
-    weekly: [2, 3, 4, 5]
+    daily: [4],
+    weekly: [2, 5]
   };
   return (honorSystemIds[type] || []).includes(questId);
 }
 
 function isDailyQuestComplete(questId) {
   syncDailyTrackingFlags();
+  syncWaterTracker();
   const todaysMealsCount = todaysMeals.length;
   const todayWorkoutEntries = getTodayWorkoutEntries();
   const todaySetCount = getTodayWorkoutSetCount();
   switch (questId) {
+    case 1:
+      return (character.waterToday || 0) >= 1 && todayWorkoutEntries.length >= 1;
     case 2:
       return todaySetCount > 0;
     case 3:
@@ -1527,6 +1550,10 @@ function isWeeklyQuestComplete(questId) {
   switch (questId) {
     case 1:
       return currentWeekWorkouts.length >= 3;
+    case 3:
+      return hasUpdatedOneRMThisWeek();
+    case 4:
+      return hasRecoveryDayThisWeek();
     case 6:
       return hasNewExerciseThisWeek();
     case 7:
@@ -1540,10 +1567,13 @@ function isWeeklyQuestComplete(questId) {
 
 function getQuestProgressLabel(type, questId) {
   if (type === 'daily') {
+    syncWaterTracker();
     const todaysMealsCount = todaysMeals.length;
     const todayWorkoutEntries = getTodayWorkoutEntries();
     const todaySetCount = getTodayWorkoutSetCount();
     switch (questId) {
+      case 1:
+        return (character.waterToday || 0) >= 1 && todayWorkoutEntries.length >= 1 ? '✓ Water + session done today' : '💧 Log water + complete a session';
       case 2:
         return todaySetCount > 0 ? '✓ Sets logged today' : '0 sets logged today';
       case 3:
@@ -1566,6 +1596,10 @@ function getQuestProgressLabel(type, questId) {
     switch (questId) {
       case 1:
         return `${Math.min(workoutCount, 3)} / 3 workouts`;
+      case 3:
+        return hasUpdatedOneRMThisWeek() ? '✓ PR improved this week' : 'Update a 1RM this week to complete';
+      case 4:
+        return hasRecoveryDayThisWeek() ? 'Rest day this week: ✓' : 'No rest day logged yet';
       case 6:
         return hasNewExerciseThisWeek() ? '✓ New exercise found' : 'Not yet';
       case 7:
@@ -2105,6 +2139,7 @@ window.importData = function importData(event) {
           ...DEFAULT_CHARACTER.oneRMs,
           ...(importedCharacter.oneRMs || {})
         },
+        oneRMsLastUpdated: importedCharacter.oneRMsLastUpdated || null,
         templates: importedCharacter.templates || [],
         lastSessionVolume: importedCharacter.lastSessionVolume || {},
         weeklyVolume: importedCharacter.weeklyVolume || {},
