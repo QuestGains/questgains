@@ -1205,7 +1205,7 @@ function getSpriteImg(hero, size = 'large') {
     'voltflare': 'sprite-voltflare.png',
     'inevitor': 'sprite-inevitor.png',
     'magnetar-reign': 'sprite-magnetar-reign.png',
-    'red-mirth': 'sprite-mad-crown.png',
+    'red-mirth': 'sprite-red-mirth.png',
     'onyx-koro': 'sprite-onyx-koro.png',
     'riftmage': 'sprite-riftmage.png',
     'fangshade': 'sprite-fangshade.png',
