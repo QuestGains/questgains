@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuestGains v2.13 - Level Up Your Body</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-950 text-white min-h-screen pb-8">
+  <div class="max-w-md mx-auto p-4">
+    <div class="flex justify-between items-center mb-6 gap-4">
+      <h1 class="text-3xl font-bold text-green-400">QuestGains <span class="text-sm font-normal text-gray-400">v2.13</span></h1>
+      <div class="text-right shrink-0">
+        <div class="text-sm text-gray-400">Level <span id="level" class="font-bold text-3xl">1</span></div>
+        <div class="text-xs text-green-400">XP: <span id="xp">0</span>/<span id="xp-next">100</span> • Hero Points: <span id="hero-points" class="font-bold">0</span> • 🔥 <span id="header-streak" class="font-bold">0 day streak</span></div>
+      </div>
+    </div>
+
+    <div class="flex gap-1 bg-gray-900 rounded-3xl p-1 mb-6 overflow-x-auto scrollbar-thin">
+      <button onclick="showTab(0)" id="tab0" class="flex-1 py-3 rounded-3xl text-sm font-medium">🏋️ Library</button>
+      <button onclick="showTab(1)" id="tab1" class="flex-1 py-3 rounded-3xl text-sm font-medium">📋 Log Session</button>
+      <button onclick="showTab(2)" id="tab2" class="flex-1 py-3 rounded-3xl text-sm font-medium">📋 Plans</button>
+      <button onclick="showTab(3)" id="tab3" class="flex-1 py-3 rounded-3xl text-sm font-medium">📈 Progress</button>
+      <button onclick="showTab(4)" id="tab4" class="flex-1 py-3 rounded-3xl text-sm font-medium tab-active">🦸 Hero</button>
+      <button onclick="showTab(5)" id="tab5" class="flex-1 py-3 rounded-3xl text-sm font-medium">⚔️ Quests</button>
+      <button onclick="showTab(6)" id="tab6" class="flex-1 py-3 rounded-3xl text-sm font-medium">🏆 Leaderboard</button>
+      <button onclick="showTab(7)" id="tab7" class="flex-1 py-3 rounded-3xl text-sm font-medium">🥑 Nutrition</button>
+      <button onclick="showTab(8)" id="tab8" class="flex-1 py-3 rounded-3xl text-sm font-medium">🍽️ Meal Logger</button>
+      <button onclick="showTab(9)" id="tab9" class="flex-1 py-3 rounded-3xl text-sm font-medium">⚖️ Unit Converter</button>
+      <button onclick="showTab(10)" id="tab10" class="flex-1 py-3 rounded-3xl text-sm font-medium">📜 History</button>
+      <button onclick="showTab(11)" id="tab11" class="flex-1 py-3 rounded-3xl text-sm font-medium">🏃 Cardio</button>
+    </div>
+
+    <div id="screen0" class="tab-screen hidden">
+      <div class="flex justify-between mb-3 gap-3 items-center">
+        <h2 class="text-xl font-semibold">Exercise Library</h2>
+        <select id="equipment-filter" onchange="filterExercises()" class="bg-gray-800 text-white px-3 py-1 rounded-2xl text-sm">
+          <option value="all">All</option>
+          <option value="bodyweight">Bodyweight Only</option>
+          <option value="gym">Gym Equipment</option>
+        </select>
+      </div>
+      <div id="exercise-list" class="space-y-4"></div>
+    </div>
+
+    <div id="screen1" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">Log Today's Session</h2>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-4">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <div class="font-semibold text-white">Recovery Check-In</div>
+            <div class="text-xs text-gray-400">Quick readiness snapshot before you train.</div>
+          </div>
+          <div class="text-xs text-green-400">Today</div>
+        </div>
+        <label class="block text-sm text-gray-300 mb-2">😴 Sleep last night <span id="sleep-value" class="text-green-400">7h</span></label>
+        <input id="recovery-sleep" type="range" min="1" max="10" value="7" oninput="updateSleepValue()" class="w-full mb-4">
+        <div class="text-sm text-gray-300 mb-2">💪 Energy level</div>
+        <div id="energy-buttons" class="flex gap-2 mb-4 flex-wrap"></div>
+        <div class="text-sm text-gray-300 mb-2">😣 Soreness</div>
+        <div id="soreness-buttons" class="flex gap-2 mb-2 flex-wrap"></div>
+        <div id="recovery-warning"></div>
+        <button onclick="logRecovery()" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-3xl text-sm font-medium">Log Recovery</button>
+      </div>
+      <div id="suggestion-note" class="mb-4"></div>
+      <button onclick="suggestWorkout()" class="mb-4 w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-3xl text-sm font-medium">✨ AI Suggest Workout</button>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-6">
+        <h3 class="text-sm mb-3">Current Session</h3>
+        <div id="current-session" class="space-y-3 min-h-[180px]"><p class="text-gray-400 text-center py-8">No exercises yet — add some!</p></div>
+        <button onclick="addExerciseToSession()" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-3xl text-sm mt-4">+ Add Exercise</button>
+      </div>
+      <button onclick="finishSession()" class="w-full bg-green-500 hover:bg-green-600 py-4 rounded-3xl text-lg font-bold">Finish Session (+50 XP)</button>
+    </div>
+
+    <div id="screen2" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">Training Plans</h2>
+      <div id="plans-list" class="space-y-4"></div>
+    </div>
+
+    <div id="screen3" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">Progress</h2>
+      <canvas id="progress-chart" class="w-full h-64"></canvas>
+      <div class="bg-gray-900 p-4 rounded-3xl mt-6">
+        <div class="text-sm font-semibold text-blue-400 mb-3">Body Weight Log</div>
+        <div class="flex gap-3 mb-3">
+          <input id="weight-input" type="number" min="1" step="0.1" placeholder="Weight in lbs" class="flex-1 bg-gray-800 text-white p-3 rounded-2xl">
+          <button onclick="logWeight()" class="bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-2xl text-sm font-medium">Log Weight</button>
+        </div>
+        <div id="weight-summary"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <div class="bg-gray-900 p-4 rounded-3xl">
+          <div class="text-xs text-gray-400">Personal Records</div>
+          <div id="pr-list" class="text-sm mt-2 space-y-1"></div>
+        </div>
+        <div class="bg-gray-900 p-4 rounded-3xl">
+          <div class="text-xs text-gray-400">My 1RMs</div>
+          <div id="1rm-list" class="text-sm mt-2 space-y-1"></div>
+        </div>
+      </div>
+      <div class="bg-gray-900 p-4 rounded-3xl mt-6">
+        <div class="text-sm font-semibold text-indigo-400 mb-2">Recovery Trend</div>
+        <div id="recovery-summary"></div>
+      </div>
+      <div class="bg-gray-900 p-4 rounded-3xl mt-6">
+        <div class="text-sm font-semibold text-green-400 mb-3">Volume Summary</div>
+        <div class="text-xs text-gray-400 mb-2">Last Session</div>
+        <div id="volume-last-session" class="space-y-2 mb-4"></div>
+        <div class="text-xs text-gray-400 mb-2">This Week</div>
+        <div id="volume-weekly" class="space-y-2"></div>
+      </div>
+      <div class="bg-gray-900 p-4 rounded-3xl mt-6 space-y-3">
+        <button onclick="exportData()" class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-3xl text-sm font-medium">Export Data</button>
+        <button onclick="triggerImport()" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-3xl text-sm font-medium">Import Data</button>
+        <input id="import-file" type="file" accept="application/json" class="hidden" onchange="importData(event)">
+      </div>
+    </div>
+
+    <div id="screen4" class="tab-screen">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 class="text-xl font-semibold">🦸 Hero Skill Tree</h2>
+        <button onclick="resetSkillTree()" class="text-xs bg-red-500 hover:bg-red-600 px-4 py-2 rounded-2xl">Reset Tree</button>
+      </div>
+      <div class="equipped-title-bar mb-4" id="equipped-title-bar"></div>
+      <div class="flex items-center justify-between mb-4 gap-3">
+        <div class="text-sm text-gray-400">Hero Points</div>
+        <div class="text-green-400 font-bold text-2xl" id="hero-points-display">0</div>
+      </div>
+      <div id="hero-streak" class="hero-streak-card mb-4">🔥 0 Day Streak</div>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-5">
+        <div class="text-sm font-semibold text-green-400 mb-3">Achievements</div>
+        <div id="hero-badges" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div id="hero-character-grid" class="hero-character-grid"></div>
+      <div id="hero-skill-tree-panel" class="hero-skill-tree-panel mt-5"></div>
+    </div>
+
+    <div id="screen5" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">⚔️ Quests</h2>
+      <div class="flex gap-1 bg-gray-900 rounded-3xl p-1 mb-6">
+        <button onclick="showQuestSubTab(0)" id="quest-sub0" class="subtab-active flex-1 py-3 rounded-3xl text-sm font-medium">🚀 Jumpstart</button>
+        <button onclick="showQuestSubTab(1)" id="quest-sub1" class="flex-1 py-3 rounded-3xl text-sm font-medium">📅 Daily</button>
+        <button onclick="showQuestSubTab(2)" id="quest-sub2" class="flex-1 py-3 rounded-3xl text-sm font-medium">📆 Weekly</button>
+        <button onclick="showQuestSubTab(3)" id="quest-sub3" class="flex-1 py-3 rounded-3xl text-sm font-medium">🏅 Personal</button>
+      </div>
+      <div id="quest-content" class="space-y-4"></div>
+    </div>
+
+    <div id="screen6" class="tab-screen hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">🏆 Global Leaderboard</h2>
+        <button onclick="refreshLeaderboard()" class="bg-green-600 hover:bg-green-700 px-4 py-1 rounded-2xl text-sm">Refresh</button>
+      </div>
+      <div id="leaderboard-list" class="space-y-3"></div>
+      <p class="text-xs text-gray-400 text-center mt-6">Top heroes around the world • Updated live</p>
+    </div>
+
+    <div id="screen7" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">🥑 Nutrition for Lifts</h2>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-4">
+        <div class="text-sm font-semibold text-blue-400 mb-2">Water Intake</div>
+        <div id="water-status" class="text-sm text-gray-300 mb-3">💧 0 / 8 glasses today</div>
+        <div id="water-buttons" class="flex flex-wrap gap-2"></div>
+      </div>
+      <input id="nutrition-search" type="text" placeholder="Search any food or drink..." class="w-full bg-gray-800 text-white p-3 rounded-3xl mb-4" onkeyup="filterNutrition()">
+      <div id="nutrition-list" class="space-y-4"></div>
+    </div>
+
+    <div id="screen8" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">🍽️ Meal Logger</h2>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-4">
+        <div class="text-sm font-semibold text-green-400 mb-3">Set Goals</div>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <input id="calorie-goal" type="number" min="1" placeholder="Daily Calorie Goal" class="bg-gray-800 text-white p-3 rounded-2xl">
+          <input id="protein-goal" type="number" min="1" placeholder="Daily Protein Goal" class="bg-gray-800 text-white p-3 rounded-2xl">
+        </div>
+        <button onclick="saveMacroGoals()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-3xl text-sm font-medium">Save Goals</button>
+      </div>
+      <input id="meal-search" type="text" placeholder="Search foods to log..." class="w-full bg-gray-800 text-white p-3 rounded-3xl mb-4" onkeyup="filterMealSelect()">
+      <div class="bg-gray-900 p-4 rounded-3xl mb-6">
+        <select id="meal-food-select" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3"></select>
+        <input id="meal-quantity" type="number" min="1" placeholder="Grams eaten (e.g. 150)" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3">
+        <button onclick="addMeal()" class="w-full bg-green-500 hover:bg-green-600 py-4 rounded-3xl text-lg font-bold">+ Log Meal (+20 XP)</button>
+      </div>
+      <h3 class="text-lg font-semibold mb-3">Today's Meals</h3>
+      <div id="meal-log-list" class="space-y-3"></div>
+      <div id="meal-totals" class="bg-gray-900 p-4 rounded-3xl mt-6 text-sm"></div>
+    </div>
+
+    <div id="screen9" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">⚖️ Unit Converter</h2>
+      <input id="converter-search" type="text" placeholder="Search foods..." class="w-full bg-gray-800 text-white p-3 rounded-3xl mb-4" onkeyup="filterConverterSelect()">
+      <div class="bg-gray-900 p-4 rounded-3xl mb-6">
+        <select id="converter-food-select" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3"><option value="">Select a food...</option></select>
+        <div class="flex gap-3">
+          <input id="converter-amount" type="number" min="1" value="100" class="flex-1 bg-gray-800 text-white p-3 rounded-2xl">
+          <select id="converter-from-unit" class="bg-gray-800 text-white p-3 rounded-2xl">
+            <option value="g">grams</option>
+            <option value="oz">ounces</option>
+            <option value="cup">cups</option>
+            <option value="tbsp">tablespoons</option>
+            <option value="tsp">teaspoons</option>
+            <option value="ml">ml</option>
+          </select>
+        </div>
+        <button onclick="convertUnits()" class="mt-4 w-full bg-green-500 hover:bg-green-600 py-4 rounded-3xl text-lg font-bold">Convert</button>
+      </div>
+      <div id="converter-result" class="bg-gray-900 p-4 rounded-3xl text-sm"></div>
+    </div>
+
+    <div id="screen10" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">📜 Workout History</h2>
+      <div id="history-list" class="space-y-4"></div>
+    </div>
+
+    <div id="screen11" class="tab-screen hidden">
+      <h2 class="text-xl font-semibold mb-4">🏃 Cardio</h2>
+      <div class="bg-gray-900 p-4 rounded-3xl mb-6">
+        <select id="cardio-type" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3">
+          <option>Running</option>
+          <option>Cycling</option>
+          <option>Rowing</option>
+          <option>Jump Rope</option>
+          <option>Swimming</option>
+          <option>Other</option>
+        </select>
+        <input id="cardio-duration" type="number" min="1" placeholder="Duration (minutes)" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3">
+        <input id="cardio-distance" type="number" min="0" step="0.1" placeholder="Distance (<span id='cardio-distance-unit'></span>)" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-1">
+        <div class="text-xs text-gray-500 mb-3">Distance unit: <span id="cardio-distance-label">miles</span></div>
+        <textarea id="cardio-notes" placeholder="Notes (optional)" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-3 min-h-[96px]"></textarea>
+        <button onclick="logCardio()" class="w-full bg-green-500 hover:bg-green-600 py-4 rounded-3xl text-lg font-bold">Log Cardio (+30 XP)</button>
+      </div>
+      <div id="cardio-history" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <div id="exercise-modal" onclick="if(event.target.id==='exercise-modal')hideModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-gray-900 w-11/12 max-w-md rounded-3xl p-6 modal max-h-[90vh] overflow-y-auto">
+      <h2 id="modal-name" class="text-2xl font-bold mb-2"></h2>
+      <div id="modal-muscles" class="text-green-400 mb-4"></div>
+      <div class="mb-6"><img id="modal-main-image" class="w-full rounded-3xl modal-image" alt="Exercise form"></div>
+      <div class="mb-6">
+        <h3 class="font-semibold text-green-400 mb-3">Form Cues</h3>
+        <ul id="modal-cues" class="text-gray-300 text-sm space-y-2"></ul>
+      </div>
+      <div id="plate-calculator-panel" class="mb-6 bg-gray-800 p-4 rounded-3xl">
+        <h3 class="font-semibold text-green-400 mb-3">Plate Calculator</h3>
+        <div class="flex gap-3 mb-3">
+          <input id="plate-target-weight" type="number" min="0" step="0.5" placeholder="Target weight" class="flex-1 bg-gray-900 text-white p-3 rounded-2xl">
+          <div class="bg-gray-900 px-4 py-3 rounded-2xl text-sm text-gray-300 flex items-center"><span id="plate-unit-label">lbs</span></div>
+        </div>
+        <button onclick="calculatePlates()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-2xl text-sm font-medium">Calculate Plates</button>
+        <div id="plate-result" class="text-sm text-gray-300 mt-3"></div>
+      </div>
+      <button onclick="hideModal()" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 py-4 rounded-3xl text-sm font-medium">Close</button>
+    </div>
+  </div>
+
+  <div id="plan-modal" onclick="if(event.target.id==='plan-modal')hidePlanModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-gray-900 w-11/12 max-w-md rounded-3xl p-6 modal max-h-[90vh] overflow-y-auto">
+      <h2 id="plan-modal-name" class="text-2xl font-bold mb-2"></h2>
+      <div id="plan-modal-desc" class="text-green-400 mb-6"></div>
+      <div id="plan-weekly-schedule" class="space-y-6"></div>
+      <button onclick="hidePlanModal()" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 py-4 rounded-3xl text-sm font-medium">Close Plan</button>
+    </div>
+  </div>
+
+  <div id="nutrition-modal" onclick="if(event.target.id==='nutrition-modal')hideNutritionModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-gray-900 w-11/12 max-w-md rounded-3xl p-6 modal max-h-[90vh] overflow-y-auto">
+      <h2 id="nutrition-modal-name" class="text-2xl font-bold mb-2"></h2>
+      <div id="nutrition-modal-contributes" class="text-green-400 mb-6"></div>
+      <div class="mb-6">
+        <h3 class="font-semibold text-green-400 mb-3">How it helps during lifts</h3>
+        <p id="nutrition-modal-benefit" class="text-gray-300 text-sm leading-relaxed"></p>
+      </div>
+      <button onclick="hideNutritionModal()" class="mt-8 w-full bg-gray-700 hover:bg-gray-600 py-4 rounded-3xl text-sm font-medium">Close</button>
+    </div>
+  </div>
+
+  <div id="rest-modal" onclick="if(event.target.id==='rest-modal')hideRestTimer()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-gray-900 p-8 rounded-3xl text-center modal w-80">
+      <select id="rest-duration" class="w-full bg-gray-800 text-white p-3 rounded-2xl mb-4">
+        <option value="60">1:00</option>
+        <option value="90" selected>1:30</option>
+        <option value="120">2:00</option>
+        <option value="180">3:00</option>
+        <option value="300">5:00</option>
+      </select>
+      <div id="timer-display" class="text-7xl font-mono font-bold text-green-400 mb-6">01:30</div>
+      <div class="flex gap-4 justify-center">
+        <button onclick="hideRestTimer()" class="px-8 py-3 bg-gray-700 rounded-3xl">Skip</button>
+        <button onclick="startRestTimer()" id="start-timer-btn" class="px-8 py-3 bg-green-500 rounded-3xl">Start Rest</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
