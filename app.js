@@ -45,7 +45,12 @@ const DEFAULT_CHARACTER = {
   mealsLoggedToday: 0,
   fullDayBonusDate: null,
   totalNodesUnlocked: 0,
-  weeklyDedicationBonusWeek: null
+  weeklyDedicationBonusWeek: null,
+  progressTabVisitedDate: null,
+  restTimerUsedToday: false,
+  restTimerDate: null,
+  aiSuggestUsedThisWeek: 0,
+  aiSuggestWeek: null
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
@@ -85,7 +90,12 @@ let character = {
   mealsLoggedToday: savedCharacter.mealsLoggedToday || 0,
   fullDayBonusDate: savedCharacter.fullDayBonusDate || null,
   totalNodesUnlocked: savedCharacter.totalNodesUnlocked || 0,
-  weeklyDedicationBonusWeek: savedCharacter.weeklyDedicationBonusWeek || null
+  weeklyDedicationBonusWeek: savedCharacter.weeklyDedicationBonusWeek || null,
+  progressTabVisitedDate: savedCharacter.progressTabVisitedDate || null,
+  restTimerUsedToday: savedCharacter.restTimerUsedToday || false,
+  restTimerDate: savedCharacter.restTimerDate || null,
+  aiSuggestUsedThisWeek: savedCharacter.aiSuggestUsedThisWeek || 0,
+  aiSuggestWeek: savedCharacter.aiSuggestWeek || null
 };
 
 if (!savedCharacter.unlockedCharacters && savedCharacter.activePath && Array.isArray(savedCharacter.unlockedNodes)) {
@@ -179,6 +189,22 @@ function syncMealTracker() {
   const today = getTodayStamp();
   if (character.fullDayBonusDate !== today) {
     character.mealsLoggedToday = 0;
+  }
+}
+
+function syncDailyTrackingFlags() {
+  const today = new Date().toDateString();
+  if (character.restTimerDate !== today) {
+    character.restTimerUsedToday = false;
+    character.restTimerDate = today;
+  }
+}
+
+function syncWeeklyTrackingFlags() {
+  const currentWeek = getCurrentWeekStamp();
+  if (character.aiSuggestWeek !== currentWeek) {
+    character.aiSuggestWeek = currentWeek;
+    character.aiSuggestUsedThisWeek = 0;
   }
 }
 
@@ -343,6 +369,11 @@ function showTab(n) {
   document.getElementById(`screen${n}`).classList.remove('hidden');
   document.querySelectorAll('button[id^="tab"]').forEach((button) => button.classList.remove('tab-active'));
   document.getElementById(`tab${n}`).classList.add('tab-active');
+
+  if (n === 3) {
+    character.progressTabVisitedDate = new Date().toDateString();
+    saveData();
+  }
 
   if (n === 0) renderLibrary();
   if (n === 1) renderCurrentSession();
@@ -601,6 +632,9 @@ function getBalancedBeginnerSelection() {
 }
 
 window.suggestWorkout = function suggestWorkout() {
+  syncWeeklyTrackingFlags();
+  character.aiSuggestWeek = getCurrentWeekStamp();
+  character.aiSuggestUsedThisWeek = (character.aiSuggestUsedThisWeek || 0) + 1;
   const recentSessions = getRecentSessions(3);
   let pickedExercises = [];
 
@@ -634,6 +668,7 @@ window.suggestWorkout = function suggestWorkout() {
 
   currentSession = pickedExercises.map((exercise) => ({ exercise, sets: [] }));
   openSetFormIndex = null;
+  saveData();
   renderCurrentSession();
   showTab(1);
   alert('Adaptive workout loaded.');
@@ -764,6 +799,10 @@ window.hideRestTimer = function hideRestTimer() {
 
 window.startRestTimer = function startRestTimer() {
   clearInterval(restTimerInterval);
+  const today = new Date().toDateString();
+  character.restTimerUsedToday = true;
+  character.restTimerDate = today;
+  saveData();
   let time = parseInt(document.getElementById('rest-duration')?.value || '90', 10);
   const display = document.getElementById('timer-display');
   display.textContent = formatTimer(time);
@@ -1421,13 +1460,140 @@ window.resetSkillTree = function resetSkillTree() {
   }
 };
 
+function getTodayWorkoutEntries() {
+  const today = getTodayStamp();
+  return workoutLog.filter((entry) => entry.date === today);
+}
+
+function getTodayWorkoutSetCount() {
+  return getTodayWorkoutEntries().reduce((total, entry) => total + (entry.session || []).reduce((sum, item) => sum + ((item.sets || []).length), 0), 0);
+}
+
+function getCurrentWeekWorkoutEntries() {
+  const currentWeek = getCurrentWeekStamp();
+  return workoutLog.filter((entry) => getWeekStampForDate(entry.date) === currentWeek);
+}
+
+function hasNewExerciseThisWeek() {
+  const currentWeek = getCurrentWeekStamp();
+  const previousExercises = new Set();
+  const currentWeekExercises = new Set();
+
+  workoutLog.forEach((entry) => {
+    const target = getWeekStampForDate(entry.date) === currentWeek ? currentWeekExercises : previousExercises;
+    (entry.session || []).forEach((item) => {
+      const name = item.exercise?.name;
+      if (name) target.add(name);
+    });
+  });
+
+  return Array.from(currentWeekExercises).some((name) => !previousExercises.has(name));
+}
+
+function isHonorSystem(type, questId) {
+  const honorSystemIds = {
+    daily: [1, 4],
+    weekly: [2, 3, 4, 5]
+  };
+  return (honorSystemIds[type] || []).includes(questId);
+}
+
+function isDailyQuestComplete(questId) {
+  syncDailyTrackingFlags();
+  const todaysMealsCount = todaysMeals.length;
+  const todayWorkoutEntries = getTodayWorkoutEntries();
+  const todaySetCount = getTodayWorkoutSetCount();
+  switch (questId) {
+    case 2:
+      return todaySetCount > 0;
+    case 3:
+      return todaysMealsCount >= 1;
+    case 5:
+      return todayWorkoutEntries.length >= 1;
+    case 6:
+      return todaysMealsCount >= 3;
+    case 7:
+      return character.progressTabVisitedDate === new Date().toDateString();
+    case 8:
+      return character.restTimerUsedToday === true && character.restTimerDate === new Date().toDateString();
+    default:
+      return false;
+  }
+}
+
+function isWeeklyQuestComplete(questId) {
+  syncWeeklyTrackingFlags();
+  const currentWeekWorkouts = getCurrentWeekWorkoutEntries();
+  switch (questId) {
+    case 1:
+      return currentWeekWorkouts.length >= 3;
+    case 6:
+      return hasNewExerciseThisWeek();
+    case 7:
+      return currentWeekWorkouts.length >= 5;
+    case 8:
+      return (character.aiSuggestUsedThisWeek || 0) >= 2;
+    default:
+      return false;
+  }
+}
+
+function getQuestProgressLabel(type, questId) {
+  if (type === 'daily') {
+    const todaysMealsCount = todaysMeals.length;
+    const todayWorkoutEntries = getTodayWorkoutEntries();
+    const todaySetCount = getTodayWorkoutSetCount();
+    switch (questId) {
+      case 2:
+        return todaySetCount > 0 ? '✓ Sets logged today' : '0 sets logged today';
+      case 3:
+        return `${Math.min(todaysMealsCount, 1)} / 1 meals logged`;
+      case 5:
+        return todayWorkoutEntries.length >= 1 ? '✓ Session complete' : 'No session today';
+      case 6:
+        return `${Math.min(todaysMealsCount, 3)} / 3 meals`;
+      case 7:
+        return character.progressTabVisitedDate === new Date().toDateString() ? '✓ Progress reviewed today' : 'Open Progress tab today';
+      case 8:
+        return character.restTimerUsedToday === true && character.restTimerDate === new Date().toDateString() ? '✓ Rest timer used today' : 'Rest timer not used yet';
+      default:
+        return '';
+    }
+  }
+
+  if (type === 'weekly') {
+    const workoutCount = getCurrentWeekWorkoutEntries().length;
+    switch (questId) {
+      case 1:
+        return `${Math.min(workoutCount, 3)} / 3 workouts`;
+      case 6:
+        return hasNewExerciseThisWeek() ? '✓ New exercise found' : 'Not yet';
+      case 7:
+        return `${Math.min(workoutCount, 5)} / 5 workouts`;
+      case 8:
+        return `${Math.min(character.aiSuggestUsedThisWeek || 0, 2)} / 2 uses this week`;
+      default:
+        return '';
+    }
+  }
+
+  return '';
+}
+
+function isQuestClaimable(type, questId) {
+  if (isHonorSystem(type, questId)) return true;
+  if (type === 'daily') return isDailyQuestComplete(questId);
+  if (type === 'weekly') return isWeeklyQuestComplete(questId);
+  return true;
+}
+
 function renderQuests() {
   const container = document.getElementById('quest-content');
   container.innerHTML = '';
 
   if (currentQuestSubTab === 0) {
     container.innerHTML = '<h3 class="font-semibold mb-3 text-green-400">🚀 Jumpstart Quests (100 XP each)</h3>';
-    jumpstartQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.jumpstartCompleted, `claimJumpstart(${quest.id})`));
+    jumpstartQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.jumpstartCompleted, `claimJumpstart(${quest.id})`, 'jumpstart'));
   } else if (currentQuestSubTab === 1) {
     const today = new Date().toDateString();
     if (questProgress.dailyLastDate !== today) {
@@ -1436,7 +1602,7 @@ function renderQuests() {
       saveData();
     }
     container.innerHTML = '<h3 class="font-semibold mb-3 text-green-400">📅 Daily Quests (25 XP each)</h3>';
-    dailyQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.dailyCompleted, `claimDaily(${quest.id})`));
+    dailyQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.dailyCompleted, `claimDaily(${quest.id})`, 'daily'));
   } else if (currentQuestSubTab === 2) {
     const weekNum = getWeekStampForDate(getTodayStamp());
     if (questProgress.weeklyLastWeek !== weekNum) {
@@ -1445,18 +1611,34 @@ function renderQuests() {
       saveData();
     }
     container.innerHTML = '<h3 class="font-semibold mb-3 text-green-400">📆 Weekly Quests</h3>';
-    weeklyQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.weeklyCompleted, `claimWeekly(${quest.id})`));
+    weeklyQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.weeklyCompleted, `claimWeekly(${quest.id})`, 'weekly'));
   } else if (currentQuestSubTab === 3) {
     container.innerHTML = '<h3 class="font-semibold mb-3 text-green-400">🏅 Personal Achievements</h3>';
-    personalQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.personalCompleted, `claimPersonal(${quest.id})`));
+    personalQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.personalCompleted, `claimPersonal(${quest.id})`, 'personal'));
   }
 }
 
-function appendQuestCard(container, quest, completedList, clickAction) {
+function appendQuestCard(container, quest, completedList, clickAction, type = 'generic') {
   const completed = completedList.includes(quest.id);
+  const honorSystem = isHonorSystem(type, quest.id);
+  const autoVerified = type === 'daily' || type === 'weekly';
+  const claimable = !autoVerified || honorSystem || isQuestClaimable(type, quest.id);
+  const progressLabel = autoVerified && !honorSystem ? getQuestProgressLabel(type, quest.id) : '';
+  const statusMarkup = completed
+    ? '<span class="text-green-400 text-xs">✓ Done</span>'
+    : claimable
+      ? `<button onclick="${clickAction}" class="bg-green-500 px-4 py-1 rounded-2xl text-xs">Claim</button>`
+      : '<span class="bg-gray-700 text-gray-300 px-4 py-1 rounded-2xl text-xs">Not yet</span>';
+  const detailsMarkup = progressLabel ? `<div class="text-xs ${claimable ? 'text-green-400' : 'text-gray-400'} mt-1">${progressLabel}</div>` : '';
   const div = document.createElement('div');
   div.className = `p-4 rounded-3xl flex justify-between items-center gap-3 ${completed ? 'bg-green-900/30 line-through' : 'bg-gray-900'}`;
-  div.innerHTML = `<div>${quest.name}</div><div class="flex items-center gap-2"><span class="text-green-400 font-bold">${quest.xp} XP</span>${completed ? '<span class="text-green-400 text-xs">✓ Done</span>' : `<button onclick="${clickAction}" class="bg-green-500 px-4 py-1 rounded-2xl text-xs">Claim</button>`}</div>`;
+  div.innerHTML = `
+    <div>
+      <div>${quest.name}</div>
+      ${detailsMarkup}
+    </div>
+    <div class="flex items-center gap-2 shrink-0"><span class="text-green-400 font-bold">${quest.xp} XP</span>${statusMarkup}</div>
+  `;
   container.appendChild(div);
 }
 
@@ -1482,9 +1664,15 @@ window.claimJumpstart = function claimJumpstart(id) {
 };
 
 window.claimDaily = function claimDaily(id) {
+  if (!isQuestClaimable('daily', id)) {
+    alert('This daily quest is not complete yet.');
+    return;
+  }
   if (!questProgress.dailyCompleted.includes(id)) {
     questProgress.dailyCompleted.push(id);
-    const earnedXP = awardXP(25 + getFlatPerkBonus('quest_xp_bonus'));
+    const quest = dailyQuests.find((entry) => entry.id === id);
+    const baseXP = quest ? quest.xp : 25;
+    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
     const rushBonusXP = getQuestRushBonusXP();
     saveData();
     levelUp();
@@ -1496,6 +1684,10 @@ window.claimDaily = function claimDaily(id) {
 };
 
 window.claimWeekly = function claimWeekly(id) {
+  if (!isQuestClaimable('weekly', id)) {
+    alert('This weekly quest is not complete yet.');
+    return;
+  }
   if (!questProgress.weeklyCompleted.includes(id)) {
     questProgress.weeklyCompleted.push(id);
     const quest = weeklyQuests.find((entry) => entry.id === id);
@@ -1928,7 +2120,12 @@ window.importData = function importData(event) {
         mealsLoggedToday: importedCharacter.mealsLoggedToday || 0,
         fullDayBonusDate: importedCharacter.fullDayBonusDate || null,
         totalNodesUnlocked: importedCharacter.totalNodesUnlocked || 0,
-        weeklyDedicationBonusWeek: importedCharacter.weeklyDedicationBonusWeek || null
+        weeklyDedicationBonusWeek: importedCharacter.weeklyDedicationBonusWeek || null,
+        progressTabVisitedDate: importedCharacter.progressTabVisitedDate || null,
+        restTimerUsedToday: importedCharacter.restTimerUsedToday || false,
+        restTimerDate: importedCharacter.restTimerDate || null,
+        aiSuggestUsedThisWeek: importedCharacter.aiSuggestUsedThisWeek || 0,
+        aiSuggestWeek: importedCharacter.aiSuggestWeek || null
       };
       workoutLog = payload.workoutLog || [];
       cardioLog = payload.cardioLog || character.cardioLog || [];
@@ -1956,6 +2153,9 @@ window.importData = function importData(event) {
 
 window.onload = function onLoad() {
   syncWaterTracker();
+  syncMealTracker();
+  syncDailyTrackingFlags();
+  syncWeeklyTrackingFlags();
   saveData();
   updateHeader();
   renderLibrary();
