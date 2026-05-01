@@ -1244,7 +1244,7 @@ function getSpriteImg(hero, size = 'large') {
     return `<div class="sprite-fallback ${sizeClass}" style="--sprite-color: ${getHeroColor(hero)}"></div>`;
   }
 
-  return `<img src="sprites/${filename}" alt="${hero.name}" class="pixel-portrait ${sizeClass}" style="filter: drop-shadow(0 0 12px ${getHeroColor(hero)})">`;
+  return `<img src="https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/${filename}" alt="${hero.name}" class="pixel-portrait ${sizeClass}" style="filter: drop-shadow(0 0 12px ${getHeroColor(hero)})">`;
 }
 
 function renderHero() {
