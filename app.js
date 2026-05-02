@@ -969,8 +969,16 @@ function renderLibrary(filtered = exDB) {
 
 window.filterExercises = function filterExercises() {
   const filter = document.getElementById('equipment-filter').value;
+  const searchEl = document.getElementById('exercise-search');
+  const searchTerm = searchEl ? searchEl.value.toLowerCase().trim() : '';
   let filtered = exDB;
-  if (filter !== 'all') filtered = exDB.filter((exercise) => exercise.type === filter);
+  if (filter !== 'all') filtered = filtered.filter((exercise) => exercise.type === filter);
+  if (searchTerm) {
+    filtered = filtered.filter((exercise) =>
+      exercise.name.toLowerCase().includes(searchTerm) ||
+      exercise.muscles.toLowerCase().includes(searchTerm)
+    );
+  }
   renderLibrary(filtered);
 };
 
