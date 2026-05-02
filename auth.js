@@ -59,8 +59,7 @@ function showStatus(message) {
 }
 
 function setUserEmail(email, offline = false) {
-  if (!ui.userEmail) return;
-  ui.userEmail.textContent = offline ? 'Offline mode' : (email || 'Not signed in');
+  if (!ui.userEmail) return; // element removed from header
 }
 
 function showApp() {
