@@ -94,19 +94,23 @@
       </div>
     </div>
 
-    <div class="flex gap-1 bg-gray-900 rounded-3xl p-1 mb-6 overflow-x-auto scrollbar-thin max-w-full">
-      <button onclick="showTab(0)" id="tab0" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🏋️ Library</button>
-      <button onclick="showTab(1)" id="tab1" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📋 Log Session</button>
-      <button onclick="showTab(2)" id="tab2" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📋 Plans</button>
-      <button onclick="showTab(3)" id="tab3" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📈 Progress</button>
-      <button onclick="showTab(4)" id="tab4" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium tab-active">🦸 Hero</button>
-      <button onclick="showTab(5)" id="tab5" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">⚔️ Quests</button>
-      <button onclick="showTab(6)" id="tab6" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🏆 Leaderboard</button>
-      <button onclick="showTab(7)" id="tab7" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🥑 Nutrition</button>
-      <button onclick="showTab(8)" id="tab8" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🍽️ Meal Logger</button>
-      <button onclick="showTab(9)" id="tab9" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">⚖️ Unit Converter</button>
-      <button onclick="showTab(10)" id="tab10" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📜 History</button>
-      <button onclick="showTab(11)" id="tab11" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🏃 Cardio</button>
+    <div class="bg-gray-900 rounded-3xl p-1 mb-6">
+      <div class="grid grid-cols-6 gap-1 mb-1">
+        <button onclick="showTab(0)" id="tab0" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏋️<br>Library</button>
+        <button onclick="showTab(1)" id="tab1" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📋<br>Log</button>
+        <button onclick="showTab(2)" id="tab2" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📋<br>Plans</button>
+        <button onclick="showTab(3)" id="tab3" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📈<br>Progress</button>
+        <button onclick="showTab(4)" id="tab4" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center tab-active">🦸<br>Hero</button>
+        <button onclick="showTab(5)" id="tab5" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚔️<br>Quests</button>
+      </div>
+      <div class="grid grid-cols-6 gap-1">
+        <button onclick="showTab(6)" id="tab6" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏆<br>Ranks</button>
+        <button onclick="showTab(7)" id="tab7" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🥑<br>Nutrition</button>
+        <button onclick="showTab(8)" id="tab8" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🍽️<br>Meals</button>
+        <button onclick="showTab(9)" id="tab9" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚖️<br>Convert</button>
+        <button onclick="showTab(10)" id="tab10" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📜<br>History</button>
+        <button onclick="showTab(11)" id="tab11" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏃<br>Cardio</button>
+      </div>
     </div>
 
     <div id="screen0" class="tab-screen hidden">
