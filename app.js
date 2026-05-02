@@ -482,17 +482,42 @@ function getBossProgress() {
 function checkGearUnlocks() {
   const totalWorkouts = workoutLog.length;
   const totalSets = workoutLog.reduce((sum, s) => sum + ((s.session || []).reduce((ss, ex) => ss + ((ex.sets || []).length), 0)), 0);
+  const cardioSessions = character.cardioLog?.length || 0;
+  const uniqueExercisesTried = new Set(workoutLog.flatMap((entry) => (entry.session || []).map((exercise) => exercise.exerciseId || exercise.name))).size;
+  const recoverySleepWins = (character.recoveryLog || []).filter((entry) => Number(entry.sleep) >= 8).length;
+  const gymWorkoutCount = workoutLog.filter((entry) => (entry.session || []).some((exercise) => {
+    const dbExercise = exDB.find((item) => item.id === exercise.exerciseId);
+    return dbExercise?.type === 'gym';
+  })).length;
+  const legWorkoutCount = workoutLog.filter((entry) => (entry.session || []).some((exercise) => {
+    const dbExercise = exDB.find((item) => item.id === exercise.exerciseId);
+    return String(dbExercise?.muscles || '').toLowerCase().includes('quad') || String(dbExercise?.muscles || '').toLowerCase().includes('glute') || String(dbExercise?.muscles || '').toLowerCase().includes('hamstring') || String(dbExercise?.muscles || '').toLowerCase().includes('calf');
+  })).length;
+
   gearItems.forEach((item) => {
     if ((character.unlockedGear || []).includes(item.id)) return;
     let unlock = false;
     if (item.id === 'warriors_belt' && totalWorkouts >= 5) unlock = true;
     if (item.id === 'champions_wristband' && totalSets >= 20) unlock = true;
-    if (item.id === 'iron_boots' && (character.cardioLog?.length || 0) >= 3) unlock = true;
+    if (item.id === 'iron_boots' && cardioSessions >= 3) unlock = true;
     if (item.id === 'focus_helm' && (character.totalQuestsClaimed || 0) >= 10) unlock = true;
     if (item.id === 'recovery_cape' && (character.totalRecoveryLogs || 0) >= 5) unlock = true;
     if (item.id === 'protein_gauntlets' && (character.totalMealsEver || 0) >= 15) unlock = true;
     if (item.id === 'endurance_amulet' && (character.currentStreak || 0) >= 7) unlock = true;
     if (item.id === 'shadow_gloves' && questProgress.jumpstartCompleted.length >= jumpstartQuests.length) unlock = true;
+    if (item.id === 'titans_pauldrons' && gymWorkoutCount >= 10) unlock = true;
+    if (item.id === 'windrunners_boots' && cardioSessions >= 5) unlock = true;
+    if (item.id === 'mystic_headband' && (character.totalQuestsClaimed || 0) >= 20) unlock = true;
+    if (item.id === 'dragon_scale_vest' && (character.currentStreak || 0) >= 14) unlock = true;
+    if (item.id === 'storm_bracers' && (character.level || 1) >= 10) unlock = true;
+    if (item.id === 'berserkers_gauntlets' && totalSets >= 50) unlock = true;
+    if (item.id === 'gravity_boots' && legWorkoutCount >= 5) unlock = true;
+    if (item.id === 'healing_totem' && (character.totalRecoveryLogs || 0) >= 10) unlock = true;
+    if (item.id === 'champions_crown' && (character.level || 1) >= 15) unlock = true;
+    if (item.id === 'shadow_step_wraps' && (character.currentStreak || 0) >= 10) unlock = true;
+    if (item.id === 'arcane_scroll' && totalSets >= 100) unlock = true;
+    if (item.id === 'warriors_seal' && uniqueExercisesTried >= 20) unlock = true;
+    if (item.id === 'vitality_ring' && recoverySleepWins >= 5) unlock = true;
     if (unlock) {
       character.unlockedGear.push(item.id);
       showAchievement('⚔️', 'Gear Unlocked!', `${item.name} — ${item.perk}`);
@@ -932,6 +957,7 @@ function showTab(n) {
   if (n === 9) renderUnitConverter(false);
   if (n === 10) renderWorkoutHistory();
   if (n === 11) renderCardio();
+  if (n === 12) renderGearTab();
 }
 window.showTab = showTab;
 
@@ -1858,7 +1884,6 @@ function renderHero() {
   const titleBar = document.getElementById('equipped-title-bar');
   const heroGrid = document.getElementById('hero-character-grid');
   const heroDetail = document.getElementById('hero-skill-tree-panel');
-  const gearSection = document.getElementById('hero-gear-section');
   const classDisplay = document.getElementById('hero-class-display');
   const themeSelector = document.getElementById('hero-theme-selector');
   const activeNode = getActivePerkNode();
@@ -1976,18 +2001,38 @@ function renderHero() {
     </div>
   `;
 
-  if (gearSection) {
-    gearSection.innerHTML = `<div class="text-sm font-semibold text-green-400 mb-3">⚔️ Gear</div><div class="gear-grid">${gearItems.map((item) => {
-      const unlocked = (character.unlockedGear || []).includes(item.id);
-      const equipped = (character.equippedGear || []).includes(item.id);
-      const action = !unlocked
-        ? `<div class="text-xs text-gray-400 mt-3">🔒 ${item.unlockCondition}</div>`
-        : `<button onclick="toggleGearEquip('${item.id}')" class="skill-node-btn ${equipped ? 'unlock-btn' : 'equip-btn'} mt-3">${equipped ? 'Unequip' : 'Equip'}</button>`;
-      return `<div class="gear-card ${!unlocked ? 'locked' : ''} ${equipped ? 'equipped' : ''}"><div class="text-3xl">${item.icon}</div><div class="font-bold mt-2">${item.name}</div><div class="text-xs text-gray-400 mt-1">${item.desc}</div><div class="text-xs text-green-400 mt-2">${item.perk}</div>${action}</div>`;
-    }).join('')}</div><div class="text-xs text-gray-400 mt-3">Equip up to 2 items at once.</div>`;
-  }
-
   updateHeader();
+}
+
+function renderGearTab() {
+  const container = document.getElementById('screen12');
+  if (!container) return;
+
+  const unlockedCount = (character.unlockedGear || []).length;
+  const equippedCount = (character.equippedGear || []).length;
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div>
+        <h2 class="text-xl font-semibold">⚔️ Gear</h2>
+        <div class="text-xs text-gray-400 mt-1">Equip up to 2 items at once.</div>
+      </div>
+      <div class="text-right text-xs text-gray-400">
+        <div>Unlocked: <span class="text-green-400 font-semibold">${unlockedCount}/${gearItems.length}</span></div>
+        <div>Equipped: <span class="text-blue-400 font-semibold">${equippedCount}/2</span></div>
+      </div>
+    </div>
+    <div class="gear-grid">
+      ${gearItems.map((item) => {
+        const unlocked = (character.unlockedGear || []).includes(item.id);
+        const equipped = (character.equippedGear || []).includes(item.id);
+        const action = !unlocked
+          ? `<div class="text-xs text-gray-400 mt-3">🔒 ${item.unlockCondition}</div>`
+          : `<button onclick="toggleGearEquip('${item.id}')" class="skill-node-btn ${equipped ? 'unlock-btn' : 'equip-btn'} mt-3">${equipped ? 'Unequip' : 'Equip'}</button>`;
+        return `<div class="gear-card ${!unlocked ? 'locked' : ''} ${equipped ? 'equipped' : ''}"><div class="text-3xl">${item.icon}</div><div class="font-bold mt-2">${item.name}</div><div class="text-xs text-gray-400 mt-1">${item.desc}</div><div class="text-xs text-green-400 mt-2">${item.perk}</div>${action}</div>`;
+      }).join('')}
+    </div>
+  `;
 }
 
 window.selectHero = function selectHero(heroId) {
@@ -2068,6 +2113,7 @@ window.toggleGearEquip = function toggleGearEquip(gearId) {
   }
   saveData();
   renderHero();
+  renderGearTab();
 };
 
 window.resetSkillTree = function resetSkillTree() {
