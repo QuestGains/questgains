@@ -1,26 +1,21 @@
-import { initFirebaseApp } from './firebase-config.js';
-
 const CLOUD_SYNC_KEYS = ['character', 'workoutLog', 'progressHistory', 'todaysMeals', 'questProgress', 'cardioLog'];
 const SAVE_DEBOUNCE_MS = 10000;
 let pendingSaveTimer = null;
 
 function getFirestore() {
-  const status = initFirebaseApp();
-  if (!status.ready || !window.firebase?.firestore) return null;
+  const status = typeof window.initFirebaseApp === 'function'
+    ? window.initFirebaseApp()
+    : { ready: false, reason: 'Firebase is unavailable.' };
 
-  try {
-    return window.firebase.firestore();
-  } catch (error) {
-    console.warn('Firestore unavailable:', error);
-    return null;
-  }
+  if (!status.ready || !window.db) return null;
+  return window.db;
 }
 
-export function getLocalGameData() {
+function getLocalGameData() {
   return typeof window.getQuestGainsData === 'function' ? window.getQuestGainsData() : null;
 }
 
-export function mergeGameData(localData = {}, remoteData = {}) {
+function mergeGameData(localData = {}, remoteData = {}) {
   const merged = { ...(localData || {}) };
 
   for (const key of CLOUD_SYNC_KEYS) {
@@ -32,11 +27,11 @@ export function mergeGameData(localData = {}, remoteData = {}) {
   return merged;
 }
 
-export async function saveUserData(userId, data) {
+async function saveUserData(userId, data) {
   if (!userId || !data) return false;
 
   const db = getFirestore();
-  if (!db) return false;
+  if (!db || !window.firebase?.firestore?.FieldValue) return false;
 
   const payload = {};
   for (const key of CLOUD_SYNC_KEYS) {
@@ -49,7 +44,7 @@ export async function saveUserData(userId, data) {
   return true;
 }
 
-export async function loadUserData(userId) {
+async function loadUserData(userId) {
   if (!userId) return null;
 
   const db = getFirestore();
@@ -67,11 +62,12 @@ export async function loadUserData(userId) {
   return payload;
 }
 
-export function saveUserDataDebounced(userId, data = getLocalGameData()) {
+function saveUserDataDebounced(userId, data = getLocalGameData()) {
   if (!userId || !data) return;
 
   clearTimeout(pendingSaveTimer);
   pendingSaveTimer = window.setTimeout(async () => {
+    pendingSaveTimer = null;
     try {
       await saveUserData(userId, data);
     } catch (error) {
@@ -80,7 +76,7 @@ export function saveUserDataDebounced(userId, data = getLocalGameData()) {
   }, SAVE_DEBOUNCE_MS);
 }
 
-export async function flushPendingUserData(userId, data = getLocalGameData()) {
+async function flushPendingUserData(userId, data = getLocalGameData()) {
   if (pendingSaveTimer) {
     clearTimeout(pendingSaveTimer);
     pendingSaveTimer = null;
@@ -96,7 +92,13 @@ export async function flushPendingUserData(userId, data = getLocalGameData()) {
   }
 }
 
+window.loadUserData = loadUserData;
+window.saveUserData = saveUserData;
 window.saveUserDataDebounced = saveUserDataDebounced;
+window.mergeGameData = mergeGameData;
+window.flushPendingUserData = flushPendingUserData;
+window.getLocalGameData = getLocalGameData;
+
 window.addEventListener('beforeunload', () => {
   if (window.currentUserId) {
     flushPendingUserData(window.currentUserId, getLocalGameData());

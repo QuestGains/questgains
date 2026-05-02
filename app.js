@@ -248,8 +248,10 @@ function saveData() {
   localStorage.setItem('questProgress', JSON.stringify(snapshot.questProgress));
   localStorage.setItem('cardioLog', JSON.stringify(snapshot.cardioLog));
 
-  if (window.currentUserId && typeof window.saveUserDataDebounced === 'function') {
-    window.saveUserDataDebounced(window.currentUserId, snapshot);
+  if (window.currentUserId) {
+    if (typeof window.saveUserDataDebounced === 'function') {
+      window.saveUserDataDebounced(window.currentUserId, snapshot);
+    }
   }
 }
 

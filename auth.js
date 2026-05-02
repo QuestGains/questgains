@@ -1,6 +1,3 @@
-import { initFirebaseApp } from './firebase-config.js';
-import { loadUserData, mergeGameData, flushPendingUserData } from './db.js';
-
 const VALID_INVITE_CODE = 'QUESTGAINS2025';
 const state = {
   activeTab: 'login',
@@ -97,8 +94,8 @@ async function handleAuthenticatedUser(user) {
 
   try {
     const localData = typeof window.getQuestGainsData === 'function' ? window.getQuestGainsData() : {};
-    const remoteData = await loadUserData(user.uid);
-    const mergedData = mergeGameData(localData, remoteData || {});
+    const remoteData = await window.loadUserData(user.uid);
+    const mergedData = window.mergeGameData(localData, remoteData || {});
     if (typeof window.applyQuestGainsCloudState === 'function') {
       window.applyQuestGainsCloudState(mergedData);
     }
@@ -185,7 +182,7 @@ async function signOut() {
 
   state.logoutRequested = true;
   try {
-    await flushPendingUserData(window.currentUserId, window.getQuestGainsData?.());
+    await window.flushPendingUserData(window.currentUserId, window.getQuestGainsData?.());
   } catch (error) {
     console.warn('Final sync before logout failed:', error);
   }
@@ -212,14 +209,17 @@ function initAuth() {
   bindEvents();
   setActiveTab('login');
 
-  const status = initFirebaseApp();
+  const status = typeof window.initFirebaseApp === 'function'
+    ? window.initFirebaseApp()
+    : { ready: false, reason: 'Firebase is unavailable.' };
+
   if (!status.ready) {
     enableOfflineMode(status.reason);
     showLogin();
     return;
   }
 
-  state.auth = window.firebase.auth();
+  state.auth = window.auth;
   state.provider = new window.firebase.auth.GoogleAuthProvider();
   state.auth.onAuthStateChanged(async (user) => {
     if (user) {

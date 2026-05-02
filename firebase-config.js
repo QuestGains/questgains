@@ -10,3 +10,30 @@ const firebaseConfig = {
 };
 
 const FIREBASE_CONFIGURED = true;
+let firebaseInitStatus = null;
+
+function initFirebaseApp() {
+  if (firebaseInitStatus) return firebaseInitStatus;
+  if (!FIREBASE_CONFIGURED) {
+    firebaseInitStatus = { ready: false, reason: 'Firebase is not configured for this build.' };
+    return firebaseInitStatus;
+  }
+  if (!window.firebase) {
+    firebaseInitStatus = { ready: false, reason: 'Firebase SDK failed to load.' };
+    return firebaseInitStatus;
+  }
+  try {
+    if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    window.db = firebase.firestore();
+    window.auth = firebase.auth();
+    firebaseInitStatus = { ready: true, app: firebase.app() };
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
+    firebaseInitStatus = { ready: false, reason: error?.message || 'Firebase failed to initialize.' };
+  }
+  return firebaseInitStatus;
+}
+
+window.initFirebaseApp = initFirebaseApp;
+window.firebaseConfig = firebaseConfig;
+initFirebaseApp();
