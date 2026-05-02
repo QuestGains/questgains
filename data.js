@@ -269,7 +269,7 @@ const exDB = [
     "muscles": "Upper Chest, Shoulders, Triceps",
     "type": "gym",
     "description": "The landmine press blends vertical and horizontal pressing in a shoulder-friendly arc. It builds pressing power, shoulder stability, and athletic upper-body strength.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Landmine_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
     "cues": [
       "Brace your core before you press.",
       "Drive the bar up and slightly forward.",
@@ -412,7 +412,7 @@ const exDB = [
     "muscles": "Lats, Rear Delts, Mid Back",
     "type": "gym",
     "description": "The Meadows row uses a landmine setup to challenge the lats and upper back through a unique pulling angle. It is excellent for unilateral back growth and grip-intensive work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Meadows_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Dumbbell_Row/0.jpg",
     "cues": [
       "Hinge and keep your hips square.",
       "Pull the bar toward your hip.",
@@ -438,7 +438,7 @@ const exDB = [
     "muscles": "Core, Lats, Shoulders",
     "type": "gym",
     "description": "The renegade row combines anti-rotation core work with unilateral rowing strength. It challenges stability, shoulder control, and total-body tension in one move.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Renegade_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
     "cues": [
       "Set a wide base with the feet.",
       "Row without twisting your hips.",
@@ -880,7 +880,7 @@ const exDB = [
     "muscles": "Hamstrings, Glutes, Calves",
     "type": "bodyweight",
     "description": "Nordic curls are an advanced hamstring exercise that overloads the lowering phase using bodyweight. They build resilient hamstrings and strong knee-flexion strength.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Nordic_Hamstring_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
     "cues": [
       "Keep hips extended throughout.",
       "Lower as slowly as possible.",
@@ -906,7 +906,7 @@ const exDB = [
     "muscles": "Quads, Hip Flexors, Core",
     "type": "bodyweight",
     "description": "The sissy squat isolates the quads by allowing the knees to travel forward while the torso leans back. It is a demanding bodyweight option for quad strength and tendon tolerance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sissy_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
     "cues": [
       "Hold onto support if needed.",
       "Let knees travel forward under control.",
@@ -1153,7 +1153,7 @@ const exDB = [
     "muscles": "Glutes, Hamstrings, Quads",
     "type": "bodyweight",
     "description": "The broad jump develops horizontal power, coordination, and forceful hip extension. It is a simple but highly athletic movement for lower-body explosiveness.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Broad_Jump/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
     "cues": [
       "Swing arms back to load.",
       "Jump forward explosively.",
@@ -1179,7 +1179,7 @@ const exDB = [
     "muscles": "Shoulders, Core, Glutes",
     "type": "gym",
     "description": "The Turkish get-up moves from floor to standing while keeping a weight overhead, demanding full-body control. It improves shoulder stability, coordination, and movement awareness.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Turkish_Get-Up/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Sumo_High_Pull/0.jpg",
     "cues": [
       "Keep eyes on the weight.",
       "Move one step at a time.",
@@ -1257,7 +1257,7 @@ const exDB = [
     "muscles": "Shoulders, Core, Quads",
     "type": "bodyweight",
     "description": "Bear crawls create contralateral coordination while heavily challenging the shoulders and trunk. They are useful for athletic movement quality and conditioning.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bear_Crawl/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
     "cues": [
       "Keep knees hovering just off the floor.",
       "Move opposite hand and foot together.",
@@ -1270,7 +1270,7 @@ const exDB = [
     "muscles": "Obliques, Core, Glutes",
     "type": "gym",
     "description": "The Pallof press trains anti-rotation core strength by resisting the pull of a band or cable. It is excellent for trunk control and safer rotational strength training.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Pallof_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crunch/0.jpg",
     "cues": [
       "Stand tall with ribs stacked.",
       "Press straight out without twisting.",
@@ -1491,7 +1491,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Calves",
     "type": "bodyweight",
     "description": "Skater jumps train lateral movement, single-leg stability, and conditioning in one athletic drill. They help build coordination and power in the frontal plane.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Skater_Jump/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/0.jpg",
     "cues": [
       "Leap side to side with control.",
       "Reach the trailing leg behind you.",
