@@ -269,7 +269,7 @@ const exDB = [
     "muscles": "Upper Chest, Shoulders, Triceps",
     "type": "gym",
     "description": "The landmine press blends vertical and horizontal pressing in a shoulder-friendly arc. It builds pressing power, shoulder stability, and athletic upper-body strength.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Landmine_Press.jpg",
     "cues": [
       "Brace your core before you press.",
       "Drive the bar up and slightly forward.",
@@ -438,7 +438,7 @@ const exDB = [
     "muscles": "Core, Lats, Shoulders",
     "type": "gym",
     "description": "The renegade row combines anti-rotation core work with unilateral rowing strength. It challenges stability, shoulder control, and total-body tension in one move.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Renegade_Row.jpg",
     "cues": [
       "Set a wide base with the feet.",
       "Row without twisting your hips.",
@@ -555,7 +555,7 @@ const exDB = [
     "muscles": "Front Delts, Upper Chest, Serratus",
     "type": "gym",
     "description": "Using a plate for front raises creates a simple, steady shoulder challenge through the front delts. It is a solid accessory for controlled shoulder hypertrophy.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Plate_Front_Raise.jpg",
     "cues": [
       "Hold the plate firmly at chest level.",
       "Raise to shoulder height without leaning back.",
@@ -646,7 +646,7 @@ const exDB = [
     "muscles": "Biceps, Forearms, Brachialis",
     "type": "gym",
     "description": "Cable curls keep consistent tension on the biceps across the full range of motion. They are useful for high-quality arm volume and a strong contraction.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Cable_Curl.jpg",
     "cues": [
       "Stand tall with elbows set by your sides.",
       "Curl through the hands, not the shoulders.",
@@ -672,7 +672,7 @@ const exDB = [
     "muscles": "Triceps, Forearms, Shoulders",
     "type": "gym",
     "description": "Skull crushers challenge the triceps through a deep elbow-flexion range while lying on a bench. They are highly effective for triceps hypertrophy and stronger pressing assistance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Skull_Crusher.jpg",
     "cues": [
       "Keep upper arms mostly vertical.",
       "Lower the bar with control toward the forehead or behind it.",
@@ -685,7 +685,7 @@ const exDB = [
     "muscles": "Triceps, Chest, Front Delts",
     "type": "gym",
     "description": "This bench variation narrows the grip to shift more work toward the triceps while still training pressing strength. It is a strong compound lift for bigger arms and better lockout power.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Close_Grip_Bench_Press.jpg",
     "cues": [
       "Use a grip just inside shoulder width.",
       "Lower the bar under control.",
@@ -789,7 +789,7 @@ const exDB = [
     "muscles": "Quads, Rectus Femoris, Vastus Medialis",
     "type": "gym",
     "description": "The leg extension isolates the quads through knee extension and is easy to load for high-rep work. It is useful for quad hypertrophy and finishing lower-body sessions.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/1.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Leg_Extension.jpg",
     "cues": [
       "Align the machine joint with your knee.",
       "Extend smoothly to a strong squeeze.",
@@ -880,7 +880,7 @@ const exDB = [
     "muscles": "Hamstrings, Glutes, Calves",
     "type": "bodyweight",
     "description": "Nordic curls are an advanced hamstring exercise that overloads the lowering phase using bodyweight. They build resilient hamstrings and strong knee-flexion strength.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Nordic_Curl.jpg",
     "cues": [
       "Keep hips extended throughout.",
       "Lower as slowly as possible.",
@@ -919,7 +919,7 @@ const exDB = [
     "muscles": "Hamstrings, Glutes, Core",
     "type": "gym",
     "description": "The single-leg Romanian deadlift trains unilateral hinging, balance, and posterior-chain control. It is excellent for glute and hamstring strength with added stability demands.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Single_Leg_RDL.jpg",
     "cues": [
       "Keep hips square to the floor.",
       "Reach the back leg long behind you.",
@@ -1075,7 +1075,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Traps",
     "type": "gym",
     "description": "The hang clean starts above the floor, making it a strong tool for training explosive extension and a quick rack position. It helps athletes build power with less setup complexity than a full clean.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Hang_Clean.jpg",
     "cues": [
       "Load the hips from the hang.",
       "Jump the bar up with violent extension.",
@@ -1088,7 +1088,7 @@ const exDB = [
     "muscles": "Glutes, Traps, Shoulders",
     "type": "gym",
     "description": "The power snatch is a fast full-body lift that moves the bar from the floor to overhead in one motion. It trains speed, timing, and explosive coordination.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Power_Snatch.jpg",
     "cues": [
       "Keep the bar close throughout.",
       "Finish tall before pulling under.",
@@ -1101,7 +1101,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Shoulders",
     "type": "gym",
     "description": "The clean and jerk combines a powerful clean with an overhead jerk for full-body power expression. It develops explosive strength, coordination, and overhead stability.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Clean_and_Jerk.jpg",
     "cues": [
       "Secure the clean before rushing the jerk.",
       "Dip straight and drive hard upward.",
@@ -1114,7 +1114,7 @@ const exDB = [
     "muscles": "Shoulders, Triceps, Quads",
     "type": "gym",
     "description": "The push press uses leg drive to help move heavier loads overhead than a strict press. It builds total-body power and transfers well to athletic overhead work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Push_Press.jpg",
     "cues": [
       "Dip straight down a few inches.",
       "Drive hard through the legs.",
@@ -1127,7 +1127,7 @@ const exDB = [
     "muscles": "Quads, Shoulders, Glutes",
     "type": "gym",
     "description": "A thruster combines a front squat and overhead press into one demanding full-body movement. It is excellent for power endurance, conditioning, and total-body coordination.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Thruster.jpg",
     "cues": [
       "Stay upright in the squat.",
       "Drive straight from the legs into the press.",
@@ -1140,7 +1140,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Calves",
     "type": "gym",
     "description": "Box jumps train explosive lower-body power and landing mechanics. They are a staple plyometric drill for speed, reactivity, and athletic confidence.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Box_Jump.jpg",
     "cues": [
       "Load the hips before exploding.",
       "Land softly with knees tracking well.",
@@ -1179,7 +1179,7 @@ const exDB = [
     "muscles": "Shoulders, Core, Glutes",
     "type": "gym",
     "description": "The Turkish get-up moves from floor to standing while keeping a weight overhead, demanding full-body control. It improves shoulder stability, coordination, and movement awareness.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Sumo_High_Pull/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Turkish_Get_Up.jpg",
     "cues": [
       "Keep eyes on the weight.",
       "Move one step at a time.",
@@ -1218,7 +1218,7 @@ const exDB = [
     "muscles": "Shoulders, Core, Arms",
     "type": "gym",
     "description": "Battle ropes train upper-body conditioning and trunk stiffness through repeated powerful waves. They are effective for athletic conditioning and shoulder endurance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Battle_Ropes.jpg",
     "cues": [
       "Stay athletic in your stance.",
       "Create crisp waves with the ropes.",
@@ -1231,7 +1231,7 @@ const exDB = [
     "muscles": "Core, Lats, Shoulders",
     "type": "gym",
     "description": "Medicine ball slams train aggressive trunk flexion, upper-body power, and conditioning. They are a great way to express speed and intent safely.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Medicine_Ball_Slam.jpg",
     "cues": [
       "Reach tall before the slam.",
       "Drive the ball down with your whole body.",
@@ -1244,7 +1244,7 @@ const exDB = [
     "muscles": "Chest, Quads, Core",
     "type": "bodyweight",
     "description": "Burpees combine a squat, plank, and jump into a demanding conditioning exercise. They build work capacity, coordination, and full-body grit.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Burpee.jpg",
     "cues": [
       "Move with a strong rhythm.",
       "Land softly on the jump.",
@@ -1257,7 +1257,7 @@ const exDB = [
     "muscles": "Shoulders, Core, Quads",
     "type": "bodyweight",
     "description": "Bear crawls create contralateral coordination while heavily challenging the shoulders and trunk. They are useful for athletic movement quality and conditioning.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Bear_Crawl.jpg",
     "cues": [
       "Keep knees hovering just off the floor.",
       "Move opposite hand and foot together.",
@@ -1270,7 +1270,7 @@ const exDB = [
     "muscles": "Obliques, Core, Glutes",
     "type": "gym",
     "description": "The Pallof press trains anti-rotation core strength by resisting the pull of a band or cable. It is excellent for trunk control and safer rotational strength training.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crunch/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Pallof_Press.jpg",
     "cues": [
       "Stand tall with ribs stacked.",
       "Press straight out without twisting.",
@@ -1283,7 +1283,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "gym",
     "description": "Single-leg pressing trains each leg independently and helps address asymmetries in strength and control. It is a useful machine option for unilateral lower-body volume.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Single_Leg_Press.jpg",
     "cues": [
       "Keep hips level on the seat.",
       "Lower under control through a safe range.",
@@ -1296,7 +1296,7 @@ const exDB = [
     "muscles": "Hip Flexors, Quads, Glutes",
     "type": "bodyweight",
     "description": "This stretch opens the front of the hip and can reduce stiffness created by sitting or heavy lower-body training. It supports healthier pelvic position and smoother hip extension.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Hip_Flexor_Stretch.jpg",
     "cues": [
       "Tuck the pelvis slightly under.",
       "Squeeze the glute of the trailing leg.",
@@ -1309,7 +1309,7 @@ const exDB = [
     "muscles": "Glutes, Hip Rotators, Hip Flexors",
     "type": "bodyweight",
     "description": "Pigeon pose stretches the glutes and deep hip rotators while encouraging hip mobility. It can help restore movement quality after running, squatting, or long periods of sitting.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Pigeon_Pose.jpg",
     "cues": [
       "Square the hips as much as possible.",
       "Support the front hip if needed.",
@@ -1335,7 +1335,7 @@ const exDB = [
     "muscles": "Spine, Core, Shoulders",
     "type": "bodyweight",
     "description": "Cat-cow improves spinal awareness and gentle mobility through flexion and extension. It is useful in warm-ups, recovery work, and restoring quality breathing positions.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Cat_Cow.jpg",
     "cues": [
       "Move one vertebra at a time.",
       "Match the motion with your breathing.",
@@ -1348,7 +1348,7 @@ const exDB = [
     "muscles": "Thoracic Spine, Obliques, Shoulders",
     "type": "bodyweight",
     "description": "Thoracic rotation drills improve upper-back mobility and make overhead and rotational movement cleaner. They can reduce compensation through the lower back and shoulders.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Thoracic_Rotation.jpg",
     "cues": [
       "Keep hips mostly still.",
       "Rotate from the upper back.",
@@ -1361,7 +1361,7 @@ const exDB = [
     "muscles": "Hip Flexors, Quads, Core",
     "type": "bodyweight",
     "description": "The couch stretch aggressively opens the quads and hip flexors, especially after heavy leg training or long sitting. It is a valuable mobility drill for restoring front-side hip length.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Couch_Stretch.jpg",
     "cues": [
       "Keep the ribcage stacked over the pelvis.",
       "Squeeze the glute to deepen the stretch.",
@@ -1374,7 +1374,7 @@ const exDB = [
     "muscles": "Hip Rotators, Glutes, Adductors",
     "type": "bodyweight",
     "description": "The 90/90 position trains internal and external hip rotation in a grounded posture. It is excellent for hip mobility, control, and smoother squatting mechanics.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/90_90_Hip_Stretch.jpg",
     "cues": [
       "Sit tall through the spine.",
       "Keep both knees heavy to the floor.",
@@ -1387,7 +1387,7 @@ const exDB = [
     "muscles": "Chest, Front Delts, Biceps",
     "type": "bodyweight",
     "description": "This stretch opens the chest and front shoulders, which often tighten up from pressing and desk posture. It supports better posture and freer overhead movement.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Doorway_Chest_Stretch.jpg",
     "cues": [
       "Place the forearm lightly on the frame.",
       "Step through until you feel the chest open.",
@@ -1400,7 +1400,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "bodyweight",
     "description": "Box step-ups build lower-body endurance and elevate heart rate without the impact of jumping. They are a practical conditioning move for legs and work capacity.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Box_Step_Up.jpg",
     "cues": [
       "Stand tall on top of the box.",
       "Drive through the working leg.",
@@ -1413,7 +1413,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Calves",
     "type": "bodyweight",
     "description": "Jump squats combine lower-body strength and plyometric intent in a simple bodyweight drill. They build power, speed, and conditioning at the same time.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Jump_Squat.jpg",
     "cues": [
       "Load the hips before takeoff.",
       "Explode straight up.",
@@ -1426,7 +1426,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "bodyweight",
     "description": "Jump lunges train unilateral leg power and coordination while driving the heart rate up fast. They are demanding but effective for athletic conditioning.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Jump_Lunge.jpg",
     "cues": [
       "Start from a strong split stance.",
       "Switch legs in the air under control.",
@@ -1439,7 +1439,7 @@ const exDB = [
     "muscles": "Hip Flexors, Quads, Calves",
     "type": "bodyweight",
     "description": "High knees are a fast conditioning drill that improves rhythm, foot speed, and hip flexor drive. They are useful in warm-ups, intervals, and athletic prep.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/High_Knees.jpg",
     "cues": [
       "Stay tall through the torso.",
       "Drive knees up quickly.",
@@ -1452,7 +1452,7 @@ const exDB = [
     "muscles": "Shoulders, Calves, Quads",
     "type": "bodyweight",
     "description": "Jumping jacks provide a low-skill conditioning option that raises heart rate and coordinates the whole body. They are effective for warm-ups, circuits, and general movement.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Jumping_Jacks.jpg",
     "cues": [
       "Keep a light bounce on the feet.",
       "Reach overhead with relaxed shoulders.",
@@ -1465,7 +1465,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Core",
     "type": "bodyweight",
     "description": "Tuck jumps train explosive vertical power and reactive coordination. They are useful for athletic pop, fast force production, and conditioning.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Tuck_Jump.jpg",
     "cues": [
       "Jump tall before tucking.",
       "Bring knees up with a braced core.",
@@ -1491,7 +1491,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Calves",
     "type": "bodyweight",
     "description": "Skater jumps train lateral movement, single-leg stability, and conditioning in one athletic drill. They help build coordination and power in the frontal plane.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Skater_Jump.jpg",
     "cues": [
       "Leap side to side with control.",
       "Reach the trailing leg behind you.",
