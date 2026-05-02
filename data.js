@@ -158,6 +158,1345 @@ const exDB = [
       "Squeeze glutes at the top.",
       "Keep ribs down."
     ]
+  },
+  {
+    "id": 13,
+    "name": "Incline Dumbbell Press",
+    "muscles": "Upper Chest, Front Delts, Triceps",
+    "type": "gym",
+    "description": "This angled pressing variation emphasizes the upper chest while still loading the shoulders and triceps. It helps build balanced pressing strength and fuller chest development.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Incline_Bench_Press/0.jpg",
+    "cues": [
+      "Set your shoulders down and back.",
+      "Lower the dumbbells with elbows slightly tucked.",
+      "Press up without losing the bench angle."
+    ]
+  },
+  {
+    "id": 14,
+    "name": "Decline Bench Press",
+    "muscles": "Lower Chest, Triceps, Front Delts",
+    "type": "gym",
+    "description": "The decline bench press targets the lower chest through a slightly different pressing path than flat benching. It can help round out chest strength and reduce shoulder strain for some lifters.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Decline_Bench_Press/0.jpg",
+    "cues": [
+      "Lock your body into the bench.",
+      "Lower the bar to the lower chest.",
+      "Press smoothly while keeping wrists stacked."
+    ]
+  },
+  {
+    "id": 15,
+    "name": "Dumbbell Flyes",
+    "muscles": "Chest, Front Delts, Biceps",
+    "type": "gym",
+    "description": "Dumbbell flyes train the chest through a wide arc and create a strong stretch under control. They are useful for chest hypertrophy and better mind-muscle connection.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Flyes/0.jpg",
+    "cues": [
+      "Keep a soft bend in your elbows.",
+      "Open wide until you feel a chest stretch.",
+      "Bring the bells together by squeezing your chest."
+    ]
+  },
+  {
+    "id": 16,
+    "name": "Cable Crossover",
+    "muscles": "Chest, Front Delts, Serratus",
+    "type": "gym",
+    "description": "Cable crossovers keep tension on the chest through the full range of motion. They are excellent for isolation work, control, and finishing a chest session.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crossover/0.jpg",
+    "cues": [
+      "Set your torso tall with a slight lean.",
+      "Bring handles together in a hugging arc.",
+      "Pause briefly in the squeeze."
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Chest Dip",
+    "muscles": "Chest, Triceps, Front Delts",
+    "type": "gym",
+    "description": "A chest dip uses bodyweight and torso angle to bias the chest during a deep pressing motion. It builds serious pressing strength and lower-chest development when performed under control.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chest_Dips/0.jpg",
+    "cues": [
+      "Lean slightly forward.",
+      "Lower until shoulders stay comfortable.",
+      "Drive back up without swinging."
+    ]
+  },
+  {
+    "id": 18,
+    "name": "Pec Deck Machine",
+    "muscles": "Chest, Front Delts, Serratus",
+    "type": "gym",
+    "description": "The pec deck isolates the chest with a fixed path that makes it easy to focus on clean contractions. It works well for hypertrophy and controlled high-rep work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pec_Deck_Fly/0.jpg",
+    "cues": [
+      "Set the seat so handles align with your chest.",
+      "Keep shoulders down as you close the arms.",
+      "Control the stretch on the way back."
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Push-Up Wide Grip",
+    "muscles": "Chest, Front Delts, Triceps",
+    "type": "bodyweight",
+    "description": "A wider push-up stance increases chest involvement and challenges shoulder control. It is a simple bodyweight variation for building pressing volume anywhere.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide_Push-Up/0.jpg",
+    "cues": [
+      "Place hands wider than shoulder width.",
+      "Keep ribs down and body straight.",
+      "Lower with control and press hard."
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Incline Barbell Press",
+    "muscles": "Upper Chest, Front Delts, Triceps",
+    "type": "gym",
+    "description": "This barbell press shifts emphasis toward the upper chest while allowing heavier loading than many dumbbell options. It is a staple for building top-end pressing strength and upper-chest size.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Incline_Bench_Press/0.jpg",
+    "cues": [
+      "Set your upper back tight on the bench.",
+      "Lower the bar to the upper chest.",
+      "Press up while keeping elbows under the bar."
+    ]
+  },
+  {
+    "id": 21,
+    "name": "Landmine Press",
+    "muscles": "Upper Chest, Shoulders, Triceps",
+    "type": "gym",
+    "description": "The landmine press blends vertical and horizontal pressing in a shoulder-friendly arc. It builds pressing power, shoulder stability, and athletic upper-body strength.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Landmine_Press/0.jpg",
+    "cues": [
+      "Brace your core before you press.",
+      "Drive the bar up and slightly forward.",
+      "Avoid arching through the low back."
+    ]
+  },
+  {
+    "id": 22,
+    "name": "Svend Press",
+    "muscles": "Chest, Front Delts, Triceps",
+    "type": "gym",
+    "description": "The Svend press keeps constant inward tension on the chest by squeezing a plate through the press. It is a useful accessory for chest activation and high-tension hypertrophy work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Svend_Press/0.jpg",
+    "cues": [
+      "Crush the plate between your palms.",
+      "Press straight out without losing tension.",
+      "Keep shoulders relaxed and chest lifted."
+    ]
+  },
+  {
+    "id": 23,
+    "name": "Deadlift",
+    "muscles": "Glutes, Hamstrings, Back",
+    "type": "gym",
+    "description": "The deadlift is a foundational full-body hinge that trains posterior-chain strength and total-body tension. It carries over to athleticism, lifting mechanics, and raw strength development.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
+    "cues": [
+      "Set the bar close to your shins.",
+      "Brace hard and push the floor away.",
+      "Lock out by standing tall, not leaning back."
+    ]
+  },
+  {
+    "id": 24,
+    "name": "T-Bar Row",
+    "muscles": "Mid Back, Lats, Biceps",
+    "type": "gym",
+    "description": "The T-bar row is a heavy horizontal pull that builds thickness through the mid-back and lats. It is ideal for loading the upper back with a stable pulling pattern.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/T-Bar_Row/0.jpg",
+    "cues": [
+      "Hinge and keep your chest proud.",
+      "Pull the handle toward your lower chest.",
+      "Control the lowering phase."
+    ]
+  },
+  {
+    "id": 25,
+    "name": "Single-Arm Dumbbell Row",
+    "muscles": "Lats, Mid Back, Biceps",
+    "type": "gym",
+    "description": "This unilateral row helps build lat size while exposing side-to-side imbalances. It also teaches better scapular control and trunk stability during pulling.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_One-Arm_Row/0.jpg",
+    "cues": [
+      "Support yourself solidly on the bench.",
+      "Drive your elbow back toward the hip.",
+      "Avoid twisting your torso."
+    ]
+  },
+  {
+    "id": 26,
+    "name": "Chest-Supported Row",
+    "muscles": "Mid Back, Rhomboids, Lats",
+    "type": "gym",
+    "description": "A chest-supported row removes much of the lower-back demand so the upper back can do the work. It is excellent for clean back training and hypertrophy.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chest_Supported_Dumbbell_Row/0.jpg",
+    "cues": [
+      "Keep your chest glued to the pad.",
+      "Row elbows back under control.",
+      "Squeeze the shoulder blades without shrugging."
+    ]
+  },
+  {
+    "id": 27,
+    "name": "Inverted Row",
+    "muscles": "Upper Back, Lats, Biceps",
+    "type": "bodyweight",
+    "description": "The inverted row is a bodyweight pull that strengthens the back, arms, and trunk in a scalable way. It is great for improving rowing mechanics and progressing toward tougher pulling work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Inverted_Row/0.jpg",
+    "cues": [
+      "Keep your body straight like a plank.",
+      "Pull your chest to the bar.",
+      "Lower with full control."
+    ]
+  },
+  {
+    "id": 28,
+    "name": "Face Pull",
+    "muscles": "Rear Delts, Upper Back, Rotator Cuff",
+    "type": "gym",
+    "description": "Face pulls strengthen the rear shoulders and upper back while supporting healthier shoulder mechanics. They are a go-to movement for posture, balance, and shoulder resilience.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Face_Pull/0.jpg",
+    "cues": [
+      "Pull the rope toward eye level.",
+      "Lead with elbows high and wide.",
+      "Rotate hands back as you finish."
+    ]
+  },
+  {
+    "id": 29,
+    "name": "Good Morning",
+    "muscles": "Hamstrings, Glutes, Lower Back",
+    "type": "gym",
+    "description": "The good morning trains the hinge pattern with a strong focus on hamstrings, glutes, and spinal erectors. It builds posterior-chain strength and reinforces bracing under load.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Good_Morning/0.jpg",
+    "cues": [
+      "Unlock the knees slightly.",
+      "Push hips back while keeping the spine neutral.",
+      "Stand tall by driving hips forward."
+    ]
+  },
+  {
+    "id": 30,
+    "name": "Hyperextension",
+    "muscles": "Lower Back, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "Hyperextensions strengthen the spinal erectors and glutes through controlled hip extension. They are useful for back endurance, posterior-chain development, and hinge assistance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hyperextension/0.jpg",
+    "cues": [
+      "Set the pad below your hips.",
+      "Move through the hips instead of rounding your back.",
+      "Finish in a straight line."
+    ]
+  },
+  {
+    "id": 31,
+    "name": "Rack Pull",
+    "muscles": "Upper Back, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "Rack pulls overload the top portion of the deadlift and let you handle heavier weights from an elevated position. They are effective for lockout strength and upper-back density.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Rack_Pull/0.jpg",
+    "cues": [
+      "Set the pins just below or above the knee.",
+      "Brace hard before lifting.",
+      "Stand tall without jerking the bar."
+    ]
+  },
+  {
+    "id": 32,
+    "name": "Meadows Row",
+    "muscles": "Lats, Rear Delts, Mid Back",
+    "type": "gym",
+    "description": "The Meadows row uses a landmine setup to challenge the lats and upper back through a unique pulling angle. It is excellent for unilateral back growth and grip-intensive work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Meadows_Row/0.jpg",
+    "cues": [
+      "Hinge and keep your hips square.",
+      "Pull the bar toward your hip.",
+      "Avoid shrugging at the top."
+    ]
+  },
+  {
+    "id": 33,
+    "name": "Straight-Arm Pulldown",
+    "muscles": "Lats, Teres Major, Triceps",
+    "type": "gym",
+    "description": "This cable movement isolates shoulder extension and teaches the lats to drive without much elbow flexion. It is a strong accessory for back width and lat awareness.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Straight-Arm_Pulldown/0.jpg",
+    "cues": [
+      "Keep arms long with a soft elbow bend.",
+      "Pull the bar to your thighs.",
+      "Let the lats control the return."
+    ]
+  },
+  {
+    "id": 34,
+    "name": "Renegade Row",
+    "muscles": "Core, Lats, Shoulders",
+    "type": "gym",
+    "description": "The renegade row combines anti-rotation core work with unilateral rowing strength. It challenges stability, shoulder control, and total-body tension in one move.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Renegade_Row/0.jpg",
+    "cues": [
+      "Set a wide base with the feet.",
+      "Row without twisting your hips.",
+      "Press the planted hand hard into the floor."
+    ]
+  },
+  {
+    "id": 35,
+    "name": "Arnold Press",
+    "muscles": "Shoulders, Triceps, Upper Chest",
+    "type": "gym",
+    "description": "The Arnold press moves through a larger arc than a standard shoulder press, training the delts through rotation and flexion. It is useful for shoulder hypertrophy and pressing control.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Arnold_Dumbbell_Press/0.jpg",
+    "cues": [
+      "Start palms facing you.",
+      "Rotate smoothly as you press overhead.",
+      "Lower with the same controlled path."
+    ]
+  },
+  {
+    "id": 36,
+    "name": "Lateral Raise",
+    "muscles": "Side Delts, Upper Traps, Supraspinatus",
+    "type": "gym",
+    "description": "Lateral raises isolate the side delts to help build broader shoulders and balanced shoulder development. They work best with control, tension, and moderate load.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg",
+    "cues": [
+      "Lead with the elbows.",
+      "Raise to about shoulder height.",
+      "Avoid swinging the weight up."
+    ]
+  },
+  {
+    "id": 37,
+    "name": "Front Raise",
+    "muscles": "Front Delts, Upper Chest, Serratus",
+    "type": "gym",
+    "description": "Front raises isolate shoulder flexion and emphasize the anterior delts. They are useful when building pressing support and shoulder size.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Front_Raise/0.jpg",
+    "cues": [
+      "Lift with control in front of the body.",
+      "Keep ribs down and torso still.",
+      "Lower slowly without dropping the weight."
+    ]
+  },
+  {
+    "id": 38,
+    "name": "Rear Delt Fly",
+    "muscles": "Rear Delts, Rhomboids, Upper Back",
+    "type": "gym",
+    "description": "Rear delt flyes target the often-neglected back side of the shoulder. They improve posture, shoulder balance, and upper-back detail when done with strict form.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Fly/0.jpg",
+    "cues": [
+      "Hinge and keep your neck neutral.",
+      "Open the arms wide without shrugging.",
+      "Squeeze the rear delts at the top."
+    ]
+  },
+  {
+    "id": 39,
+    "name": "Upright Row",
+    "muscles": "Side Delts, Upper Traps, Front Delts",
+    "type": "gym",
+    "description": "The upright row trains the shoulders and traps through a vertical pulling path. It can build upper-body size when performed with a range of motion that feels comfortable.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Upright_Row/0.jpg",
+    "cues": [
+      "Keep the bar close to your body.",
+      "Lead up with your elbows.",
+      "Stop before shoulder discomfort appears."
+    ]
+  },
+  {
+    "id": 40,
+    "name": "Barbell Overhead Press",
+    "muscles": "Shoulders, Triceps, Upper Chest",
+    "type": "gym",
+    "description": "The barbell overhead press is a classic standing strength lift for the shoulders and triceps. It also demands strong bracing and efficient full-body coordination.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Standing_Military_Press/0.jpg",
+    "cues": [
+      "Squeeze glutes and brace your abs.",
+      "Press the bar in a straight path overhead.",
+      "Move your head through at the top."
+    ]
+  },
+  {
+    "id": 41,
+    "name": "Cable Lateral Raise",
+    "muscles": "Side Delts, Upper Traps, Supraspinatus",
+    "type": "gym",
+    "description": "Cable lateral raises keep tension on the side delts from start to finish. They are excellent for clean shoulder isolation and controlled hypertrophy work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Lateral_Raise/0.jpg",
+    "cues": [
+      "Stand tall with the cable slightly behind you.",
+      "Raise out to the side without shrugging.",
+      "Pause briefly at shoulder height."
+    ]
+  },
+  {
+    "id": 42,
+    "name": "Behind-the-Neck Press",
+    "muscles": "Shoulders, Triceps, Upper Traps",
+    "type": "gym",
+    "description": "This overhead press variation places the bar behind the head and heavily challenges shoulder mobility and control. It should be used only with appropriate mobility and careful technique.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Behind_The_Neck_Press/0.jpg",
+    "cues": [
+      "Use only a pain-free range.",
+      "Keep your ribcage stacked over the hips.",
+      "Press straight up without craning the neck."
+    ]
+  },
+  {
+    "id": 43,
+    "name": "Plate Front Raise",
+    "muscles": "Front Delts, Upper Chest, Serratus",
+    "type": "gym",
+    "description": "Using a plate for front raises creates a simple, steady shoulder challenge through the front delts. It is a solid accessory for controlled shoulder hypertrophy.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plate_Front_Raise/0.jpg",
+    "cues": [
+      "Hold the plate firmly at chest level.",
+      "Raise to shoulder height without leaning back.",
+      "Lower under control."
+    ]
+  },
+  {
+    "id": 44,
+    "name": "Band Pull-Apart",
+    "muscles": "Rear Delts, Rhomboids, Mid Traps",
+    "type": "bodyweight",
+    "description": "Band pull-aparts train the rear shoulders and upper back with light but constant tension. They are great for posture, warm-ups, and balancing pressing-heavy programs.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Pull_Apart/0.jpg",
+    "cues": [
+      "Hold the band at shoulder height.",
+      "Pull hands apart by moving through the upper back.",
+      "Keep shoulders down and neck relaxed."
+    ]
+  },
+  {
+    "id": 45,
+    "name": "Barbell Curl",
+    "muscles": "Biceps, Forearms, Brachialis",
+    "type": "gym",
+    "description": "The barbell curl is a straightforward mass-builder for the biceps and forearms. It allows steady loading and helps build stronger elbow flexors over time.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
+    "cues": [
+      "Keep elbows near your sides.",
+      "Curl without swinging your torso.",
+      "Lower the bar slowly."
+    ]
+  },
+  {
+    "id": 46,
+    "name": "Hammer Curl",
+    "muscles": "Brachialis, Biceps, Forearms",
+    "type": "gym",
+    "description": "Hammer curls use a neutral grip to emphasize the brachialis and forearms while still training the biceps. They help build thicker-looking arms and stronger grip support.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Hammer_Curl/0.jpg",
+    "cues": [
+      "Keep palms facing each other.",
+      "Curl with the elbows pinned.",
+      "Squeeze at the top without twisting."
+    ]
+  },
+  {
+    "id": 47,
+    "name": "Concentration Curl",
+    "muscles": "Biceps, Brachialis, Forearms",
+    "type": "gym",
+    "description": "Concentration curls isolate one arm at a time and reduce momentum, making the biceps work hard through a strict range. They are excellent for focused arm hypertrophy and symmetry.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Concentration_Curl/0.jpg",
+    "cues": [
+      "Brace the elbow against the inner thigh.",
+      "Curl slowly and squeeze hard.",
+      "Lower all the way to full extension."
+    ]
+  },
+  {
+    "id": 48,
+    "name": "EZ-Bar Curl",
+    "muscles": "Biceps, Forearms, Brachialis",
+    "type": "gym",
+    "description": "The EZ-bar curl offers a wrist-friendly grip while still allowing solid biceps loading. It is a staple arm-builder for strength and size.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/EZ-Bar_Curl/0.jpg",
+    "cues": [
+      "Use the grip that feels best on your wrists.",
+      "Keep your upper arms still.",
+      "Control the negative."
+    ]
+  },
+  {
+    "id": 49,
+    "name": "Preacher Curl",
+    "muscles": "Biceps, Brachialis, Forearms",
+    "type": "gym",
+    "description": "Preacher curls place the arm on a pad to limit cheating and emphasize the biceps through a strict curl pattern. They are excellent for controlled arm growth.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Curl/0.jpg",
+    "cues": [
+      "Keep your upper arm fixed on the pad.",
+      "Curl smoothly without jerking.",
+      "Extend fully while staying in control."
+    ]
+  },
+  {
+    "id": 50,
+    "name": "Cable Curl",
+    "muscles": "Biceps, Forearms, Brachialis",
+    "type": "gym",
+    "description": "Cable curls keep consistent tension on the biceps across the full range of motion. They are useful for high-quality arm volume and a strong contraction.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Curl/0.jpg",
+    "cues": [
+      "Stand tall with elbows set by your sides.",
+      "Curl through the hands, not the shoulders.",
+      "Let the cable pull you into a full stretch."
+    ]
+  },
+  {
+    "id": 51,
+    "name": "Tricep Pushdown",
+    "muscles": "Triceps, Forearms, Shoulders",
+    "type": "gym",
+    "description": "The tricep pushdown isolates elbow extension with stable cable resistance. It is a staple for building triceps size, lockout strength, and arm definition.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
+    "cues": [
+      "Pin elbows to your sides.",
+      "Press the handle down until arms are straight.",
+      "Avoid letting shoulders roll forward."
+    ]
+  },
+  {
+    "id": 52,
+    "name": "Skull Crusher",
+    "muscles": "Triceps, Forearms, Shoulders",
+    "type": "gym",
+    "description": "Skull crushers challenge the triceps through a deep elbow-flexion range while lying on a bench. They are highly effective for triceps hypertrophy and stronger pressing assistance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Lying_Triceps_Extension/0.jpg",
+    "cues": [
+      "Keep upper arms mostly vertical.",
+      "Lower the bar with control toward the forehead or behind it.",
+      "Extend hard without flaring the elbows."
+    ]
+  },
+  {
+    "id": 53,
+    "name": "Close-Grip Bench Press",
+    "muscles": "Triceps, Chest, Front Delts",
+    "type": "gym",
+    "description": "This bench variation narrows the grip to shift more work toward the triceps while still training pressing strength. It is a strong compound lift for bigger arms and better lockout power.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Close-Grip_Bench_Press/0.jpg",
+    "cues": [
+      "Use a grip just inside shoulder width.",
+      "Lower the bar under control.",
+      "Press while keeping elbows tucked."
+    ]
+  },
+  {
+    "id": 54,
+    "name": "Diamond Push-Up",
+    "muscles": "Triceps, Chest, Front Delts",
+    "type": "bodyweight",
+    "description": "Diamond push-ups use a narrow hand position to increase triceps demand. They build pressing endurance, arm strength, and bodyweight control.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Diamond_Push-Up/0.jpg",
+    "cues": [
+      "Place hands close beneath the chest.",
+      "Keep elbows tracking back.",
+      "Maintain a straight body line."
+    ]
+  },
+  {
+    "id": 55,
+    "name": "Tricep Dip",
+    "muscles": "Triceps, Chest, Front Delts",
+    "type": "bodyweight",
+    "description": "Tricep dips focus on elbow extension and bodyweight pressing strength. They can be an effective arm-builder when shoulder position and range stay controlled.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Dip/0.jpg",
+    "cues": [
+      "Keep shoulders down away from ears.",
+      "Lower only as far as you can control.",
+      "Drive through the palms to lock out."
+    ]
+  },
+  {
+    "id": 56,
+    "name": "Overhead Tricep Extension",
+    "muscles": "Triceps, Shoulders, Forearms",
+    "type": "gym",
+    "description": "The overhead tricep extension lengthens the long head of the triceps under load. It is useful for fuller triceps development and better overhead pressing support.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_One-Arm_Triceps_Extension/0.jpg",
+    "cues": [
+      "Keep elbows pointing mostly forward.",
+      "Lower behind the head with control.",
+      "Extend fully without arching your back."
+    ]
+  },
+  {
+    "id": 57,
+    "name": "Front Squat",
+    "muscles": "Quads, Glutes, Core",
+    "type": "gym",
+    "description": "The front squat shifts the load to the front of the body, increasing quad demand and upright posture requirements. It builds leg strength, core stiffness, and clean squat mechanics.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Front_Squat/0.jpg",
+    "cues": [
+      "Keep elbows high in the rack position.",
+      "Sit down between your hips.",
+      "Drive up with chest tall."
+    ]
+  },
+  {
+    "id": 58,
+    "name": "Bulgarian Split Squat",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "This rear-foot-elevated split squat builds unilateral leg strength, balance, and hip stability. It is a brutal but effective tool for quads and glutes.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bulgarian_Split_Squat/0.jpg",
+    "cues": [
+      "Keep most of your weight on the front leg.",
+      "Lower straight down under control.",
+      "Drive through the whole front foot."
+    ]
+  },
+  {
+    "id": 59,
+    "name": "Leg Press",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "The leg press allows heavy lower-body training with more external support than a squat. It is great for building leg size and accumulating volume safely.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg",
+    "cues": [
+      "Keep your low back against the pad.",
+      "Lower until your knees and hips stay comfortable.",
+      "Drive the platform away without locking out hard."
+    ]
+  },
+  {
+    "id": 60,
+    "name": "Hack Squat",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "Hack squats create a fixed squatting path that heavily challenges the quads. They are a powerful hypertrophy tool for lower-body growth.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hack_Squat/0.jpg",
+    "cues": [
+      "Set feet where your knees track well.",
+      "Descend under control without bouncing.",
+      "Push through midfoot to stand."
+    ]
+  },
+  {
+    "id": 61,
+    "name": "Leg Extension",
+    "muscles": "Quads, Rectus Femoris, Vastus Medialis",
+    "type": "gym",
+    "description": "The leg extension isolates the quads through knee extension and is easy to load for high-rep work. It is useful for quad hypertrophy and finishing lower-body sessions.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extension/0.jpg",
+    "cues": [
+      "Align the machine joint with your knee.",
+      "Extend smoothly to a strong squeeze.",
+      "Lower without letting the weight crash."
+    ]
+  },
+  {
+    "id": 62,
+    "name": "Leg Curl",
+    "muscles": "Hamstrings, Calves, Glutes",
+    "type": "gym",
+    "description": "Leg curls isolate knee flexion and directly train the hamstrings. They help build balanced leg strength and support healthier knees.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Leg_Curl/0.jpg",
+    "cues": [
+      "Keep hips pressed into the pad.",
+      "Curl with control to a full squeeze.",
+      "Lower slowly to full length."
+    ]
+  },
+  {
+    "id": 63,
+    "name": "Standing Calf Raise",
+    "muscles": "Calves, Soleus, Tibialis Posterior",
+    "type": "gym",
+    "description": "Standing calf raises emphasize the gastrocnemius while training ankle strength and lower-leg endurance. They are a staple for stronger calves and improved push-off power.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Calf_Raise/0.jpg",
+    "cues": [
+      "Drop into a full stretch at the bottom.",
+      "Rise as high as possible onto the toes.",
+      "Pause briefly at the top."
+    ]
+  },
+  {
+    "id": 64,
+    "name": "Seated Calf Raise",
+    "muscles": "Soleus, Calves, Tibialis Posterior",
+    "type": "gym",
+    "description": "The seated calf raise biases the soleus because the knee stays bent. It is useful for complete calf development and ankle stability.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Calf_Raise/0.jpg",
+    "cues": [
+      "Keep the balls of your feet planted on the platform.",
+      "Lower under control into a stretch.",
+      "Drive up through the big toe."
+    ]
+  },
+  {
+    "id": 65,
+    "name": "Sumo Deadlift",
+    "muscles": "Glutes, Adductors, Hamstrings",
+    "type": "gym",
+    "description": "The sumo deadlift uses a wider stance to emphasize the hips, glutes, and adductors. It can suit lifters who are strongest with a more upright pulling position.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Sumo_Deadlift/0.jpg",
+    "cues": [
+      "Set feet wide with toes turned out.",
+      "Pull the slack out of the bar before lifting.",
+      "Push the floor apart as you stand."
+    ]
+  },
+  {
+    "id": 66,
+    "name": "Goblet Squat",
+    "muscles": "Quads, Glutes, Core",
+    "type": "gym",
+    "description": "Holding a dumbbell or kettlebell at the chest makes the goblet squat a great teaching and conditioning lift. It reinforces upright posture, depth, and lower-body strength.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Goblet_Squat/0.jpg",
+    "cues": [
+      "Keep the weight close to your chest.",
+      "Sit down between your knees.",
+      "Stand tall without collapsing forward."
+    ]
+  },
+  {
+    "id": 67,
+    "name": "Step-Up",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "Step-ups build single-leg strength and coordination while closely mimicking athletic and daily movement patterns. They are effective for glutes, quads, and balance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Step-Up/0.jpg",
+    "cues": [
+      "Use a box height you can control.",
+      "Drive through the working leg.",
+      "Avoid pushing excessively off the trailing foot."
+    ]
+  },
+  {
+    "id": 68,
+    "name": "Nordic Curl",
+    "muscles": "Hamstrings, Glutes, Calves",
+    "type": "bodyweight",
+    "description": "Nordic curls are an advanced hamstring exercise that overloads the lowering phase using bodyweight. They build resilient hamstrings and strong knee-flexion strength.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Nordic_Hamstring_Curl/0.jpg",
+    "cues": [
+      "Keep hips extended throughout.",
+      "Lower as slowly as possible.",
+      "Use hands lightly to catch yourself if needed."
+    ]
+  },
+  {
+    "id": 69,
+    "name": "Hip Thrust",
+    "muscles": "Glutes, Hamstrings, Core",
+    "type": "gym",
+    "description": "Hip thrusts train powerful hip extension with a strong glute emphasis. They are one of the most effective movements for glute size, strength, and sprint carryover.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hip_Thrust/0.jpg",
+    "cues": [
+      "Set your upper back firmly on the bench.",
+      "Drive through the heels.",
+      "Finish with ribs down and glutes squeezed."
+    ]
+  },
+  {
+    "id": 70,
+    "name": "Sissy Squat",
+    "muscles": "Quads, Hip Flexors, Core",
+    "type": "bodyweight",
+    "description": "The sissy squat isolates the quads by allowing the knees to travel forward while the torso leans back. It is a demanding bodyweight option for quad strength and tendon tolerance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sissy_Squat/0.jpg",
+    "cues": [
+      "Hold onto support if needed.",
+      "Let knees travel forward under control.",
+      "Keep tension through the quads the whole time."
+    ]
+  },
+  {
+    "id": 71,
+    "name": "Single-Leg RDL",
+    "muscles": "Hamstrings, Glutes, Core",
+    "type": "gym",
+    "description": "The single-leg Romanian deadlift trains unilateral hinging, balance, and posterior-chain control. It is excellent for glute and hamstring strength with added stability demands.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Single_Leg_Romanian_Deadlift/0.jpg",
+    "cues": [
+      "Keep hips square to the floor.",
+      "Reach the back leg long behind you.",
+      "Stand up by driving the planted foot down."
+    ]
+  },
+  {
+    "id": 72,
+    "name": "Crunch",
+    "muscles": "Rectus Abdominis, Obliques, Hip Flexors",
+    "type": "bodyweight",
+    "description": "Crunches train spinal flexion and let you directly target the abdominal wall. They are a simple way to build core awareness and midline endurance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunch/0.jpg",
+    "cues": [
+      "Press your low back gently into the floor.",
+      "Curl the ribs toward the pelvis.",
+      "Avoid yanking on the neck."
+    ]
+  },
+  {
+    "id": 73,
+    "name": "Bicycle Crunch",
+    "muscles": "Rectus Abdominis, Obliques, Hip Flexors",
+    "type": "bodyweight",
+    "description": "Bicycle crunches combine trunk flexion and rotation to challenge the abs and obliques. They are a strong bodyweight option for dynamic core work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bicycle_Crunch/0.jpg",
+    "cues": [
+      "Rotate through the ribcage, not just the elbows.",
+      "Extend one leg fully at a time.",
+      "Move smoothly instead of rushing."
+    ]
+  },
+  {
+    "id": 74,
+    "name": "Russian Twist",
+    "muscles": "Obliques, Rectus Abdominis, Hip Flexors",
+    "type": "bodyweight",
+    "description": "Russian twists emphasize rotational control and oblique endurance. They help build a stronger, more coordinated trunk when done with posture and control.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Russian_Twist/0.jpg",
+    "cues": [
+      "Stay tall through the chest.",
+      "Rotate the torso side to side.",
+      "Keep the movement controlled, not sloppy."
+    ]
+  },
+  {
+    "id": 75,
+    "name": "Leg Raise",
+    "muscles": "Lower Abs, Hip Flexors, Obliques",
+    "type": "bodyweight",
+    "description": "Leg raises challenge the lower portion of the abdominal wall and the hip flexors while resisting pelvic tilt. They are effective for trunk control and hanging-core progressions.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Leg_Raise/0.jpg",
+    "cues": [
+      "Keep your low back from arching.",
+      "Raise the legs under control.",
+      "Lower slowly without losing tension."
+    ]
+  },
+  {
+    "id": 76,
+    "name": "Dead Bug",
+    "muscles": "Core, Deep Abs, Hip Flexors",
+    "type": "bodyweight",
+    "description": "The dead bug teaches bracing and limb movement while keeping the trunk stable. It is one of the best drills for foundational core control and spinal position.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dead_Bug/0.jpg",
+    "cues": [
+      "Flatten the ribs gently toward the floor.",
+      "Move opposite arm and leg slowly.",
+      "Only go as far as you can stay braced."
+    ]
+  },
+  {
+    "id": 77,
+    "name": "Ab Wheel Rollout",
+    "muscles": "Core, Lats, Shoulders",
+    "type": "gym",
+    "description": "Ab wheel rollouts create a long-lever anti-extension challenge that lights up the entire trunk. They are highly effective for building strong, resilient core tension.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Wheel_Rollout/0.jpg",
+    "cues": [
+      "Squeeze glutes before rolling out.",
+      "Keep ribs down and spine neutral.",
+      "Pull back in without letting the hips sag."
+    ]
+  },
+  {
+    "id": 78,
+    "name": "Cable Crunch",
+    "muscles": "Rectus Abdominis, Obliques, Serratus",
+    "type": "gym",
+    "description": "Cable crunches add load to trunk flexion and let you progressively train the abs. They are useful for direct abdominal hypertrophy and controlled core strength.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crunch/0.jpg",
+    "cues": [
+      "Lock the hips in place.",
+      "Curl the ribcage down toward the floor.",
+      "Let the abs, not the arms, drive the motion."
+    ]
+  },
+  {
+    "id": 79,
+    "name": "Side Plank",
+    "muscles": "Obliques, Glutes, Shoulders",
+    "type": "bodyweight",
+    "description": "The side plank trains lateral trunk stability and helps strengthen the obliques and glute medius. It is excellent for core balance and anti-side-bending strength.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Plank/0.jpg",
+    "cues": [
+      "Stack shoulders and hips.",
+      "Drive the floor away with the forearm.",
+      "Keep the body in one straight line."
+    ]
+  },
+  {
+    "id": 80,
+    "name": "Mountain Climber",
+    "muscles": "Core, Hip Flexors, Shoulders",
+    "type": "bodyweight",
+    "description": "Mountain climbers blend core stability with fast lower-body action for a conditioning effect. They build trunk control, shoulder endurance, and elevated heart rate.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Mountain_Climber/0.jpg",
+    "cues": [
+      "Start in a strong plank.",
+      "Drive knees in without bouncing the hips.",
+      "Keep hands pressing firmly into the floor."
+    ]
+  },
+  {
+    "id": 81,
+    "name": "Hollow Body Hold",
+    "muscles": "Core, Hip Flexors, Quads",
+    "type": "bodyweight",
+    "description": "The hollow body hold teaches full-body tension and anti-extension strength. It is a valuable core drill for gymnastics control, lifting bracing, and midline endurance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hollow_Body_Hold/0.jpg",
+    "cues": [
+      "Press your low back into the floor.",
+      "Reach long through fingers and toes.",
+      "Only lower limbs as far as you can stay tight."
+    ]
+  },
+  {
+    "id": 82,
+    "name": "Power Clean",
+    "muscles": "Glutes, Quads, Traps",
+    "type": "gym",
+    "description": "The power clean is an explosive Olympic lift that trains rapid force production from the floor to the shoulders. It develops power, coordination, and athletic extension.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Power_Clean/0.jpg",
+    "cues": [
+      "Stay over the bar through the first pull.",
+      "Explode through hips, knees, and ankles.",
+      "Catch fast with elbows high."
+    ]
+  },
+  {
+    "id": 83,
+    "name": "Hang Clean",
+    "muscles": "Glutes, Quads, Traps",
+    "type": "gym",
+    "description": "The hang clean starts above the floor, making it a strong tool for training explosive extension and a quick rack position. It helps athletes build power with less setup complexity than a full clean.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hang_Clean/0.jpg",
+    "cues": [
+      "Load the hips from the hang.",
+      "Jump the bar up with violent extension.",
+      "Punch elbows through to the catch."
+    ]
+  },
+  {
+    "id": 84,
+    "name": "Power Snatch",
+    "muscles": "Glutes, Traps, Shoulders",
+    "type": "gym",
+    "description": "The power snatch is a fast full-body lift that moves the bar from the floor to overhead in one motion. It trains speed, timing, and explosive coordination.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Power_Snatch/0.jpg",
+    "cues": [
+      "Keep the bar close throughout.",
+      "Finish tall before pulling under.",
+      "Catch overhead with active shoulders."
+    ]
+  },
+  {
+    "id": 85,
+    "name": "Clean and Jerk",
+    "muscles": "Quads, Glutes, Shoulders",
+    "type": "gym",
+    "description": "The clean and jerk combines a powerful clean with an overhead jerk for full-body power expression. It develops explosive strength, coordination, and overhead stability.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Clean_And_Jerk/0.jpg",
+    "cues": [
+      "Secure the clean before rushing the jerk.",
+      "Dip straight and drive hard upward.",
+      "Punch under the bar to a stable lockout."
+    ]
+  },
+  {
+    "id": 86,
+    "name": "Push Press",
+    "muscles": "Shoulders, Triceps, Quads",
+    "type": "gym",
+    "description": "The push press uses leg drive to help move heavier loads overhead than a strict press. It builds total-body power and transfers well to athletic overhead work.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Push_Press/0.jpg",
+    "cues": [
+      "Dip straight down a few inches.",
+      "Drive hard through the legs.",
+      "Finish with the bar stacked overhead."
+    ]
+  },
+  {
+    "id": 87,
+    "name": "Thruster",
+    "muscles": "Quads, Shoulders, Glutes",
+    "type": "gym",
+    "description": "A thruster combines a front squat and overhead press into one demanding full-body movement. It is excellent for power endurance, conditioning, and total-body coordination.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Thruster/0.jpg",
+    "cues": [
+      "Stay upright in the squat.",
+      "Drive straight from the legs into the press.",
+      "Use one smooth motion from bottom to top."
+    ]
+  },
+  {
+    "id": 88,
+    "name": "Box Jump",
+    "muscles": "Quads, Glutes, Calves",
+    "type": "gym",
+    "description": "Box jumps train explosive lower-body power and landing mechanics. They are a staple plyometric drill for speed, reactivity, and athletic confidence.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Jump/0.jpg",
+    "cues": [
+      "Load the hips before exploding.",
+      "Land softly with knees tracking well.",
+      "Step down instead of rebounding when appropriate."
+    ]
+  },
+  {
+    "id": 89,
+    "name": "Broad Jump",
+    "muscles": "Glutes, Hamstrings, Quads",
+    "type": "bodyweight",
+    "description": "The broad jump develops horizontal power, coordination, and forceful hip extension. It is a simple but highly athletic movement for lower-body explosiveness.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Broad_Jump/0.jpg",
+    "cues": [
+      "Swing arms back to load.",
+      "Jump forward explosively.",
+      "Stick the landing with control."
+    ]
+  },
+  {
+    "id": 90,
+    "name": "Kettlebell Swing",
+    "muscles": "Glutes, Hamstrings, Core",
+    "type": "gym",
+    "description": "The kettlebell swing is a ballistic hinge that trains power, conditioning, and posterior-chain endurance. It teaches strong hip snap and efficient force transfer.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Swing/0.jpg",
+    "cues": [
+      "Hinge, do not squat the bell.",
+      "Snap the hips forward hard.",
+      "Let the bell float from hip power."
+    ]
+  },
+  {
+    "id": 91,
+    "name": "Turkish Get-Up",
+    "muscles": "Shoulders, Core, Glutes",
+    "type": "gym",
+    "description": "The Turkish get-up moves from floor to standing while keeping a weight overhead, demanding full-body control. It improves shoulder stability, coordination, and movement awareness.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Turkish_Get-Up/0.jpg",
+    "cues": [
+      "Keep eyes on the weight.",
+      "Move one step at a time.",
+      "Maintain a locked-out and stable shoulder."
+    ]
+  },
+  {
+    "id": 92,
+    "name": "Farmer's Walk",
+    "muscles": "Grip, Traps, Core",
+    "type": "gym",
+    "description": "Farmer's walks train loaded carrying strength, grip endurance, and postural control. They are one of the best simple movements for total-body resilience.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Farmers_Walk/0.jpg",
+    "cues": [
+      "Stand tall with shoulders packed.",
+      "Take short, controlled steps.",
+      "Do not let the weights swing you around."
+    ]
+  },
+  {
+    "id": 93,
+    "name": "Sled Push",
+    "muscles": "Quads, Glutes, Calves",
+    "type": "gym",
+    "description": "The sled push builds leg drive and conditioning with minimal eccentric stress. It is excellent for athletes, power development, and brutally effective work capacity.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sled_Push/0.jpg",
+    "cues": [
+      "Keep your body leaning as one line.",
+      "Drive knees forward with each step.",
+      "Push continuously instead of stuttering."
+    ]
+  },
+  {
+    "id": 94,
+    "name": "Battle Ropes",
+    "muscles": "Shoulders, Core, Arms",
+    "type": "gym",
+    "description": "Battle ropes train upper-body conditioning and trunk stiffness through repeated powerful waves. They are effective for athletic conditioning and shoulder endurance.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Battle_Ropes/0.jpg",
+    "cues": [
+      "Stay athletic in your stance.",
+      "Create crisp waves with the ropes.",
+      "Keep the core braced as you move."
+    ]
+  },
+  {
+    "id": 95,
+    "name": "Medicine Ball Slam",
+    "muscles": "Core, Lats, Shoulders",
+    "type": "gym",
+    "description": "Medicine ball slams train aggressive trunk flexion, upper-body power, and conditioning. They are a great way to express speed and intent safely.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Medicine_Ball_Slam/0.jpg",
+    "cues": [
+      "Reach tall before the slam.",
+      "Drive the ball down with your whole body.",
+      "Catch or reset with a neutral spine."
+    ]
+  },
+  {
+    "id": 96,
+    "name": "Burpee",
+    "muscles": "Chest, Quads, Core",
+    "type": "bodyweight",
+    "description": "Burpees combine a squat, plank, and jump into a demanding conditioning exercise. They build work capacity, coordination, and full-body grit.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Burpee/0.jpg",
+    "cues": [
+      "Move with a strong rhythm.",
+      "Land softly on the jump.",
+      "Keep the plank position tight between reps."
+    ]
+  },
+  {
+    "id": 97,
+    "name": "Bear Crawl",
+    "muscles": "Shoulders, Core, Quads",
+    "type": "bodyweight",
+    "description": "Bear crawls create contralateral coordination while heavily challenging the shoulders and trunk. They are useful for athletic movement quality and conditioning.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bear_Crawl/0.jpg",
+    "cues": [
+      "Keep knees hovering just off the floor.",
+      "Move opposite hand and foot together.",
+      "Stay quiet through the hips."
+    ]
+  },
+  {
+    "id": 98,
+    "name": "Pallof Press",
+    "muscles": "Obliques, Core, Glutes",
+    "type": "gym",
+    "description": "The Pallof press trains anti-rotation core strength by resisting the pull of a band or cable. It is excellent for trunk control and safer rotational strength training.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Pallof_Press/0.jpg",
+    "cues": [
+      "Stand tall with ribs stacked.",
+      "Press straight out without twisting.",
+      "Hold briefly and breathe under tension."
+    ]
+  },
+  {
+    "id": 99,
+    "name": "Single-Leg Press",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "gym",
+    "description": "Single-leg pressing trains each leg independently and helps address asymmetries in strength and control. It is a useful machine option for unilateral lower-body volume.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Single_Leg_Press/0.jpg",
+    "cues": [
+      "Keep hips level on the seat.",
+      "Lower under control through a safe range.",
+      "Drive evenly through the working foot."
+    ]
+  },
+  {
+    "id": 100,
+    "name": "Hip Flexor Stretch",
+    "muscles": "Hip Flexors, Quads, Glutes",
+    "type": "bodyweight",
+    "description": "This stretch opens the front of the hip and can reduce stiffness created by sitting or heavy lower-body training. It supports healthier pelvic position and smoother hip extension.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hip_Flexor_Stretch/0.jpg",
+    "cues": [
+      "Tuck the pelvis slightly under.",
+      "Squeeze the glute of the trailing leg.",
+      "Ease forward until you feel the front hip open."
+    ]
+  },
+  {
+    "id": 101,
+    "name": "Pigeon Pose",
+    "muscles": "Glutes, Hip Rotators, Hip Flexors",
+    "type": "bodyweight",
+    "description": "Pigeon pose stretches the glutes and deep hip rotators while encouraging hip mobility. It can help restore movement quality after running, squatting, or long periods of sitting.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pigeon_Pose/0.jpg",
+    "cues": [
+      "Square the hips as much as possible.",
+      "Support the front hip if needed.",
+      "Breathe and relax into the stretch."
+    ]
+  },
+  {
+    "id": 102,
+    "name": "World's Greatest Stretch",
+    "muscles": "Hip Flexors, Hamstrings, Thoracic Spine",
+    "type": "bodyweight",
+    "description": "This multi-position drill opens the hips, hamstrings, and upper back in one sequence. It is a strong warm-up tool for improving global movement quality.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Worlds_Greatest_Stretch/0.jpg",
+    "cues": [
+      "Step long into the lunge.",
+      "Reach and rotate through the upper back.",
+      "Move slowly through each position."
+    ]
+  },
+  {
+    "id": 103,
+    "name": "Cat-Cow",
+    "muscles": "Spine, Core, Shoulders",
+    "type": "bodyweight",
+    "description": "Cat-cow improves spinal awareness and gentle mobility through flexion and extension. It is useful in warm-ups, recovery work, and restoring quality breathing positions.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cat_Cow/0.jpg",
+    "cues": [
+      "Move one vertebra at a time.",
+      "Match the motion with your breathing.",
+      "Do not force the range."
+    ]
+  },
+  {
+    "id": 104,
+    "name": "Thoracic Rotation",
+    "muscles": "Thoracic Spine, Obliques, Shoulders",
+    "type": "bodyweight",
+    "description": "Thoracic rotation drills improve upper-back mobility and make overhead and rotational movement cleaner. They can reduce compensation through the lower back and shoulders.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Thoracic_Rotation/0.jpg",
+    "cues": [
+      "Keep hips mostly still.",
+      "Rotate from the upper back.",
+      "Exhale as you open into the range."
+    ]
+  },
+  {
+    "id": 105,
+    "name": "Couch Stretch",
+    "muscles": "Hip Flexors, Quads, Core",
+    "type": "bodyweight",
+    "description": "The couch stretch aggressively opens the quads and hip flexors, especially after heavy leg training or long sitting. It is a valuable mobility drill for restoring front-side hip length.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Couch_Stretch/0.jpg",
+    "cues": [
+      "Keep the ribcage stacked over the pelvis.",
+      "Squeeze the glute to deepen the stretch.",
+      "Do not crank into pain."
+    ]
+  },
+  {
+    "id": 106,
+    "name": "90/90 Hip Stretch",
+    "muscles": "Hip Rotators, Glutes, Adductors",
+    "type": "bodyweight",
+    "description": "The 90/90 position trains internal and external hip rotation in a grounded posture. It is excellent for hip mobility, control, and smoother squatting mechanics.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/90-90_Hip_Stretch/0.jpg",
+    "cues": [
+      "Sit tall through the spine.",
+      "Keep both knees heavy to the floor.",
+      "Hinge forward gently over the front leg."
+    ]
+  },
+  {
+    "id": 107,
+    "name": "Doorway Chest Stretch",
+    "muscles": "Chest, Front Delts, Biceps",
+    "type": "bodyweight",
+    "description": "This stretch opens the chest and front shoulders, which often tighten up from pressing and desk posture. It supports better posture and freer overhead movement.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Doorway_Chest_Stretch/0.jpg",
+    "cues": [
+      "Place the forearm lightly on the frame.",
+      "Step through until you feel the chest open.",
+      "Keep the shoulder relaxed and down."
+    ]
+  },
+  {
+    "id": 108,
+    "name": "Box Step-Up",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "bodyweight",
+    "description": "Box step-ups build lower-body endurance and elevate heart rate without the impact of jumping. They are a practical conditioning move for legs and work capacity.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Step-Up/0.jpg",
+    "cues": [
+      "Stand tall on top of the box.",
+      "Drive through the working leg.",
+      "Keep a steady rhythm."
+    ]
+  },
+  {
+    "id": 109,
+    "name": "Jump Squat",
+    "muscles": "Quads, Glutes, Calves",
+    "type": "bodyweight",
+    "description": "Jump squats combine lower-body strength and plyometric intent in a simple bodyweight drill. They build power, speed, and conditioning at the same time.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Jump_Squat/0.jpg",
+    "cues": [
+      "Load the hips before takeoff.",
+      "Explode straight up.",
+      "Land softly and absorb the force."
+    ]
+  },
+  {
+    "id": 110,
+    "name": "Jump Lunge",
+    "muscles": "Quads, Glutes, Hamstrings",
+    "type": "bodyweight",
+    "description": "Jump lunges train unilateral leg power and coordination while driving the heart rate up fast. They are demanding but effective for athletic conditioning.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Jump_Lunge/0.jpg",
+    "cues": [
+      "Start from a strong split stance.",
+      "Switch legs in the air under control.",
+      "Land softly into the next rep."
+    ]
+  },
+  {
+    "id": 111,
+    "name": "High Knees",
+    "muscles": "Hip Flexors, Quads, Calves",
+    "type": "bodyweight",
+    "description": "High knees are a fast conditioning drill that improves rhythm, foot speed, and hip flexor drive. They are useful in warm-ups, intervals, and athletic prep.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/High_Knees/0.jpg",
+    "cues": [
+      "Stay tall through the torso.",
+      "Drive knees up quickly.",
+      "Pump the arms with the legs."
+    ]
+  },
+  {
+    "id": 112,
+    "name": "Jumping Jacks",
+    "muscles": "Shoulders, Calves, Quads",
+    "type": "bodyweight",
+    "description": "Jumping jacks provide a low-skill conditioning option that raises heart rate and coordinates the whole body. They are effective for warm-ups, circuits, and general movement.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Jumping_Jacks/0.jpg",
+    "cues": [
+      "Keep a light bounce on the feet.",
+      "Reach overhead with relaxed shoulders.",
+      "Stay rhythmic and controlled."
+    ]
+  },
+  {
+    "id": 113,
+    "name": "Tuck Jump",
+    "muscles": "Quads, Glutes, Core",
+    "type": "bodyweight",
+    "description": "Tuck jumps train explosive vertical power and reactive coordination. They are useful for athletic pop, fast force production, and conditioning.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Tuck_Jump/0.jpg",
+    "cues": [
+      "Jump tall before tucking.",
+      "Bring knees up with a braced core.",
+      "Land softly and reset if needed."
+    ]
+  },
+  {
+    "id": 114,
+    "name": "Lateral Bound",
+    "muscles": "Glutes, Quads, Adductors",
+    "type": "bodyweight",
+    "description": "Lateral bounds develop side-to-side power, deceleration, and athletic balance. They are especially useful for field and court athletes.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/0.jpg",
+    "cues": [
+      "Push hard off the outside leg.",
+      "Stick the landing before rebounding.",
+      "Keep the knee aligned over the foot."
+    ]
+  },
+  {
+    "id": 115,
+    "name": "Skater Jump",
+    "muscles": "Glutes, Quads, Calves",
+    "type": "bodyweight",
+    "description": "Skater jumps train lateral movement, single-leg stability, and conditioning in one athletic drill. They help build coordination and power in the frontal plane.",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Skater_Jump/0.jpg",
+    "cues": [
+      "Leap side to side with control.",
+      "Reach the trailing leg behind you.",
+      "Land softly and own each rep."
+    ]
   }
 ];
 
