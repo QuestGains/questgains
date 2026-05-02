@@ -2,7 +2,7 @@
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v4';
+const CACHE_NAME = 'questgains-v5';
 const PRECACHE_URLS = [
   './index.html',
   './style.css',
