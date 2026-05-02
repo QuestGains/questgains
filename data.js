@@ -594,7 +594,7 @@ const exDB = [
     "muscles": "Brachialis, Biceps, Forearms",
     "type": "gym",
     "description": "Hammer curls use a neutral grip to emphasize the brachialis and forearms while still training the biceps. They help build thicker-looking arms and stronger grip support.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Alternate_Bicep_Curl/0.jpg",
     "cues": [
       "Keep palms facing each other.",
       "Curl with the elbows pinned.",
@@ -607,7 +607,7 @@ const exDB = [
     "muscles": "Biceps, Brachialis, Forearms",
     "type": "gym",
     "description": "Concentration curls isolate one arm at a time and reduce momentum, making the biceps work hard through a strict range. They are excellent for focused arm hypertrophy and symmetry.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Curl/0.jpg",
     "cues": [
       "Brace the elbow against the inner thigh.",
       "Curl slowly and squeeze hard.",
@@ -672,7 +672,7 @@ const exDB = [
     "muscles": "Triceps, Forearms, Shoulders",
     "type": "gym",
     "description": "Skull crushers challenge the triceps through a deep elbow-flexion range while lying on a bench. They are highly effective for triceps hypertrophy and stronger pressing assistance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
     "cues": [
       "Keep upper arms mostly vertical.",
       "Lower the bar with control toward the forehead or behind it.",
@@ -698,7 +698,7 @@ const exDB = [
     "muscles": "Triceps, Chest, Front Delts",
     "type": "bodyweight",
     "description": "Diamond push-ups use a narrow hand position to increase triceps demand. They build pressing endurance, arm strength, and bodyweight control.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/1.jpg",
     "cues": [
       "Place hands close beneath the chest.",
       "Keep elbows tracking back.",
@@ -711,7 +711,7 @@ const exDB = [
     "muscles": "Triceps, Chest, Front Delts",
     "type": "bodyweight",
     "description": "Tricep dips focus on elbow extension and bodyweight pressing strength. They can be an effective arm-builder when shoulder position and range stay controlled.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Parallel_Bar_Dip/0.jpg",
     "cues": [
       "Keep shoulders down away from ears.",
       "Lower only as far as you can control.",
@@ -737,7 +737,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Core",
     "type": "gym",
     "description": "The front squat shifts the load to the front of the body, increasing quad demand and upright posture requirements. It builds leg strength, core stiffness, and clean squat mechanics.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/1.jpg",
     "cues": [
       "Keep elbows high in the rack position.",
       "Sit down between your hips.",
@@ -750,7 +750,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "gym",
     "description": "This rear-foot-elevated split squat builds unilateral leg strength, balance, and hip stability. It is a brutal but effective tool for quads and glutes.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lunges/0.jpg",
     "cues": [
       "Keep most of your weight on the front leg.",
       "Lower straight down under control.",
@@ -789,7 +789,7 @@ const exDB = [
     "muscles": "Quads, Rectus Femoris, Vastus Medialis",
     "type": "gym",
     "description": "The leg extension isolates the quads through knee extension and is easy to load for high-rep work. It is useful for quad hypertrophy and finishing lower-body sessions.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/1.jpg",
     "cues": [
       "Align the machine joint with your knee.",
       "Extend smoothly to a strong squeeze.",
@@ -802,7 +802,7 @@ const exDB = [
     "muscles": "Hamstrings, Calves, Glutes",
     "type": "gym",
     "description": "Leg curls isolate knee flexion and directly train the hamstrings. They help build balanced leg strength and support healthier knees.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Leg_Curl/0.jpg",
     "cues": [
       "Keep hips pressed into the pad.",
       "Curl with control to a full squeeze.",
@@ -815,7 +815,7 @@ const exDB = [
     "muscles": "Calves, Soleus, Tibialis Posterior",
     "type": "gym",
     "description": "Standing calf raises emphasize the gastrocnemius while training ankle strength and lower-leg endurance. They are a staple for stronger calves and improved push-off power.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Calf_Press_On_The_Leg_Press_Machine/0.jpg",
     "cues": [
       "Drop into a full stretch at the bottom.",
       "Rise as high as possible onto the toes.",
@@ -841,7 +841,7 @@ const exDB = [
     "muscles": "Glutes, Adductors, Hamstrings",
     "type": "gym",
     "description": "The sumo deadlift uses a wider stance to emphasize the hips, glutes, and adductors. It can suit lifters who are strongest with a more upright pulling position.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Sumo_Deadlift/0.jpg",
     "cues": [
       "Set feet wide with toes turned out.",
       "Pull the slack out of the bar before lifting.",
@@ -867,7 +867,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "gym",
     "description": "Step-ups build single-leg strength and coordination while closely mimicking athletic and daily movement patterns. They are effective for glutes, quads, and balance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Skip/0.jpg",
     "cues": [
       "Use a box height you can control.",
       "Drive through the working leg.",
@@ -932,7 +932,7 @@ const exDB = [
     "muscles": "Rectus Abdominis, Obliques, Hip Flexors",
     "type": "bodyweight",
     "description": "Crunches train spinal flexion and let you directly target the abdominal wall. They are a simple way to build core awareness and midline endurance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunches/0.jpg",
     "cues": [
       "Press your low back gently into the floor.",
       "Curl the ribs toward the pelvis.",
@@ -945,7 +945,7 @@ const exDB = [
     "muscles": "Rectus Abdominis, Obliques, Hip Flexors",
     "type": "bodyweight",
     "description": "Bicycle crunches combine trunk flexion and rotation to challenge the abs and obliques. They are a strong bodyweight option for dynamic core work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Air_Bike/0.jpg",
     "cues": [
       "Rotate through the ribcage, not just the elbows.",
       "Extend one leg fully at a time.",
@@ -971,7 +971,7 @@ const exDB = [
     "muscles": "Lower Abs, Hip Flexors, Obliques",
     "type": "bodyweight",
     "description": "Leg raises challenge the lower portion of the abdominal wall and the hip flexors while resisting pelvic tilt. They are effective for trunk control and hanging-core progressions.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hanging_Leg_Raise/0.jpg",
     "cues": [
       "Keep your low back from arching.",
       "Raise the legs under control.",
@@ -997,7 +997,7 @@ const exDB = [
     "muscles": "Core, Lats, Shoulders",
     "type": "gym",
     "description": "Ab wheel rollouts create a long-lever anti-extension challenge that lights up the entire trunk. They are highly effective for building strong, resilient core tension.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Roller/0.jpg",
     "cues": [
       "Squeeze glutes before rolling out.",
       "Keep ribs down and spine neutral.",
@@ -1023,7 +1023,7 @@ const exDB = [
     "muscles": "Obliques, Glutes, Shoulders",
     "type": "bodyweight",
     "description": "The side plank trains lateral trunk stability and helps strengthen the obliques and glute medius. It is excellent for core balance and anti-side-bending strength.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Bridge/0.jpg",
     "cues": [
       "Stack shoulders and hips.",
       "Drive the floor away with the forearm.",
@@ -1036,7 +1036,7 @@ const exDB = [
     "muscles": "Core, Hip Flexors, Shoulders",
     "type": "bodyweight",
     "description": "Mountain climbers blend core stability with fast lower-body action for a conditioning effect. They build trunk control, shoulder endurance, and elevated heart rate.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Mountain_Climbers/0.jpg",
     "cues": [
       "Start in a strong plank.",
       "Drive knees in without bouncing the hips.",
@@ -1062,7 +1062,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Traps",
     "type": "gym",
     "description": "The power clean is an explosive Olympic lift that trains rapid force production from the floor to the shoulders. It develops power, coordination, and athletic extension.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Power_Clean/0.jpg",
     "cues": [
       "Stay over the bar through the first pull.",
       "Explode through hips, knees, and ankles.",
@@ -1166,7 +1166,7 @@ const exDB = [
     "muscles": "Glutes, Hamstrings, Core",
     "type": "gym",
     "description": "The kettlebell swing is a ballistic hinge that trains power, conditioning, and posterior-chain endurance. It teaches strong hip snap and efficient force transfer.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Sumo_High_Pull/0.jpg",
     "cues": [
       "Hinge, do not squat the bell.",
       "Snap the hips forward hard.",
