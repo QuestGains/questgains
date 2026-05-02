@@ -129,15 +129,128 @@ let currentRecoveryState = {
   soreness: 2
 };
 
-function saveData() {
+window.currentUserId = null;
+
+function buildCharacterState(source = {}) {
+  const nextCharacter = {
+    ...DEFAULT_CHARACTER,
+    ...source,
+    unlockedCharacters: source.unlockedCharacters || {},
+    activeCharId: source.activeCharId || source.activePath || null,
+    activeNodeId: source.activeNodeId || null,
+    equippedTitle: source.equippedTitle || null,
+    currentStreak: source.currentStreak || 0,
+    lastActiveDate: source.lastActiveDate || null,
+    streakShieldUsed: source.streakShieldUsed || null,
+    streakBroken: source.streakBroken || false,
+    calorieGoal: source.calorieGoal || 2000,
+    proteinGoal: source.proteinGoal || 150,
+    badges: source.badges || [],
+    oneRMs: {
+      ...DEFAULT_CHARACTER.oneRMs,
+      ...(source.oneRMs || {})
+    },
+    oneRMsLastUpdated: source.oneRMsLastUpdated || null,
+    waterGoal: source.waterGoal || 8,
+    waterToday: source.waterToday || 0,
+    waterDate: source.waterDate || null,
+    waterRewardedDate: source.waterRewardedDate || null,
+    weightUnit: source.weightUnit || 'lbs',
+    templates: source.templates || [],
+    lastSessionVolume: source.lastSessionVolume || {},
+    weeklyVolume: source.weeklyVolume || {},
+    weeklyVolumeWeek: source.weeklyVolumeWeek || null,
+    recoveryLog: source.recoveryLog || [],
+    cardioLog: source.cardioLog || [],
+    questsClaimedToday: source.questsClaimedToday || 0,
+    questsClaimedDate: source.questsClaimedDate || null,
+    totalLevels: source.totalLevels || 0,
+    volumePR: source.volumePR || 0,
+    mealsLoggedToday: source.mealsLoggedToday || 0,
+    fullDayBonusDate: source.fullDayBonusDate || null,
+    totalNodesUnlocked: source.totalNodesUnlocked || 0,
+    weeklyDedicationBonusWeek: source.weeklyDedicationBonusWeek || null,
+    progressTabVisitedDate: source.progressTabVisitedDate || null,
+    restTimerUsedToday: source.restTimerUsedToday || false,
+    restTimerDate: source.restTimerDate || null,
+    aiSuggestUsedThisWeek: source.aiSuggestUsedThisWeek || 0,
+    aiSuggestWeek: source.aiSuggestWeek || null
+  };
+
+  if (!source.unlockedCharacters && source.activePath && Array.isArray(source.unlockedNodes)) {
+    nextCharacter.unlockedCharacters[source.activePath] = [...source.unlockedNodes];
+  }
+
+  return nextCharacter;
+}
+
+function getQuestGainsData() {
   character.cardioLog = cardioLog;
   character.totalNodesUnlocked = getUnlockedNodeCount();
-  localStorage.setItem('character', JSON.stringify(character));
-  localStorage.setItem('workoutLog', JSON.stringify(workoutLog));
-  localStorage.setItem('progressHistory', JSON.stringify(progressHistory));
-  localStorage.setItem('todaysMeals', JSON.stringify(todaysMeals));
-  localStorage.setItem('questProgress', JSON.stringify(questProgress));
-  localStorage.setItem('cardioLog', JSON.stringify(cardioLog));
+
+  return {
+    character,
+    workoutLog,
+    progressHistory,
+    todaysMeals,
+    questProgress,
+    cardioLog
+  };
+}
+
+function clearQuestGainsLocalData() {
+  ['character', 'workoutLog', 'progressHistory', 'todaysMeals', 'questProgress', 'cardioLog'].forEach((key) => localStorage.removeItem(key));
+}
+
+function applyQuestGainsCloudState(payload = {}) {
+  const importedCharacter = payload.character || {};
+  character = buildCharacterState(importedCharacter);
+  workoutLog = Array.isArray(payload.workoutLog) ? payload.workoutLog : [];
+  cardioLog = Array.isArray(payload.cardioLog) ? payload.cardioLog : character.cardioLog || [];
+  progressHistory = Array.isArray(payload.progressHistory) ? payload.progressHistory : [];
+  todaysMeals = Array.isArray(payload.todaysMeals) ? payload.todaysMeals : [];
+  questProgress = payload.questProgress || {
+    jumpstartCompleted: [],
+    dailyCompleted: [],
+    dailyLastDate: null,
+    weeklyCompleted: [],
+    weeklyLastWeek: null,
+    personalCompleted: []
+  };
+  character.cardioLog = cardioLog;
+  character.totalNodesUnlocked = getUnlockedNodeCount();
+  selectedHeroId = character.activeCharId || (heroRoster[0] ? heroRoster[0].id : null);
+  currentSession = [];
+  workoutSuggestionMeta = { note: '', focusMuscles: [] };
+  openSetFormIndex = null;
+
+  syncWaterTracker();
+  syncMealTracker();
+  syncDailyTrackingFlags();
+  syncWeeklyTrackingFlags();
+  saveData();
+  updateHeader();
+  populateFoodSelect('meal-food-select', nDB, false);
+  renderUnitConverter();
+  showTab(currentTab);
+}
+
+window.getQuestGainsData = getQuestGainsData;
+window.applyQuestGainsCloudState = applyQuestGainsCloudState;
+window.clearQuestGainsLocalData = clearQuestGainsLocalData;
+
+function saveData() {
+  const snapshot = getQuestGainsData();
+  localStorage.setItem('character', JSON.stringify(snapshot.character));
+  localStorage.setItem('workoutLog', JSON.stringify(snapshot.workoutLog));
+  localStorage.setItem('progressHistory', JSON.stringify(snapshot.progressHistory));
+  localStorage.setItem('todaysMeals', JSON.stringify(snapshot.todaysMeals));
+  localStorage.setItem('questProgress', JSON.stringify(snapshot.questProgress));
+  localStorage.setItem('cardioLog', JSON.stringify(snapshot.cardioLog));
+
+  if (window.currentUserId && typeof window.saveUserDataDebounced === 'function') {
+    window.saveUserDataDebounced(window.currentUserId, snapshot);
+  }
 }
 
 function getTodayStamp() {
