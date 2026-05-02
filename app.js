@@ -2958,6 +2958,6 @@ window.onload = function onLoad() {
   renderHero();
   renderClassSelection();
   checkProgressAchievements();
-  showTab(4);
+  showTab(0);
   console.log(`%c✅ QuestGains v2.12 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
