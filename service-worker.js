@@ -2,7 +2,7 @@
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v10';
+const CACHE_NAME = 'questgains-v11';
 const PRECACHE_URLS = [
   './index.html',
   './firebase-config.js',
