@@ -1071,6 +1071,41 @@ const lbD = [
   }
 ];
 
+
+const gearItems = [
+  { id: 'warriors_belt', name: "Warrior's Belt", icon: '🪖', desc: 'Forged in battle.', perk: '+5% workout XP', stat: 'workout_xp_bonus', value: 5, unlockCondition: 'Complete 5 workout sessions' },
+  { id: 'champions_wristband', name: "Champion's Wristband", icon: '⌚', desc: 'Worn by legends.', perk: '+10 XP per set', stat: 'set_xp_bonus', value: 10, unlockCondition: 'Log 20 sets total' },
+  { id: 'iron_boots', name: 'Iron Boots', icon: '🥾', desc: 'Never stop moving.', perk: '+15 XP per cardio session', stat: 'cardio_xp_bonus', value: 15, unlockCondition: 'Complete 3 cardio sessions' },
+  { id: 'focus_helm', name: 'Focus Helm', icon: '⛑️', desc: 'Clarity under pressure.', perk: '+10 XP per quest claimed', stat: 'quest_xp_bonus', value: 10, unlockCondition: 'Claim 10 quests total' },
+  { id: 'recovery_cape', name: 'Recovery Cape', icon: '🦸', desc: 'Rest is part of the grind.', perk: 'Streak Shield: 2 misses/week', stat: 'streak_shield', value: 2, unlockCondition: 'Log a recovery check-in 5 times' },
+  { id: 'protein_gauntlets', name: 'Protein Gauntlets', icon: '🧤', desc: 'Feed the machine.', perk: '+5 XP per meal logged', stat: 'meal_xp_bonus', value: 5, unlockCondition: 'Log 15 meals total' },
+  { id: 'endurance_amulet', name: 'Endurance Amulet', icon: '📿', desc: 'The will to continue.', perk: '7-day streak = 2× XP day', stat: 'streak_double_day', value: 7, unlockCondition: 'Hit a 7-day streak' },
+  { id: 'shadow_gloves', name: 'Shadow Gloves', icon: '🖤', desc: 'Strike from the dark.', perk: '+20 XP on personal quests', stat: 'personal_quest_bonus', value: 20, unlockCondition: 'Complete all Jumpstart quests' },
+];
+
+const bossBattles = [
+  { id: 'iron_golem', name: 'The Iron Golem', icon: '🗿', desc: 'A titan of stone and will. Prove your discipline.', requirement: '5 workouts this week', rewardXP: 500, rewardGear: 'warriors_belt', difficulty: 'Hard' },
+  { id: 'shadow_wraith', name: 'Shadow Wraith', icon: '👻', desc: 'It feeds on the sedentary. Move or be consumed.', requirement: '7 days of activity this week', rewardXP: 750, rewardGear: 'recovery_cape', difficulty: 'Legendary' },
+  { id: 'protein_hydra', name: 'The Protein Hydra', icon: '🐉', desc: 'Three heads. Three meals a day.', requirement: 'Log 21 meals this week', rewardXP: 400, rewardGear: 'protein_gauntlets', difficulty: 'Medium' },
+  { id: 'cardio_specter', name: 'Cardio Specter', icon: '💨', desc: 'Faster than your excuses.', requirement: '3 cardio sessions this week', rewardXP: 350, rewardGear: 'iron_boots', difficulty: 'Medium' },
+  { id: 'quest_overlord', name: 'Quest Overlord', icon: '👑', desc: 'Demands tribute. Complete 8 quests this week.', requirement: '8 quests claimed this week', rewardXP: 600, rewardGear: 'focus_helm', difficulty: 'Hard' },
+];
+
+const heroClasses = [
+  { id: 'warrior', name: 'Warrior', icon: '⚔️', desc: 'Strength is your weapon. Compound lifts yield bonus XP.', bonus: '+15% XP on strength workouts', color: 'from-red-600 to-orange-700' },
+  { id: 'rogue', name: 'Rogue', icon: '🗡️', desc: 'Speed and agility define you. Cardio and streaks power you up.', bonus: '+20% XP on cardio + streak days', color: 'from-purple-600 to-indigo-700' },
+  { id: 'mage', name: 'Mage', icon: '🔮', desc: 'Mind over muscle. Nutrition logging and quest completion fuel your magic.', bonus: '+15% XP on meals and quests', color: 'from-blue-600 to-cyan-700' },
+  { id: 'paladin', name: 'Paladin', icon: '🛡️', desc: 'Balance in all things. Steady gains, strong recovery, no weakness.', bonus: '+10% XP on everything', color: 'from-yellow-500 to-amber-600' },
+];
+
+const appThemes = [
+  { id: 'default', name: 'Default', primary: '#22c55e', bg: '#030712', unlockCondition: 'Default — always available' },
+  { id: 'crimson', name: 'Crimson Power', primary: '#ef4444', bg: '#1a0000', unlockCondition: 'Complete the Power Path' },
+  { id: 'violet', name: 'Shadow Violet', primary: '#a855f7', bg: '#0d001a', unlockCondition: 'Complete the Shadow Path' },
+  { id: 'amber', name: 'Speed Amber', primary: '#f59e0b', bg: '#1a0f00', unlockCondition: 'Complete the Speed Path' },
+  { id: 'cyan', name: 'Mystic Cyan', primary: '#06b6d4', bg: '#00141a', unlockCondition: 'Complete the Mystic Path' },
+];
+
 const nDB = [
   {
     "id": 1,

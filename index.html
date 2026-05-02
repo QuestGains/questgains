@@ -22,7 +22,7 @@
   <script src="db.js"></script>
   <script src="auth.js"></script>
 </head>
-<body class="bg-gray-950 text-white min-h-screen pb-8">
+<body class="text-white min-h-screen pb-8" style="background-color: var(--theme-bg);">
   <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
     <div class="w-full max-w-md overflow-hidden rounded-[2rem] border border-green-500/20 bg-gray-900 shadow-2xl shadow-green-500/10">
       <div class="bg-gradient-to-br from-green-500/20 via-gray-900 to-gray-950 px-8 pt-10 pb-8 text-center">
@@ -71,6 +71,18 @@
 
         <button id="continue-offline-btn" type="button" class="mt-5 hidden w-full rounded-2xl border border-gray-700 px-4 py-3 text-sm font-medium text-gray-300 transition hover:border-green-400 hover:text-white">Continue in offline mode</button>
       </div>
+    </div>
+  </div>
+
+  <div id="class-overlay" class="class-overlay hidden fixed inset-0 z-[101] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
+    <div class="w-full max-w-3xl rounded-[2rem] border border-green-500/20 bg-gray-900 shadow-2xl shadow-green-500/10 p-6 md:p-8">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-3">⚔️</div>
+        <h2 class="text-3xl font-black text-green-400">Choose Your Class</h2>
+        <p class="mt-2 text-sm text-gray-300">Your class defines how your XP spikes. Choose once. Build the legend.</p>
+      </div>
+      <div id="class-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+      <button id="confirm-class-btn" onclick="confirmHeroClass()" class="mt-6 w-full rounded-2xl bg-green-500 px-4 py-3 text-base font-semibold text-gray-950 transition hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Confirm Class</button>
     </div>
   </div>
 
@@ -208,12 +220,15 @@
         <div class="text-green-400 font-bold text-2xl" id="hero-points-display">0</div>
       </div>
       <div id="hero-streak" class="hero-streak-card mb-4">🔥 0 Day Streak</div>
+      <div id="hero-class-display" class="bg-gray-900 p-4 rounded-3xl mb-4"></div>
+      <div id="hero-theme-selector" class="bg-gray-900 p-4 rounded-3xl mb-4"></div>
       <div class="bg-gray-900 p-4 rounded-3xl mb-5">
         <div class="text-sm font-semibold text-green-400 mb-3">Achievements</div>
         <div id="hero-badges" class="flex flex-wrap gap-2"></div>
       </div>
       <div id="hero-character-grid" class="hero-character-grid"></div>
       <div id="hero-skill-tree-panel" class="hero-skill-tree-panel mt-5"></div>
+      <div id="hero-gear-section" class="bg-gray-900 p-4 rounded-3xl mt-5"></div>
     </div>
 
     <div id="screen5" class="tab-screen hidden">
@@ -223,6 +238,7 @@
         <button onclick="showQuestSubTab(1)" id="quest-sub1" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📅 Daily</button>
         <button onclick="showQuestSubTab(2)" id="quest-sub2" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">📆 Weekly</button>
         <button onclick="showQuestSubTab(3)" id="quest-sub3" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">🏅 Personal</button>
+        <button onclick="showQuestSubTab(4)" id="quest-sub4" class="tab-bar-btn flex-1 py-3 rounded-3xl text-sm font-medium">⚔️ Boss</button>
       </div>
       <div id="quest-content" class="space-y-4"></div>
     </div>

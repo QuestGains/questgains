@@ -57,7 +57,20 @@ const DEFAULT_CHARACTER = {
   comboDate: null,
   comboMultiplier: 1.0,
   achievements: [],
-  totalMealsLogged: 0
+  totalMealsLogged: 0,
+  unlockedGear: [],
+  equippedGear: [],
+  totalQuestsClaimed: 0,
+  totalRecoveryLogs: 0,
+  totalMealsEver: 0,
+  heroClass: null,
+  unlockedThemes: ['default'],
+  activeTheme: 'default',
+  rivalId: null,
+  rivalChallengeStart: null,
+  rivalChallengeGoalXP: null,
+  weeklyMealLog: {},
+  weeklyQuestLog: {}
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
@@ -109,7 +122,20 @@ let character = {
   comboDate: savedCharacter.comboDate || null,
   comboMultiplier: savedCharacter.comboMultiplier || 1.0,
   achievements: savedCharacter.achievements || [],
-  totalMealsLogged: savedCharacter.totalMealsLogged || 0
+  totalMealsLogged: savedCharacter.totalMealsLogged || 0,
+  unlockedGear: savedCharacter.unlockedGear || [],
+  equippedGear: (savedCharacter.equippedGear || []).slice(0, 2),
+  totalQuestsClaimed: savedCharacter.totalQuestsClaimed || 0,
+  totalRecoveryLogs: savedCharacter.totalRecoveryLogs || 0,
+  totalMealsEver: savedCharacter.totalMealsEver || 0,
+  heroClass: Object.prototype.hasOwnProperty.call(savedCharacter, 'heroClass') ? savedCharacter.heroClass : null,
+  unlockedThemes: savedCharacter.unlockedThemes || ['default'],
+  activeTheme: savedCharacter.activeTheme || 'default',
+  rivalId: savedCharacter.rivalId || null,
+  rivalChallengeStart: savedCharacter.rivalChallengeStart || null,
+  rivalChallengeGoalXP: savedCharacter.rivalChallengeGoalXP || null,
+  weeklyMealLog: savedCharacter.weeklyMealLog || {},
+  weeklyQuestLog: savedCharacter.weeklyQuestLog || {}
 };
 
 if (!savedCharacter.unlockedCharacters && savedCharacter.activePath && Array.isArray(savedCharacter.unlockedNodes)) {
@@ -127,7 +153,8 @@ let questProgress = JSON.parse(localStorage.getItem('questProgress')) || {
   dailyLastDate: null,
   weeklyCompleted: [],
   weeklyLastWeek: null,
-  personalCompleted: []
+  personalCompleted: [],
+  bossDefeatedWeek: null
 };
 let currentQuestSubTab = 0;
 let currentTab = 4;
@@ -192,7 +219,20 @@ function buildCharacterState(source = {}) {
     comboDate: source.comboDate || null,
     comboMultiplier: source.comboMultiplier || 1.0,
     achievements: source.achievements || [],
-    totalMealsLogged: source.totalMealsLogged || 0
+    totalMealsLogged: source.totalMealsLogged || 0,
+    unlockedGear: source.unlockedGear || [],
+    equippedGear: (source.equippedGear || []).slice(0, 2),
+    totalQuestsClaimed: source.totalQuestsClaimed || 0,
+    totalRecoveryLogs: source.totalRecoveryLogs || 0,
+    totalMealsEver: source.totalMealsEver || 0,
+    heroClass: Object.prototype.hasOwnProperty.call(source, 'heroClass') ? source.heroClass : null,
+    unlockedThemes: source.unlockedThemes || ['default'],
+    activeTheme: source.activeTheme || 'default',
+    rivalId: source.rivalId || null,
+    rivalChallengeStart: source.rivalChallengeStart || null,
+    rivalChallengeGoalXP: source.rivalChallengeGoalXP || null,
+    weeklyMealLog: source.weeklyMealLog || {},
+    weeklyQuestLog: source.weeklyQuestLog || {}
   };
 
   if (!source.unlockedCharacters && source.activePath && Array.isArray(source.unlockedNodes)) {
@@ -233,8 +273,10 @@ function applyQuestGainsCloudState(payload = {}) {
     dailyLastDate: null,
     weeklyCompleted: [],
     weeklyLastWeek: null,
-    personalCompleted: []
+    personalCompleted: [],
+    bossDefeatedWeek: null
   };
+  questProgress.bossDefeatedWeek = questProgress.bossDefeatedWeek || null;
   character.cardioLog = cardioLog;
   character.totalNodesUnlocked = getUnlockedNodeCount();
   selectedHeroId = character.activeCharId || (heroRoster[0] ? heroRoster[0].id : null);
@@ -247,10 +289,12 @@ function applyQuestGainsCloudState(payload = {}) {
   syncDailyTrackingFlags();
   syncWeeklyTrackingFlags();
   SoundFX.enabled = character.soundEnabled !== false;
+  applyTheme(character.activeTheme || 'default');
   saveData();
   updateHeader();
   populateFoodSelect('meal-food-select', nDB, false);
   renderUnitConverter();
+  renderClassSelection();
   showTab(currentTab);
 }
 
@@ -258,7 +302,19 @@ window.getQuestGainsData = getQuestGainsData;
 window.applyQuestGainsCloudState = applyQuestGainsCloudState;
 window.clearQuestGainsLocalData = clearQuestGainsLocalData;
 
+function normalizeExtendedState() {
+  character.unlockedGear = Array.from(new Set(character.unlockedGear || []));
+  character.equippedGear = Array.from(new Set(character.equippedGear || [])).filter((id) => character.unlockedGear.includes(id)).slice(0, 2);
+  character.unlockedThemes = Array.from(new Set(['default', ...((character.unlockedThemes || []))]));
+  if (!character.unlockedThemes.includes(character.activeTheme || 'default')) character.activeTheme = 'default';
+  if (typeof character.heroClass === 'undefined') character.heroClass = null;
+  character.weeklyMealLog = character.weeklyMealLog || {};
+  character.weeklyQuestLog = character.weeklyQuestLog || {};
+  questProgress.bossDefeatedWeek = questProgress.bossDefeatedWeek || null;
+}
+
 function saveData() {
+  normalizeExtendedState();
   const snapshot = getQuestGainsData();
   localStorage.setItem('character', JSON.stringify(snapshot.character));
   localStorage.setItem('workoutLog', JSON.stringify(snapshot.workoutLog));
@@ -298,6 +354,150 @@ function getDistanceUnit() {
 
 function getCurrentWeekStamp() {
   return getWeekStampForDate(getTodayStamp());
+}
+
+
+function getWeekNumber(date = new Date()) {
+  const current = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = current.getUTCDay() || 7;
+  current.setUTCDate(current.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(current.getUTCFullYear(), 0, 1));
+  return Math.ceil((((current - yearStart) / 86400000) + 1) / 7);
+}
+
+function getCurrentBossBattle() {
+  return bossBattles[getWeekNumber() % bossBattles.length];
+}
+
+function getGearItemById(id) {
+  return gearItems.find((item) => item.id === id) || null;
+}
+
+function getGearBonus(stat) {
+  return (character.equippedGear || []).reduce((sum, gearId) => {
+    const item = getGearItemById(gearId);
+    return sum + ((item && item.stat === stat) ? (Number(item.value) || 0) : 0);
+  }, 0);
+}
+
+function getClassMeta() {
+  return heroClasses.find((entry) => entry.id === character.heroClass) || null;
+}
+
+function getClassBonus(xp, context) {
+  if (!character.heroClass) return xp;
+  const cls = character.heroClass;
+  if (cls === 'warrior' && context === 'workout') return Math.round(xp * 1.15);
+  if (cls === 'rogue' && (context === 'cardio' || context === 'streak')) return Math.round(xp * 1.20);
+  if (cls === 'mage' && (context === 'meal' || context === 'quest')) return Math.round(xp * 1.15);
+  if (cls === 'paladin') return Math.round(xp * 1.10);
+  return xp;
+}
+
+function applyTheme(themeId) {
+  const theme = appThemes.find((entry) => entry.id === themeId) || appThemes[0];
+  const root = document.documentElement;
+  root.style.setProperty('--theme-primary', theme.primary);
+  root.style.setProperty('--theme-bg', theme.bg);
+  character.activeTheme = theme.id;
+}
+
+function unlockTheme(themeId) {
+  if (!themeId) return;
+  character.unlockedThemes = character.unlockedThemes || ['default'];
+  if (character.unlockedThemes.includes(themeId)) return;
+  const theme = appThemes.find((entry) => entry.id === themeId);
+  if (!theme) return;
+  character.unlockedThemes.push(themeId);
+  showAchievement('🎨', 'Theme Unlocked!', `${theme.name} — ${theme.unlockCondition}`);
+}
+
+function getHeroThemeForHero(heroId) {
+  const map = {
+    'solaris-prime': 'crimson',
+    nightwarden: 'violet',
+    threadstrike: 'amber',
+    auramancer: 'cyan'
+  };
+  return map[heroId] || null;
+}
+
+function getLeaderboardPlayers() {
+  const me = {
+    id: 'you',
+    name: 'You',
+    level: character.level || 1,
+    xp: character.xp || 0,
+    workoutsThisWeek: getCurrentWeekWorkoutEntries().length,
+    isUser: true
+  };
+  const rivals = lbD.map((user, index) => ({
+    ...user,
+    id: user.id || `lb-${index + 1}`,
+    workoutsThisWeek: user.workoutsThisWeek || Math.max(2, 8 - index)
+  }));
+  return [me, ...rivals].sort((a, b) => b.xp - a.xp).map((entry, index) => ({ ...entry, rank: index + 1 }));
+}
+
+function getRivalPlayer() {
+  const players = getLeaderboardPlayers().filter((entry) => !entry.isUser);
+  if (!players.length) return null;
+  const top = players[0];
+  character.rivalId = top.id;
+  return top;
+}
+
+function checkRivalOvertake(previousXP) {
+  const rival = getRivalPlayer();
+  if (!rival) return;
+  if ((previousXP || 0) <= rival.xp && (character.xp || 0) > rival.xp) {
+    showAchievement('👊', 'Rival Crushed!', `You overtook ${rival.name}! New rival assigned.`);
+    character.rivalId = rival.id;
+  }
+}
+
+function getBossProgress() {
+  const boss = getCurrentBossBattle();
+  const currentWeek = getCurrentWeekStamp();
+  const weeklyMeals = character.weeklyMealLog?.[currentWeek] || 0;
+  const weeklyQuests = character.weeklyQuestLog?.[currentWeek] || 0;
+  const workoutCount = getCurrentWeekWorkoutEntries().length;
+  const cardioCount = cardioLog.filter((entry) => getWeekStampForDate(entry.date) === currentWeek).length;
+  const activityDays = new Set([
+    ...getCurrentWeekWorkoutEntries().map((entry) => entry.date),
+    ...cardioLog.filter((entry) => getWeekStampForDate(entry.date) === currentWeek).map((entry) => entry.date),
+    ...(character.recoveryLog || []).filter((entry) => getWeekStampForDate(entry.date) === currentWeek).map((entry) => entry.date),
+    ...Array.from({ length: weeklyMeals > 0 ? 1 : 0 }, () => getTodayStamp())
+  ]).size;
+  const progressMap = {
+    iron_golem: { current: workoutCount, goal: 5 },
+    shadow_wraith: { current: activityDays, goal: 7 },
+    protein_hydra: { current: weeklyMeals, goal: 21 },
+    cardio_specter: { current: cardioCount, goal: 3 },
+    quest_overlord: { current: weeklyQuests, goal: 8 }
+  };
+  return { boss, ...(progressMap[boss.id] || { current: 0, goal: 1 }) };
+}
+
+function checkGearUnlocks() {
+  const totalWorkouts = workoutLog.length;
+  const totalSets = workoutLog.reduce((sum, s) => sum + ((s.session || []).reduce((ss, ex) => ss + ((ex.sets || []).length), 0)), 0);
+  gearItems.forEach((item) => {
+    if ((character.unlockedGear || []).includes(item.id)) return;
+    let unlock = false;
+    if (item.id === 'warriors_belt' && totalWorkouts >= 5) unlock = true;
+    if (item.id === 'champions_wristband' && totalSets >= 20) unlock = true;
+    if (item.id === 'iron_boots' && (character.cardioLog?.length || 0) >= 3) unlock = true;
+    if (item.id === 'focus_helm' && (character.totalQuestsClaimed || 0) >= 10) unlock = true;
+    if (item.id === 'recovery_cape' && (character.totalRecoveryLogs || 0) >= 5) unlock = true;
+    if (item.id === 'protein_gauntlets' && (character.totalMealsEver || 0) >= 15) unlock = true;
+    if (item.id === 'endurance_amulet' && (character.currentStreak || 0) >= 7) unlock = true;
+    if (item.id === 'shadow_gloves' && questProgress.jumpstartCompleted.length >= jumpstartQuests.length) unlock = true;
+    if (unlock) {
+      character.unlockedGear.push(item.id);
+      showAchievement('⚔️', 'Gear Unlocked!', `${item.name} — ${item.perk}`);
+    }
+  });
 }
 
 function hasUnlockedPerkType(type) {
@@ -532,11 +732,15 @@ function syncWeeklyTrackingFlags() {
 }
 
 function tryUseStreakShield() {
-  const perk = getActivePerk();
-  if (!perk || perk.type !== 'streak_shield') return false;
+  const activePerk = getActivePerk();
+  const activeShield = activePerk && activePerk.type === 'streak_shield' ? activePerk.value : 0;
+  const gearShield = getGearBonus('streak_shield');
+  const shieldCharges = Math.max(activeShield, gearShield);
+  if (!shieldCharges) return false;
   const currentWeek = getCurrentWeekStamp();
-  if (character.streakShieldUsed === currentWeek) return false;
-  character.streakShieldUsed = currentWeek;
+  const used = character.streakShieldUsed && character.streakShieldUsed.week === currentWeek ? character.streakShieldUsed.count : 0;
+  if (used >= shieldCharges) return false;
+  character.streakShieldUsed = { week: currentWeek, count: used + 1 };
   alert('🛡️ Streak Shield activated! Your streak is protected.');
   return true;
 }
@@ -616,7 +820,7 @@ function getActivePerkNode() {
   return hero.nodes.find((entry) => entry.id === character.activeNodeId) || null;
 }
 
-function applyXPMultiplier(baseXP) {
+function applyXPMultiplier(baseXP, context = 'generic') {
   let finalXP = baseXP;
   const perk = getActivePerk();
   const today = new Date();
@@ -635,7 +839,11 @@ function applyXPMultiplier(baseXP) {
     finalXP *= collectorMultiplier;
   }
 
-  return Math.round(finalXP);
+  if (getGearBonus('streak_double_day') > 0 && (character.currentStreak || 0) >= getGearBonus('streak_double_day')) {
+    finalXP *= 2;
+  }
+
+  return getClassBonus(Math.round(finalXP), context);
 }
 
 function getFlatPerkBonus(type) {
@@ -643,11 +851,13 @@ function getFlatPerkBonus(type) {
   return perk && perk.type === type ? perk.value : 0;
 }
 
-function awardXP(baseXP) {
+function awardXP(baseXP, context = 'generic') {
+  const previousXP = character.xp || 0;
   const comboXP = applyCombo(baseXP);
-  const finalXP = applyXPMultiplier(comboXP);
+  const finalXP = applyXPMultiplier(comboXP, context);
   character.xp += finalXP;
   SoundFX.play('xp');
+  checkRivalOvertake(previousXP);
   return finalXP;
 }
 
@@ -1223,7 +1433,7 @@ window.finishSession = function finishSession() {
   }
   recalculateWeeklyVolume(currentWeek);
 
-  let baseXP = 50 + getFlatPerkBonus('workout_xp_bonus');
+  let baseXP = 50 + getFlatPerkBonus('workout_xp_bonus') + getGearBonus('workout_xp_bonus');
   const messages = [];
   const activePerk = getActivePerk();
 
@@ -1270,8 +1480,15 @@ window.finishSession = function finishSession() {
     messages.push(`📆 Weekly Dedication Bonus! +${activePerk.value} XP for workout #5 this week.`);
   }
 
-  const earnedXP = awardXP(baseXP);
+  const setBonus = getGearBonus('set_xp_bonus') * sessionCopy.reduce((sum, item) => sum + ((item.sets || []).length), 0);
+  if (setBonus > 0) {
+    baseXP += setBonus;
+    messages.push(`⌚ Set Bonus! +${setBonus} XP from equipped gear.`);
+  }
 
+  const earnedXP = awardXP(baseXP, 'workout');
+
+  checkGearUnlocks();
   saveData();
   levelUp();
   checkProgressAchievements();
@@ -1454,6 +1671,7 @@ window.logRecovery = function logRecovery() {
     soreness: currentRecoveryState.soreness
   });
   character.recoveryLog = character.recoveryLog.slice(0, 30);
+  character.totalRecoveryLogs = (character.totalRecoveryLogs || 0) + 1;
 
   let earnedXP = 0;
   const messages = ['Recovery check-in saved.'];
@@ -1469,6 +1687,7 @@ window.logRecovery = function logRecovery() {
     messages.push(`😴 Sleep Champion! +${bonusXP} XP for 8+ hours of sleep!`);
   }
 
+  checkGearUnlocks();
   saveData();
   levelUp();
   saveData();
@@ -1631,6 +1850,9 @@ function renderHero() {
   const titleBar = document.getElementById('equipped-title-bar');
   const heroGrid = document.getElementById('hero-character-grid');
   const heroDetail = document.getElementById('hero-skill-tree-panel');
+  const gearSection = document.getElementById('hero-gear-section');
+  const classDisplay = document.getElementById('hero-class-display');
+  const themeSelector = document.getElementById('hero-theme-selector');
   const activeNode = getActivePerkNode();
 
   if (activeNode) {
@@ -1640,7 +1862,20 @@ function renderHero() {
   }
 
   const heroStreak = document.getElementById('hero-streak');
-  if (heroStreak) heroStreak.textContent = `🔥 ${character.currentStreak || 0} Day Streak • ${(character.comboMultiplier || 1).toFixed(1).replace('.0', '')}× Combo`; checkProgressAchievements();
+  if (heroStreak) heroStreak.textContent = `🔥 ${character.currentStreak || 0} Day Streak • ${(character.comboMultiplier || 1).toFixed(1).replace('.0', '')}× Combo`;
+  const classMeta = getClassMeta();
+  if (classDisplay) {
+    classDisplay.innerHTML = classMeta
+      ? `<div class="text-sm font-semibold text-green-400 mb-1">Class</div><div class="text-white font-bold">${classMeta.icon} ${classMeta.name}</div><div class="text-xs text-gray-400 mt-1">${classMeta.bonus}</div>`
+      : '<div class="text-sm text-gray-400">Choose a class to activate a passive XP bonus.</div>';
+  }
+  if (themeSelector) {
+    themeSelector.innerHTML = `<div class="text-sm font-semibold text-green-400 mb-3">Themes</div><div class="flex flex-wrap gap-3">${appThemes.map((theme) => {
+      const unlocked = (character.unlockedThemes || []).includes(theme.id);
+      return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${character.activeTheme === theme.id ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name} — ${theme.unlockCondition}"></button>`;
+    }).join('')}</div><div class="text-xs text-gray-400 mt-3">Locked themes unlock by completing core hero paths.</div>`;
+  }
+  checkProgressAchievements();
 
   const badgesContainer = document.getElementById('hero-badges');
   if (badgesContainer) {
@@ -1733,6 +1968,17 @@ function renderHero() {
     </div>
   `;
 
+  if (gearSection) {
+    gearSection.innerHTML = `<div class="text-sm font-semibold text-green-400 mb-3">⚔️ Gear</div><div class="gear-grid">${gearItems.map((item) => {
+      const unlocked = (character.unlockedGear || []).includes(item.id);
+      const equipped = (character.equippedGear || []).includes(item.id);
+      const action = !unlocked
+        ? `<div class="text-xs text-gray-400 mt-3">🔒 ${item.unlockCondition}</div>`
+        : `<button onclick="toggleGearEquip('${item.id}')" class="skill-node-btn ${equipped ? 'unlock-btn' : 'equip-btn'} mt-3">${equipped ? 'Unequip' : 'Equip'}</button>`;
+      return `<div class="gear-card ${!unlocked ? 'locked' : ''} ${equipped ? 'equipped' : ''}"><div class="text-3xl">${item.icon}</div><div class="font-bold mt-2">${item.name}</div><div class="text-xs text-gray-400 mt-1">${item.desc}</div><div class="text-xs text-green-400 mt-2">${item.perk}</div>${action}</div>`;
+    }).join('')}</div><div class="text-xs text-gray-400 mt-3">Equip up to 2 items at once.</div>`;
+  }
+
   updateHeader();
 }
 
@@ -1765,6 +2011,10 @@ window.unlockHeroNode = function unlockHeroNode(heroId, nodeId) {
     character.equippedTitle = node.title;
   }
 
+  if (character.unlockedCharacters[heroId].length >= hero.nodes.length) {
+    unlockTheme(getHeroThemeForHero(heroId));
+  }
+
   SoundFX.play('unlock');
   checkProgressAchievements();
   saveData();
@@ -1790,6 +2040,26 @@ window.equipTitle = function equipTitle(heroId, nodeId) {
   saveData();
   renderHero();
   alert(`⚡ Equipped: ${node.title}`);
+};
+
+window.selectTheme = function selectTheme(themeId) {
+  if (!(character.unlockedThemes || []).includes(themeId)) return;
+  applyTheme(themeId);
+  saveData();
+  renderHero();
+};
+
+window.toggleGearEquip = function toggleGearEquip(gearId) {
+  if (!(character.unlockedGear || []).includes(gearId)) return;
+  character.equippedGear = character.equippedGear || [];
+  if (character.equippedGear.includes(gearId)) {
+    character.equippedGear = character.equippedGear.filter((id) => id !== gearId);
+  } else {
+    if (character.equippedGear.length >= 2) return alert('You can equip up to 2 gear items at once.');
+    character.equippedGear.push(gearId);
+  }
+  saveData();
+  renderHero();
 };
 
 window.resetSkillTree = function resetSkillTree() {
@@ -1991,6 +2261,12 @@ function renderQuests() {
   } else if (currentQuestSubTab === 3) {
     container.innerHTML = '<h3 class="font-semibold mb-3 text-green-400">🏅 Personal Achievements</h3>';
     personalQuests.forEach((quest) => appendQuestCard(container, quest, questProgress.personalCompleted, `claimPersonal(${quest.id})`, 'personal'));
+  } else if (currentQuestSubTab === 4) {
+    const { boss, current, goal } = getBossProgress();
+    const rewardGear = getGearItemById(boss.rewardGear);
+    const defeated = questProgress.bossDefeatedWeek === getCurrentWeekStamp();
+    const pct = Math.min((current / goal) * 100, 100);
+    container.innerHTML = `<div class="boss-card"><div class="flex items-start justify-between gap-3"><div><div class="text-5xl">${boss.icon}</div><div class="text-2xl font-black mt-3">${boss.name}</div><div class="text-xs text-red-300 mt-1">${boss.difficulty}</div></div><div class="text-right text-xs text-gray-400">Weekly Boss</div></div><p class="text-sm text-gray-300 mt-4">${boss.desc}</p><div class="mt-4 text-sm text-white">Requirement: ${boss.requirement}</div><div class="macro-progress-track mt-3"><div class="macro-progress-fill bg-red-500" style="width:${pct}%"></div></div><div class="flex items-center justify-between text-xs text-gray-400 mt-2"><span>${current} / ${goal}</span><span>${Math.round(pct)}%</span></div><div class="mt-4 text-sm text-green-400">Reward: ${boss.rewardXP} XP${rewardGear ? ` + ${rewardGear.name}` : ''}</div>${defeated ? '<div class="mt-4 rounded-2xl bg-green-500/15 border border-green-500/30 px-4 py-3 text-green-300 font-semibold">DEFEATED ✓</div>' : `<button onclick="claimBossBattle()" class="mt-4 w-full bg-red-600 hover:bg-red-700 py-3 rounded-2xl font-semibold ${current >= goal ? '' : 'opacity-50 cursor-not-allowed'}" ${current >= goal ? '' : 'disabled'}>Defeat!</button>`}</div>`;
   }
 }
 
@@ -2029,9 +2305,12 @@ window.claimJumpstart = function claimJumpstart(id) {
   triggerButtonClickSound();
   if (!questProgress.jumpstartCompleted.includes(id)) {
     questProgress.jumpstartCompleted.push(id);
-    const earnedXP = awardXP(100 + getFlatPerkBonus('quest_xp_bonus'));
+    character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
+    character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
+    const earnedXP = awardXP(100 + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
+    checkGearUnlocks();
     saveData();
     levelUp();
     checkProgressAchievements();
@@ -2052,9 +2331,12 @@ window.claimDaily = function claimDaily(id) {
     questProgress.dailyCompleted.push(id);
     const quest = dailyQuests.find((entry) => entry.id === id);
     const baseXP = quest ? quest.xp : 25;
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
+    character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
+    character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
+    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
+    checkGearUnlocks();
     saveData();
     levelUp();
     checkProgressAchievements();
@@ -2075,9 +2357,12 @@ window.claimWeekly = function claimWeekly(id) {
     questProgress.weeklyCompleted.push(id);
     const quest = weeklyQuests.find((entry) => entry.id === id);
     const baseXP = quest ? quest.xp : 0;
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
+    character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
+    character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
+    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
+    checkGearUnlocks();
     saveData();
     levelUp();
     checkProgressAchievements();
@@ -2097,9 +2382,12 @@ window.claimPersonal = function claimPersonal(id) {
     if (quest && !character.badges.includes(quest.name)) {
       character.badges.push(quest.name);
     }
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
+    character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
+    character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
+    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus') + getGearBonus('personal_quest_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
+    checkGearUnlocks();
     saveData();
     levelUp();
     checkProgressAchievements();
@@ -2111,10 +2399,41 @@ window.claimPersonal = function claimPersonal(id) {
   }
 };
 
+window.claimBossBattle = function claimBossBattle() {
+  triggerButtonClickSound();
+  const { boss, current, goal } = getBossProgress();
+  const week = getCurrentWeekStamp();
+  if (questProgress.bossDefeatedWeek === week) return;
+  if (current < goal) return alert('Boss requirement not met yet.');
+  questProgress.bossDefeatedWeek = week;
+  const rewardGear = getGearItemById(boss.rewardGear);
+  if (rewardGear && !(character.unlockedGear || []).includes(rewardGear.id)) {
+    character.unlockedGear.push(rewardGear.id);
+  }
+  const earnedXP = awardXP(boss.rewardXP, 'quest');
+  showAchievement(boss.icon, 'Boss Defeated!', `${boss.name} fell. +${earnedXP} XP`);
+  checkGearUnlocks();
+  saveData();
+  levelUp();
+  saveData();
+  updateHeader();
+  renderQuests();
+};
+
 function renderLeaderboard() {
   const container = document.getElementById('leaderboard-list');
   container.innerHTML = '';
-  lbD.forEach((user) => {
+  const players = getLeaderboardPlayers();
+  const rival = getRivalPlayer();
+  if (rival) {
+    const gap = Math.max(0, rival.xp - (character.xp || 0));
+    const myWorkouts = getCurrentWeekWorkoutEntries().length;
+    const rivalCard = document.createElement('div');
+    rivalCard.className = 'rival-card';
+    rivalCard.innerHTML = `<div class="text-sm font-semibold text-red-300 mb-2">Your Rival</div><div class="flex items-start justify-between gap-3"><div><div class="text-xl font-black text-white">${rival.name}</div><div class="text-sm text-gray-300">Level ${rival.level} • ${rival.xp.toLocaleString()} XP</div></div><button onclick="startRivalChallenge()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-2xl text-sm font-medium">Challenge</button></div><div class="text-sm text-gray-300 mt-3">Gap: ${gap > 0 ? `You are ${gap.toLocaleString()} XP behind ${rival.name}` : `You are ahead of ${rival.name}`}</div><div class="text-sm text-gray-400 mt-2">This week: ${rival.name} logged ${rival.workoutsThisWeek} workouts. You logged ${myWorkouts}.</div>${character.rivalChallengeStart ? `<div class="text-xs text-green-400 mt-3">Challenge active since ${getDisplayDate(character.rivalChallengeStart)} • Goal XP: ${character.rivalChallengeGoalXP}</div>` : ''}`;
+    container.appendChild(rivalCard);
+  }
+  players.forEach((user) => {
     const div = document.createElement('div');
     div.className = 'bg-gray-900 p-4 rounded-3xl flex items-center justify-between';
     div.innerHTML = `<div class="flex items-center gap-4"><div class="text-2xl font-bold text-green-400 w-8">#${user.rank}</div><div><div class="font-semibold">${user.name}</div><div class="text-green-400 text-sm">Level ${user.level}</div></div></div><div class="text-right"><div class="text-xl font-bold">${user.xp.toLocaleString()} XP</div></div>`;
@@ -2122,9 +2441,20 @@ function renderLeaderboard() {
   });
 }
 
+window.startRivalChallenge = function startRivalChallenge() {
+  const rival = getRivalPlayer();
+  if (!rival) return;
+  character.rivalId = rival.id;
+  character.rivalChallengeStart = getTodayStamp();
+  character.rivalChallengeGoalXP = rival.xp + 1;
+  saveData();
+  renderLeaderboard();
+  alert(`Challenge accepted. Beat ${rival.name} within 7 days.`);
+};
+
 window.refreshLeaderboard = function refreshLeaderboard() {
   lbD.sort(() => Math.random() - 0.5);
-  lbD.forEach((user, index) => { user.rank = index + 1; });
+  lbD.forEach((user, index) => { user.rank = index + 1; user.id = user.id || `lb-${index + 1}`; user.workoutsThisWeek = user.workoutsThisWeek || Math.max(2, 8 - index); });
   renderLeaderboard();
   alert('Leaderboard refreshed with new heroes! 🔥');
 };
@@ -2297,8 +2627,10 @@ function addMeal() {
   todaysMeals.push({ name: food.name, quantity, calories: scaledCal, protein: scaledProtein });
   character.mealsLoggedToday = (character.mealsLoggedToday || 0) + 1;
   character.totalMealsLogged = (character.totalMealsLogged || 0) + 1;
+  character.totalMealsEver = (character.totalMealsEver || 0) + 1;
+  character.weeklyMealLog[getCurrentWeekStamp()] = (character.weeklyMealLog[getCurrentWeekStamp()] || 0) + 1;
 
-  let earnedXP = awardXP(20 + getFlatPerkBonus('meal_xp_bonus'));
+  let earnedXP = awardXP(20 + getFlatPerkBonus('meal_xp_bonus') + getGearBonus('meal_xp_bonus'), 'meal');
   const activePerk = getActivePerk();
   const messages = [`✅ Logged ${food.name} (${quantity}g) — +${earnedXP} XP!`];
   if (activePerk && activePerk.type === 'full_day_logger_bonus' && character.mealsLoggedToday >= 3 && character.fullDayBonusDate !== getTodayStamp()) {
@@ -2308,6 +2640,7 @@ function addMeal() {
     messages.push(`🍽️ Full Day Logger! +${bonusXP} XP for logging 3 meals today!`);
   }
 
+  checkGearUnlocks();
   saveData();
   levelUp();
   checkProgressAchievements();
@@ -2416,7 +2749,8 @@ window.logCardio = function logCardio() {
   cardioLog.unshift(entry);
   character.cardioLog = cardioLog;
 
-  const earnedXP = awardXP(30);
+  const earnedXP = awardXP(30 + getGearBonus('cardio_xp_bonus'), 'cardio');
+  checkGearUnlocks();
   saveData();
   levelUp();
   saveData();
@@ -2526,21 +2860,37 @@ window.importData = function importData(event) {
         comboDate: importedCharacter.comboDate || null,
         comboMultiplier: importedCharacter.comboMultiplier || 1.0,
         achievements: importedCharacter.achievements || [],
-        totalMealsLogged: importedCharacter.totalMealsLogged || 0
+        totalMealsLogged: importedCharacter.totalMealsLogged || 0,
+        unlockedGear: importedCharacter.unlockedGear || [],
+        equippedGear: (importedCharacter.equippedGear || []).slice(0, 2),
+        totalQuestsClaimed: importedCharacter.totalQuestsClaimed || 0,
+        totalRecoveryLogs: importedCharacter.totalRecoveryLogs || 0,
+        totalMealsEver: importedCharacter.totalMealsEver || 0,
+        heroClass: Object.prototype.hasOwnProperty.call(importedCharacter, 'heroClass') ? importedCharacter.heroClass : null,
+        unlockedThemes: importedCharacter.unlockedThemes || ['default'],
+        activeTheme: importedCharacter.activeTheme || 'default',
+        rivalId: importedCharacter.rivalId || null,
+        rivalChallengeStart: importedCharacter.rivalChallengeStart || null,
+        rivalChallengeGoalXP: importedCharacter.rivalChallengeGoalXP || null,
+        weeklyMealLog: importedCharacter.weeklyMealLog || {},
+        weeklyQuestLog: importedCharacter.weeklyQuestLog || {}
       };
       workoutLog = payload.workoutLog || [];
       cardioLog = payload.cardioLog || character.cardioLog || [];
       progressHistory = payload.progressHistory || [];
       todaysMeals = payload.todaysMeals || [];
       questProgress = payload.questProgress || questProgress;
+      questProgress.bossDefeatedWeek = questProgress.bossDefeatedWeek || null;
       character.cardioLog = cardioLog;
       character.totalNodesUnlocked = getUnlockedNodeCount();
       selectedHeroId = character.activeCharId || (heroRoster[0] ? heroRoster[0].id : null);
       currentSession = [];
       workoutSuggestionMeta = { note: '', focusMuscles: [] };
       openSetFormIndex = null;
+      applyTheme(character.activeTheme || 'default');
       saveData();
       updateHeader();
+      renderClassSelection();
       showTab(3);
       alert('Backup imported successfully.');
     } catch (error) {
@@ -2552,18 +2902,53 @@ window.importData = function importData(event) {
   reader.readAsText(file);
 };
 
+function renderClassSelection() {
+  const overlay = document.getElementById('class-overlay');
+  const grid = document.getElementById('class-grid');
+  const confirmBtn = document.getElementById('confirm-class-btn');
+  if (!overlay || !grid || !confirmBtn) return;
+  const selected = window.pendingHeroClass || character.heroClass || null;
+  grid.innerHTML = heroClasses.map((heroClass) => `
+    <button type="button" class="class-card bg-gradient-to-br ${heroClass.color} ${selected === heroClass.id ? 'selected' : ''}" onclick="selectHeroClass('${heroClass.id}')">
+      <div class="text-4xl">${heroClass.icon}</div>
+      <div class="text-xl font-bold mt-3">${heroClass.name}</div>
+      <div class="text-sm text-white/90 mt-2">${heroClass.desc}</div>
+      <div class="text-xs text-green-100 mt-3">${heroClass.bonus}</div>
+    </button>
+  `).join('');
+  confirmBtn.disabled = !selected || !!character.heroClass;
+  overlay.classList.toggle('hidden', !!character.heroClass);
+}
+
+window.selectHeroClass = function selectHeroClass(classId) {
+  if (character.heroClass) return;
+  window.pendingHeroClass = classId;
+  renderClassSelection();
+};
+
+window.confirmHeroClass = function confirmHeroClass() {
+  if (character.heroClass || !window.pendingHeroClass) return;
+  character.heroClass = window.pendingHeroClass;
+  saveData();
+  renderClassSelection();
+  renderHero();
+  showAchievement('⚔️', 'Class Chosen!', `${getClassMeta()?.icon || ''} ${getClassMeta()?.name || ''}`.trim());
+};
+
 window.onload = function onLoad() {
   SoundFX.init();
   syncWaterTracker();
   syncMealTracker();
   syncDailyTrackingFlags();
   syncWeeklyTrackingFlags();
+  applyTheme(character.activeTheme || 'default');
   saveData();
   updateHeader();
   renderLibrary();
   populateFoodSelect('meal-food-select', nDB, false);
   renderUnitConverter();
   renderHero();
+  renderClassSelection();
   checkProgressAchievements();
   showTab(4);
   console.log(`%c✅ QuestGains v2.12 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');

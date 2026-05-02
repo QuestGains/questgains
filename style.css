@@ -1,3 +1,8 @@
+:root {
+  --theme-primary: #22c55e;
+  --theme-bg: #030712;
+}
+
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
@@ -8,8 +13,8 @@ html, body {
 }
 
 /* QuestGains v2.13 custom styles */
-body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.tab-active, .subtab-active { background-color: #22c55e; color: white; }
+body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--theme-bg); }
+.tab-active, .subtab-active { background-color: var(--theme-primary); color: white; }
 .modal { animation: pop 0.3s ease; }
 .node-card { transition: all 0.2s ease; }
 .modal-image { min-height: 200px; object-fit: cover; background: #111827; }
@@ -500,3 +505,19 @@ button {
     height: 132px;
   }
 }
+
+
+.gear-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.9rem; }
+.gear-card { border-radius: 1.25rem; border: 1px solid rgba(255,255,255,0.08); padding: 1rem; background: linear-gradient(180deg, rgba(17,24,39,1), rgba(15,23,42,1)); }
+.gear-card.locked { opacity: 0.55; filter: grayscale(0.2); }
+.gear-card.equipped { border-color: rgba(34,197,94,0.7); box-shadow: 0 0 0 1px rgba(34,197,94,0.35), 0 0 24px rgba(34,197,94,0.18); }
+.theme-swatch { width: 2.25rem; height: 2.25rem; border-radius: 999px; border: 2px solid rgba(255,255,255,0.12); cursor: pointer; transition: transform 0.15s ease, border-color 0.2s ease; }
+.theme-swatch.active { border-color: white; transform: scale(1.08); }
+.theme-swatch.locked { background: #4b5563 !important; cursor: not-allowed; opacity: 0.6; }
+.class-card { border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem; padding: 1rem; text-align: left; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.class-card.selected { border-color: rgba(34,197,94,0.7); box-shadow: 0 0 0 1px rgba(34,197,94,0.35), 0 0 24px rgba(34,197,94,0.14); }
+.class-overlay.hidden { display:none; }
+.rival-card { border: 1px solid rgba(239,68,68,0.35); background: linear-gradient(135deg, rgba(127,29,29,0.28), rgba(17,24,39,1)); border-radius: 1.5rem; padding: 1rem; }
+.boss-card { border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, rgba(17,24,39,1), rgba(3,7,18,1)); border-radius: 1.5rem; padding: 1rem; }
+.theme-accent { color: var(--theme-primary); }
+.theme-accent-bg { background-color: var(--theme-primary); }
