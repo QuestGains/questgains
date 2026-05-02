@@ -380,6 +380,29 @@ function getGearBonus(stat) {
   }, 0);
 }
 
+function normalizeStackingBonus(stat, value) {
+  const numericValue = Number(value) || 0;
+  if (stat === 'xp_multiplier' && numericValue > 1) {
+    return numericValue - 1;
+  }
+  return numericValue;
+}
+
+function getTotalBonus(stat) {
+  let total = 0;
+  const titlePerk = getActivePerk();
+  if (titlePerk && titlePerk.type === stat) {
+    total += normalizeStackingBonus(stat, titlePerk.value);
+  }
+  (character.equippedGear || []).forEach((gearId) => {
+    const item = gearItems.find((g) => g.id === gearId);
+    if (item && item.stat === stat) {
+      total += normalizeStackingBonus(stat, item.value);
+    }
+  });
+  return total;
+}
+
 function getClassMeta() {
   return heroClasses.find((entry) => entry.id === character.heroClass) || null;
 }
@@ -493,6 +516,24 @@ function checkGearUnlocks() {
     const dbExercise = exDB.find((item) => item.id === exercise.exerciseId);
     return String(dbExercise?.muscles || '').toLowerCase().includes('quad') || String(dbExercise?.muscles || '').toLowerCase().includes('glute') || String(dbExercise?.muscles || '').toLowerCase().includes('hamstring') || String(dbExercise?.muscles || '').toLowerCase().includes('calf');
   })).length;
+  const muscleHistory = workoutLog.reduce((set, entry) => {
+    (entry.session || []).forEach((exercise) => {
+      const dbExercise = exDB.find((item) => item.id === exercise.exerciseId) || exercise.exercise;
+      String(dbExercise?.muscles || '').split(',').map((muscle) => muscle.trim().toLowerCase()).forEach((muscle) => {
+        if (muscle) set.add(muscle);
+      });
+    });
+    return set;
+  }, new Set());
+  const hasChestHistory = Array.from(muscleHistory).some((muscle) => muscle.includes('chest'));
+  const hasBackHistory = Array.from(muscleHistory).some((muscle) => muscle.includes('back') || muscle.includes('lat'));
+  const hasShoulderHistory = Array.from(muscleHistory).some((muscle) => muscle.includes('shoulder') || muscle.includes('delt'));
+  const hasLateNightWorkout = workoutLog.some((entry) => {
+    const display = String(entry.displayDate || '');
+    const dateTime = entry.dateTime || entry.completedAt || null;
+    const parsed = dateTime ? new Date(dateTime) : new Date(display);
+    return !Number.isNaN(parsed.getTime()) && parsed.getHours() >= 22;
+  });
 
   gearItems.forEach((item) => {
     if ((character.unlockedGear || []).includes(item.id)) return;
@@ -515,7 +556,8 @@ function checkGearUnlocks() {
     if (item.id === 'healing_totem' && (character.totalRecoveryLogs || 0) >= 10) unlock = true;
     if (item.id === 'champions_crown' && (character.level || 1) >= 15) unlock = true;
     if (item.id === 'shadow_step_wraps' && (character.currentStreak || 0) >= 10) unlock = true;
-    if (item.id === 'arcane_scroll' && totalSets >= 100) unlock = true;
+    if (item.id === 'phantom_cloak' && hasLateNightWorkout) unlock = true;
+    if (item.id === 'arcane_scroll' && hasChestHistory && hasBackHistory && hasShoulderHistory) unlock = true;
     if (item.id === 'warriors_seal' && uniqueExercisesTried >= 20) unlock = true;
     if (item.id === 'vitality_ring' && recoverySleepWins >= 5) unlock = true;
     if (unlock) {
@@ -648,7 +690,16 @@ function triggerButtonClickSound() {
 }
 
 function applyCombo(xp) {
-  return Math.round(xp * (character.comboMultiplier || 1.0));
+  let totalXP = Math.round(xp * (character.comboMultiplier || 1.0));
+  const hour = new Date().getHours();
+  const hasNightOwlBonus = (character.equippedGear || []).some((gearId) => {
+    const item = getGearItemById(gearId);
+    return item?.stat === 'night_owl_bonus';
+  });
+  if (hasNightOwlBonus && (hour >= 22 || hour <= 5)) {
+    totalXP = Math.round(totalXP * 1.20);
+  }
+  return totalXP;
 }
 
 function updateCombo() {
@@ -850,9 +901,10 @@ function applyXPMultiplier(baseXP, context = 'generic') {
   const perk = getActivePerk();
   const today = new Date();
   const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+  const stackedMultiplier = getTotalBonus('xp_multiplier');
 
-  if (perk && perk.type === 'xp_multiplier') {
-    finalXP *= perk.value;
+  if (stackedMultiplier > 0) {
+    finalXP *= (1 + stackedMultiplier);
   }
 
   if (perk && perk.type === 'weekend_xp_multiplier' && isWeekend) {
@@ -872,8 +924,7 @@ function applyXPMultiplier(baseXP, context = 'generic') {
 }
 
 function getFlatPerkBonus(type) {
-  const perk = getActivePerk();
-  return perk && perk.type === type ? perk.value : 0;
+  return getTotalBonus(type);
 }
 
 function awardXP(baseXP, context = 'generic') {
@@ -1008,6 +1059,8 @@ window.filterExercises = function filterExercises() {
   renderLibrary(filtered);
 };
 
+let exerciseImageInterval = null;
+
 function showExerciseDetail(id) {
   const exercise = exDB.find((entry) => entry.id === id);
   if (!exercise) return;
@@ -1028,10 +1081,35 @@ function showExerciseDetail(id) {
   if (plateUnit) plateUnit.textContent = character.weightUnit;
   if (plateResult) plateResult.innerHTML = '<div class="text-gray-400">Enter a target barbell weight to see the plates per side.</div>';
   document.getElementById('plate-calculator-panel').dataset.exerciseId = String(exercise.id);
+
+  clearInterval(exerciseImageInterval);
+  exerciseImageInterval = null;
+  const imgEl = document.getElementById('modal-main-image');
+  const baseUrl = exercise.image.replace('/0.jpg', '').replace('/1.jpg', '');
+  let frame = exercise.image.includes('/1.jpg') ? 1 : 0;
+  const frames = [`${baseUrl}/0.jpg`, `${baseUrl}/1.jpg`];
+  imgEl.src = frames[frame];
+
+  const testImg = new Image();
+  testImg.onload = () => {
+    clearInterval(exerciseImageInterval);
+    exerciseImageInterval = setInterval(() => {
+      frame = (frame + 1) % 2;
+      imgEl.src = frames[frame];
+    }, 2500);
+  };
+  testImg.onerror = () => {
+    clearInterval(exerciseImageInterval);
+    exerciseImageInterval = null;
+  };
+  testImg.src = frames[1];
+
   document.getElementById('exercise-modal').classList.remove('hidden');
 }
 
 window.hideModal = function hideModal() {
+  clearInterval(exerciseImageInterval);
+  exerciseImageInterval = null;
   document.getElementById('exercise-modal').classList.add('hidden');
 };
 
@@ -1454,6 +1532,7 @@ window.finishSession = function finishSession() {
   const entry = {
     date: getTodayStamp(),
     displayDate: new Date().toLocaleDateString(),
+    dateTime: new Date().toISOString(),
     session: sessionCopy,
     volume: sessionVolume
   };
@@ -1467,7 +1546,7 @@ window.finishSession = function finishSession() {
   }
   recalculateWeeklyVolume(currentWeek);
 
-  let baseXP = 50 + getFlatPerkBonus('workout_xp_bonus') + getGearBonus('workout_xp_bonus');
+  let baseXP = 50 + getTotalBonus('workout_xp_bonus');
   const messages = [];
   const activePerk = getActivePerk();
 
@@ -1548,6 +1627,52 @@ function renderVolumeSummary(map, emptyLabel) {
   const entries = Object.entries(map || {}).sort((a, b) => b[1] - a[1]);
   if (!entries.length) return `<div class="text-sm text-gray-400">${emptyLabel}</div>`;
   return entries.map(([muscle, total]) => `<div class="flex justify-between text-sm"><span>${muscle}</span><span class="font-semibold">${Math.round(total).toLocaleString()} ${character.weightUnit}</span></div>`).join('');
+}
+
+function getMuscleVolumeThisWeek() {
+  const weekStamp = getWeekStampForDate(getTodayStamp());
+  const muscleVolume = {};
+  workoutLog.forEach((entry) => {
+    if (getWeekStampForDate(entry.date) !== weekStamp) return;
+    (entry.session || []).forEach((item) => {
+      const muscles = (item.exercise?.muscles || '').split(',').map((m) => m.trim());
+      const sets = item.sets || [];
+      const vol = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
+      muscles.forEach((m) => {
+        if (m) muscleVolume[m] = (muscleVolume[m] || 0) + vol;
+      });
+    });
+  });
+  return muscleVolume;
+}
+
+function renderMuscleBreakdown() {
+  const container = document.getElementById('muscle-breakdown');
+  if (!container) return;
+  const muscleVolume = getMuscleVolumeThisWeek();
+  const entries = Object.entries(muscleVolume).sort((a, b) => b[1] - a[1]);
+
+  if (!entries.length) {
+    container.innerHTML = '<div class="text-sm text-gray-400">Log a workout to see your muscle breakdown</div>';
+    return;
+  }
+
+  const maxVolume = Math.max(...entries.map(([, volume]) => volume), 0);
+  container.innerHTML = entries.map(([muscle, volume], index) => {
+    const width = maxVolume > 0 ? Math.max(4, (volume / maxVolume) * 100) : 0;
+    const fillClass = index === 0 ? 'bg-green-500' : 'bg-green-400/60';
+    return `
+      <div>
+        <div class="flex items-center justify-between text-sm mb-1">
+          <span class="text-white">${muscle}</span>
+          <span class="text-gray-300">${volume > 0 ? `${Math.round(volume).toLocaleString()} ${character.weightUnit}` : 'No data'}</span>
+        </div>
+        <div class="h-3 bg-gray-800 rounded-full overflow-hidden">
+          <div class="h-full ${fillClass} rounded-full" style="width:${width}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function getRecentRecoverySummary() {
@@ -1637,6 +1762,7 @@ function renderProgress() {
   `;
   document.getElementById('volume-last-session').innerHTML = renderVolumeSummary(character.lastSessionVolume, 'No completed sessions with tracked volume yet.');
   document.getElementById('volume-weekly').innerHTML = renderVolumeSummary(character.weeklyVolume, 'No weekly volume yet.');
+  renderMuscleBreakdown();
 }
 
 function renderOneRMRow(label, key) {
@@ -1661,10 +1787,20 @@ window.saveOneRM = function saveOneRM(key) {
   triggerButtonClickSound();
   const input = document.getElementById(`1rm-${key}`);
   const value = Math.max(0, parseFloat(input.value) || 0);
+  const previousValue = Number(character.oneRMs[key]) || 0;
+  const prBonus = getTotalBonus('pr_xp_bonus');
   character.oneRMs[key] = value;
   character.oneRMsLastUpdated = new Date().toDateString();
+
+  if (value > previousValue && prBonus > 0) {
+    character.xp += prBonus;
+    showAchievement('📜', 'PR Bonus!', `+${prBonus} XP from Arcane Scroll`);
+  }
+
+  levelUp();
   checkProgressAchievements();
   saveData();
+  updateHeader();
   renderProgress();
   alert(`Saved ${key.toUpperCase()} 1RM: ${value > 0 ? `${value} lbs` : 'Not set'}`);
 };
@@ -2361,7 +2497,7 @@ window.claimJumpstart = function claimJumpstart(id) {
     questProgress.jumpstartCompleted.push(id);
     character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
     character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
-    const earnedXP = awardXP(100 + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
+    const earnedXP = awardXP(100 + getTotalBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
     checkGearUnlocks();
@@ -2387,7 +2523,7 @@ window.claimDaily = function claimDaily(id) {
     const baseXP = quest ? quest.xp : 25;
     character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
     character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
+    const earnedXP = awardXP(baseXP + getTotalBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
     checkGearUnlocks();
@@ -2413,7 +2549,7 @@ window.claimWeekly = function claimWeekly(id) {
     const baseXP = quest ? quest.xp : 0;
     character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
     character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus'), 'quest');
+    const earnedXP = awardXP(baseXP + getTotalBonus('quest_xp_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
     checkGearUnlocks();
@@ -2438,7 +2574,7 @@ window.claimPersonal = function claimPersonal(id) {
     }
     character.totalQuestsClaimed = (character.totalQuestsClaimed || 0) + 1;
     character.weeklyQuestLog[getCurrentWeekStamp()] = (character.weeklyQuestLog[getCurrentWeekStamp()] || 0) + 1;
-    const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus') + getGearBonus('quest_xp_bonus') + getGearBonus('personal_quest_bonus'), 'quest');
+    const earnedXP = awardXP(baseXP + getTotalBonus('quest_xp_bonus') + getGearBonus('personal_quest_bonus'), 'quest');
     const rushBonusXP = getQuestRushBonusXP();
     SoundFX.play('quest');
     checkGearUnlocks();
@@ -2684,7 +2820,7 @@ function addMeal() {
   character.totalMealsEver = (character.totalMealsEver || 0) + 1;
   character.weeklyMealLog[getCurrentWeekStamp()] = (character.weeklyMealLog[getCurrentWeekStamp()] || 0) + 1;
 
-  let earnedXP = awardXP(20 + getFlatPerkBonus('meal_xp_bonus') + getGearBonus('meal_xp_bonus'), 'meal');
+  let earnedXP = awardXP(20 + getTotalBonus('meal_xp_bonus'), 'meal');
   const activePerk = getActivePerk();
   const messages = [`✅ Logged ${food.name} (${quantity}g) — +${earnedXP} XP!`];
   if (activePerk && activePerk.type === 'full_day_logger_bonus' && character.mealsLoggedToday >= 3 && character.fullDayBonusDate !== getTodayStamp()) {
@@ -2803,7 +2939,7 @@ window.logCardio = function logCardio() {
   cardioLog.unshift(entry);
   character.cardioLog = cardioLog;
 
-  const earnedXP = awardXP(30 + getGearBonus('cardio_xp_bonus'), 'cardio');
+  const earnedXP = awardXP(30 + getTotalBonus('cardio_xp_bonus'), 'cardio');
   checkGearUnlocks();
   saveData();
   levelUp();
