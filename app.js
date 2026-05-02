@@ -51,7 +51,13 @@ const DEFAULT_CHARACTER = {
   restTimerUsedToday: false,
   restTimerDate: null,
   aiSuggestUsedThisWeek: 0,
-  aiSuggestWeek: null
+  aiSuggestWeek: null,
+  soundEnabled: true,
+  comboStreak: 0,
+  comboDate: null,
+  comboMultiplier: 1.0,
+  achievements: [],
+  totalMealsLogged: 0
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
@@ -97,7 +103,13 @@ let character = {
   restTimerUsedToday: savedCharacter.restTimerUsedToday || false,
   restTimerDate: savedCharacter.restTimerDate || null,
   aiSuggestUsedThisWeek: savedCharacter.aiSuggestUsedThisWeek || 0,
-  aiSuggestWeek: savedCharacter.aiSuggestWeek || null
+  aiSuggestWeek: savedCharacter.aiSuggestWeek || null,
+  soundEnabled: savedCharacter.soundEnabled !== false,
+  comboStreak: savedCharacter.comboStreak || 0,
+  comboDate: savedCharacter.comboDate || null,
+  comboMultiplier: savedCharacter.comboMultiplier || 1.0,
+  achievements: savedCharacter.achievements || [],
+  totalMealsLogged: savedCharacter.totalMealsLogged || 0
 };
 
 if (!savedCharacter.unlockedCharacters && savedCharacter.activePath && Array.isArray(savedCharacter.unlockedNodes)) {
@@ -174,7 +186,13 @@ function buildCharacterState(source = {}) {
     restTimerUsedToday: source.restTimerUsedToday || false,
     restTimerDate: source.restTimerDate || null,
     aiSuggestUsedThisWeek: source.aiSuggestUsedThisWeek || 0,
-    aiSuggestWeek: source.aiSuggestWeek || null
+    aiSuggestWeek: source.aiSuggestWeek || null,
+    soundEnabled: source.soundEnabled !== false,
+    comboStreak: source.comboStreak || 0,
+    comboDate: source.comboDate || null,
+    comboMultiplier: source.comboMultiplier || 1.0,
+    achievements: source.achievements || [],
+    totalMealsLogged: source.totalMealsLogged || 0
   };
 
   if (!source.unlockedCharacters && source.activePath && Array.isArray(source.unlockedNodes)) {
@@ -228,6 +246,7 @@ function applyQuestGainsCloudState(payload = {}) {
   syncMealTracker();
   syncDailyTrackingFlags();
   syncWeeklyTrackingFlags();
+  SoundFX.enabled = character.soundEnabled !== false;
   saveData();
   updateHeader();
   populateFoodSelect('meal-food-select', nDB, false);
@@ -317,6 +336,193 @@ function syncDailyTrackingFlags() {
   }
 }
 
+const LEVELUP_QUOTES = [
+  "The weak give up. You level up.",
+  "Another level. Another version of you.",
+  "Pain is temporary. XP is forever.",
+  "Your character grows stronger. So do you.",
+  "Heroes aren't born. They grind.",
+  "The leaderboard remembers.",
+  "Every rep counts. Every level matters.",
+  "Stronger than yesterday.",
+  "The grind never lies.",
+  "Legends don't skip leg day."
+];
+
+const SoundFX = {
+  ctx: null,
+  enabled: true,
+
+  init() {
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (error) {
+      this.ctx = null;
+    }
+  },
+
+  play(type) {
+    if (!this.enabled || !this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    switch (type) {
+      case 'xp': this._tone(880, 0.1, 'sine', 0.3); break;
+      case 'levelup': this._fanfare(); break;
+      case 'quest':
+        this._tone(660, 0.15, 'sine', 0.5);
+        setTimeout(() => this._tone(880, 0.15, 'sine', 0.3), 150);
+        break;
+      case 'click': this._tone(440, 0.05, 'sine', 0.1); break;
+      case 'unlock': this._tone(523, 0.1, 'triangle', 0.4); break;
+      case 'achievement': this._fanfare(); break;
+      default: break;
+    }
+  },
+
+  _tone(freq, duration, type, volume) {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+    osc.start(this.ctx.currentTime);
+    osc.stop(this.ctx.currentTime + duration);
+  },
+
+  _fanfare() {
+    [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.35]].forEach(([freq, time]) => {
+      setTimeout(() => this._tone(freq, 0.3, 'sine', 0.4), time * 1000);
+    });
+  }
+};
+
+let levelUpOverlayTimeout = null;
+let achievementToastTimeout = null;
+
+function updateSoundToggleButton() {
+  const button = document.getElementById('sound-toggle-btn');
+  if (!button) return;
+  button.textContent = character.soundEnabled === false ? '🔇' : '🔊';
+  button.setAttribute('aria-label', character.soundEnabled === false ? 'Enable sound' : 'Disable sound');
+}
+
+window.toggleSound = function toggleSound() {
+  character.soundEnabled = character.soundEnabled === false;
+  SoundFX.enabled = character.soundEnabled;
+  updateSoundToggleButton();
+  saveData();
+  if (character.soundEnabled) SoundFX.play('click');
+};
+
+function triggerButtonClickSound() {
+  SoundFX.play('click');
+}
+
+function applyCombo(xp) {
+  return Math.round(xp * (character.comboMultiplier || 1.0));
+}
+
+function updateCombo() {
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  if (character.comboDate === today) return;
+
+  if (character.comboDate === yesterday) {
+    character.comboStreak = (character.comboStreak || 0) + 1;
+  } else if (character.comboDate !== today) {
+    character.comboStreak = 1;
+  }
+
+  character.comboDate = today;
+  character.comboMultiplier = Math.min(3.0, 1.0 + ((character.comboStreak || 1) - 1) * 0.1);
+  saveData();
+}
+
+function showAchievement(icon, name, desc) {
+  const toast = document.getElementById('achievement-toast');
+  if (!toast) return;
+  document.getElementById('achievement-icon').textContent = icon;
+  document.getElementById('achievement-name').textContent = name;
+  document.getElementById('achievement-desc').textContent = desc;
+  toast.classList.remove('hidden');
+  toast.style.animation = 'none';
+  void toast.offsetHeight;
+  toast.style.animation = 'slideDown 0.4s ease forwards';
+  SoundFX.play('achievement');
+  if (achievementToastTimeout) clearTimeout(achievementToastTimeout);
+  achievementToastTimeout = setTimeout(() => {
+    toast.style.animation = 'slideUp 0.4s ease forwards';
+    setTimeout(() => toast.classList.add('hidden'), 400);
+  }, 3000);
+}
+
+function unlockAchievement(id, icon, name, desc) {
+  character.achievements = character.achievements || [];
+  if (character.achievements.includes(id)) return false;
+  character.achievements.push(id);
+  saveData();
+  showAchievement(icon, name, desc);
+  return true;
+}
+
+function checkProgressAchievements() {
+  if (workoutLog.length >= 1) unlockAchievement('first_workout', '🩸', 'First Blood', 'Complete your first workout session');
+  if ((character.level || 0) >= 5) unlockAchievement('level_5', '⚡', 'Rising Hero', 'Reached Level 5');
+  if ((character.level || 0) >= 10) unlockAchievement('level_10', '🎖️', 'Veteran', 'Reached Level 10');
+  if ((character.currentStreak || 0) >= 7) unlockAchievement('streak_7', '🔥', 'On Fire', '7 days straight');
+  if ((character.totalMealsLogged || 0) >= 10) unlockAchievement('meals_10', '🍽️', 'Fueled Up', 'Log 10 meals');
+  if ((character.totalNodesUnlocked || 0) >= 1) unlockAchievement('first_node', '✨', 'Power Awakens', 'Unlock your first skill node');
+  if ((character.comboMultiplier || 1) >= 3) unlockAchievement('combo_3x', '💪', 'Unstoppable', 'Hit a 3× XP combo streak');
+  const oneRMLogged = Object.values(character.oneRMs || {}).some((value) => Number(value) > 0);
+  if (oneRMLogged) unlockAchievement('first_1rm', '🏋️', 'Iron Numbers', 'Log your first 1RM PR');
+}
+
+function renderLevelUpConfetti() {
+  const confetti = document.getElementById('levelup-confetti');
+  if (!confetti) return;
+  const colors = ['#22c55e', '#3b82f6', '#facc15', '#f97316', '#ec4899', '#a855f7'];
+  confetti.innerHTML = '';
+  for (let index = 0; index < 20; index += 1) {
+    const piece = document.createElement('div');
+    piece.className = 'levelup-confetti-piece';
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[index % colors.length];
+    piece.style.animationDuration = `${2.2 + Math.random() * 1.8}s`;
+    piece.style.animationDelay = `${Math.random() * 0.6}s`;
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    confetti.appendChild(piece);
+  }
+}
+
+function showLevelUpOverlay(level, heroPoints) {
+  const overlay = document.getElementById('levelup-overlay');
+  if (!overlay) return;
+  document.getElementById('levelup-number').textContent = String(level);
+  document.getElementById('levelup-title').textContent = `You earned ${heroPoints} Hero Points`;
+  document.getElementById('levelup-subtitle').textContent = LEVELUP_QUOTES[(Math.max(level, 1) - 1) % LEVELUP_QUOTES.length];
+  renderLevelUpConfetti();
+  overlay.classList.remove('hidden');
+  SoundFX.play('levelup');
+  if (levelUpOverlayTimeout) clearTimeout(levelUpOverlayTimeout);
+  levelUpOverlayTimeout = setTimeout(() => {
+    closeLevelUpOverlay();
+  }, 4000);
+}
+
+window.closeLevelUpOverlay = function closeLevelUpOverlay() {
+  const overlay = document.getElementById('levelup-overlay');
+  if (overlay) overlay.classList.add('hidden');
+  if (levelUpOverlayTimeout) {
+    clearTimeout(levelUpOverlayTimeout);
+    levelUpOverlayTimeout = null;
+  }
+};
+
 function syncWeeklyTrackingFlags() {
   const currentWeek = getCurrentWeekStamp();
   if (character.aiSuggestWeek !== currentWeek) {
@@ -372,6 +578,15 @@ function updateHeader() {
   document.getElementById('hero-points-display').textContent = character.heroPoints || 0;
   const streakEl = document.getElementById('header-streak');
   if (streakEl) streakEl.textContent = `${character.currentStreak || 0} day streak`;
+  const comboEl = document.getElementById('header-combo');
+  if (comboEl) {
+    if ((character.comboStreak || 0) >= 3) {
+      comboEl.textContent = `🔥 ${(character.comboMultiplier || 1).toFixed(1).replace('.0', '')}× Combo`;
+    } else {
+      comboEl.textContent = `${character.comboStreak || 0} combo day${(character.comboStreak || 0) === 1 ? '' : 's'}`;
+    }
+  }
+  updateSoundToggleButton();
 }
 
 function getHeroById(heroId) {
@@ -429,8 +644,10 @@ function getFlatPerkBonus(type) {
 }
 
 function awardXP(baseXP) {
-  const finalXP = applyXPMultiplier(baseXP);
+  const comboXP = applyCombo(baseXP);
+  const finalXP = applyXPMultiplier(comboXP);
   character.xp += finalXP;
+  SoundFX.play('xp');
   return finalXP;
 }
 
@@ -476,7 +693,8 @@ function levelUp() {
     }
 
     character.heroPoints = (character.heroPoints || 0) + earnedHeroPoints;
-    alert(`🎉 LEVEL UP! You are now Level ${character.level}! (+${earnedHeroPoints} Hero Points)`);
+    showLevelUpOverlay(character.level, earnedHeroPoints);
+    checkProgressAchievements();
   }
 }
 
@@ -975,11 +1193,13 @@ function recalculateWeeklyVolume(currentWeek) {
 }
 
 window.finishSession = function finishSession() {
+  triggerButtonClickSound();
   if (currentSession.length === 0) return alert('Add at least one exercise!');
   const hasAnySets = currentSession.some((item) => (item.sets || []).length > 0);
   if (!hasAnySets) return alert('Log at least one set before finishing the session.');
 
   updateActivityStreak({ allowShield: true });
+  updateCombo();
   const previousSession = workoutLog[0] || null;
   const sessionCopy = currentSession.map((item) => ({
     exercise: item.exercise,
@@ -1054,6 +1274,7 @@ window.finishSession = function finishSession() {
 
   saveData();
   levelUp();
+  checkProgressAchievements();
   saveData();
   updateHeader();
   currentSession = [];
@@ -1186,10 +1407,12 @@ function renderOneRMRow(label, key) {
 }
 
 window.saveOneRM = function saveOneRM(key) {
+  triggerButtonClickSound();
   const input = document.getElementById(`1rm-${key}`);
   const value = Math.max(0, parseFloat(input.value) || 0);
   character.oneRMs[key] = value;
   character.oneRMsLastUpdated = new Date().toDateString();
+  checkProgressAchievements();
   saveData();
   renderProgress();
   alert(`Saved ${key.toUpperCase()} 1RM: ${value > 0 ? `${value} lbs` : 'Not set'}`);
@@ -1401,7 +1624,7 @@ function getSpriteImg(hero, size = 'large') {
     return `<div class="sprite-fallback ${sizeClass}" style="--sprite-color: ${getHeroColor(hero)}"></div>`;
   }
 
-  return `<img src="https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/${filename}" alt="${hero.name}" class="pixel-portrait ${sizeClass}" style="filter: drop-shadow(0 0 12px ${getHeroColor(hero)})">`;
+  return `<img src="https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/${filename}" alt="${hero.name}" class="pixel-portrait ${sizeClass}" style="--hero-color: ${getHeroColor(hero)}; filter: drop-shadow(0 0 12px ${getHeroColor(hero)})">`;
 }
 
 function renderHero() {
@@ -1417,7 +1640,7 @@ function renderHero() {
   }
 
   const heroStreak = document.getElementById('hero-streak');
-  if (heroStreak) heroStreak.textContent = `🔥 ${character.currentStreak || 0} Day Streak`;
+  if (heroStreak) heroStreak.textContent = `🔥 ${character.currentStreak || 0} Day Streak • ${(character.comboMultiplier || 1).toFixed(1).replace('.0', '')}× Combo`; checkProgressAchievements();
 
   const badgesContainer = document.getElementById('hero-badges');
   if (badgesContainer) {
@@ -1519,6 +1742,7 @@ window.selectHero = function selectHero(heroId) {
 };
 
 window.unlockHeroNode = function unlockHeroNode(heroId, nodeId) {
+  triggerButtonClickSound();
   const hero = getHeroById(heroId);
   if (!hero) return;
 
@@ -1541,12 +1765,15 @@ window.unlockHeroNode = function unlockHeroNode(heroId, nodeId) {
     character.equippedTitle = node.title;
   }
 
+  SoundFX.play('unlock');
+  checkProgressAchievements();
   saveData();
   renderHero();
   alert(`Unlocked ${node.name}! Title earned: ${node.title}`);
 };
 
 window.equipTitle = function equipTitle(heroId, nodeId) {
+  triggerButtonClickSound();
   const hero = getHeroById(heroId);
   if (!hero) return;
 
@@ -1799,12 +2026,15 @@ window.showQuestSubTab = function showQuestSubTab(n) {
 };
 
 window.claimJumpstart = function claimJumpstart(id) {
+  triggerButtonClickSound();
   if (!questProgress.jumpstartCompleted.includes(id)) {
     questProgress.jumpstartCompleted.push(id);
     const earnedXP = awardXP(100 + getFlatPerkBonus('quest_xp_bonus'));
     const rushBonusXP = getQuestRushBonusXP();
+    SoundFX.play('quest');
     saveData();
     levelUp();
+    checkProgressAchievements();
     saveData();
     updateHeader();
     alert(`🎉 Jumpstart quest completed! +${earnedXP + rushBonusXP} XP`);
@@ -1813,6 +2043,7 @@ window.claimJumpstart = function claimJumpstart(id) {
 };
 
 window.claimDaily = function claimDaily(id) {
+  triggerButtonClickSound();
   if (!isQuestClaimable('daily', id)) {
     alert('This daily quest is not complete yet.');
     return;
@@ -1823,8 +2054,10 @@ window.claimDaily = function claimDaily(id) {
     const baseXP = quest ? quest.xp : 25;
     const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
     const rushBonusXP = getQuestRushBonusXP();
+    SoundFX.play('quest');
     saveData();
     levelUp();
+    checkProgressAchievements();
     saveData();
     updateHeader();
     alert(`🎉 Daily quest completed! +${earnedXP + rushBonusXP} XP`);
@@ -1833,6 +2066,7 @@ window.claimDaily = function claimDaily(id) {
 };
 
 window.claimWeekly = function claimWeekly(id) {
+  triggerButtonClickSound();
   if (!isQuestClaimable('weekly', id)) {
     alert('This weekly quest is not complete yet.');
     return;
@@ -1843,8 +2077,10 @@ window.claimWeekly = function claimWeekly(id) {
     const baseXP = quest ? quest.xp : 0;
     const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
     const rushBonusXP = getQuestRushBonusXP();
+    SoundFX.play('quest');
     saveData();
     levelUp();
+    checkProgressAchievements();
     saveData();
     updateHeader();
     alert(`🎉 Weekly quest completed! +${earnedXP + rushBonusXP} XP`);
@@ -1853,6 +2089,7 @@ window.claimWeekly = function claimWeekly(id) {
 };
 
 window.claimPersonal = function claimPersonal(id) {
+  triggerButtonClickSound();
   if (!questProgress.personalCompleted.includes(id)) {
     questProgress.personalCompleted.push(id);
     const quest = personalQuests.find((entry) => entry.id === id);
@@ -1862,8 +2099,10 @@ window.claimPersonal = function claimPersonal(id) {
     }
     const earnedXP = awardXP(baseXP + getFlatPerkBonus('quest_xp_bonus'));
     const rushBonusXP = getQuestRushBonusXP();
+    SoundFX.play('quest');
     saveData();
     levelUp();
+    checkProgressAchievements();
     saveData();
     updateHeader();
     renderHero();
@@ -1966,6 +2205,7 @@ window.filterNutrition = function filterNutrition() {
 };
 
 window.saveMacroGoals = function saveMacroGoals() {
+  triggerButtonClickSound();
   const calorieGoal = Math.max(1, parseInt(document.getElementById('calorie-goal').value || '2000', 10));
   const proteinGoal = Math.max(1, parseInt(document.getElementById('protein-goal').value || '150', 10));
   character.calorieGoal = calorieGoal;
@@ -2040,6 +2280,7 @@ function populateFoodSelect(selectId, filteredFoods = nDB, includePlaceholder = 
 }
 
 function addMeal() {
+  triggerButtonClickSound();
   const select = document.getElementById('meal-food-select');
   const quantity = parseFloat(document.getElementById('meal-quantity').value);
   if (!select.value) return alert('Please select a food');
@@ -2050,10 +2291,12 @@ function addMeal() {
 
   syncMealTracker();
   updateActivityStreak({ allowShield: true });
+  updateCombo();
   const scaledCal = Math.round(food.calories * (quantity / 100));
   const scaledProtein = Math.round(food.protein * (quantity / 100) * 10) / 10;
   todaysMeals.push({ name: food.name, quantity, calories: scaledCal, protein: scaledProtein });
   character.mealsLoggedToday = (character.mealsLoggedToday || 0) + 1;
+  character.totalMealsLogged = (character.totalMealsLogged || 0) + 1;
 
   let earnedXP = awardXP(20 + getFlatPerkBonus('meal_xp_bonus'));
   const activePerk = getActivePerk();
@@ -2067,6 +2310,7 @@ function addMeal() {
 
   saveData();
   levelUp();
+  checkProgressAchievements();
   saveData();
   updateHeader();
   renderMealLogger();
@@ -2150,6 +2394,7 @@ function renderWorkoutHistory() {
 }
 
 window.logCardio = function logCardio() {
+  triggerButtonClickSound();
   const type = document.getElementById('cardio-type').value;
   const duration = parseInt(document.getElementById('cardio-duration').value || '0', 10);
   const distanceValue = document.getElementById('cardio-distance').value;
@@ -2275,7 +2520,13 @@ window.importData = function importData(event) {
         restTimerUsedToday: importedCharacter.restTimerUsedToday || false,
         restTimerDate: importedCharacter.restTimerDate || null,
         aiSuggestUsedThisWeek: importedCharacter.aiSuggestUsedThisWeek || 0,
-        aiSuggestWeek: importedCharacter.aiSuggestWeek || null
+        aiSuggestWeek: importedCharacter.aiSuggestWeek || null,
+        soundEnabled: importedCharacter.soundEnabled !== false,
+        comboStreak: importedCharacter.comboStreak || 0,
+        comboDate: importedCharacter.comboDate || null,
+        comboMultiplier: importedCharacter.comboMultiplier || 1.0,
+        achievements: importedCharacter.achievements || [],
+        totalMealsLogged: importedCharacter.totalMealsLogged || 0
       };
       workoutLog = payload.workoutLog || [];
       cardioLog = payload.cardioLog || character.cardioLog || [];
@@ -2302,6 +2553,7 @@ window.importData = function importData(event) {
 };
 
 window.onload = function onLoad() {
+  SoundFX.init();
   syncWaterTracker();
   syncMealTracker();
   syncDailyTrackingFlags();
@@ -2312,6 +2564,7 @@ window.onload = function onLoad() {
   populateFoodSelect('meal-food-select', nDB, false);
   renderUnitConverter();
   renderHero();
+  checkProgressAchievements();
   showTab(4);
   console.log(`%c✅ QuestGains v2.12 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
