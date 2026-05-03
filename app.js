@@ -681,7 +681,8 @@ let achievementToastTimeout = null;
 function updateSoundToggleButton() {
   const button = document.getElementById('sound-toggle-btn');
   if (!button) return;
-  button.textContent = character.soundEnabled === false ? '🔇' : '🔊';
+  const icon = button.querySelector('span:first-child') || button;
+  icon.textContent = character.soundEnabled === false ? '🔇' : '🔊';
   button.setAttribute('aria-label', character.soundEnabled === false ? 'Enable sound' : 'Disable sound');
 }
 
@@ -3619,7 +3620,8 @@ function updateNotifButton() {
   const btn = document.getElementById('notif-btn');
   if (!btn) return;
   const enabled = character.notificationsEnabled && Notification.permission === 'granted';
-  btn.textContent = enabled ? '🔔' : '🔕';
+  const icon = btn.querySelector('span:first-child') || btn;
+  icon.textContent = enabled ? '🔔' : '🔕';
   btn.title = enabled ? 'Notifications on — tap to disable' : 'Notifications off — tap to enable';
 }
 
