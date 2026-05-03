@@ -446,5 +446,58 @@
       });
     }
   </script>
+  <!-- Victory Card Overlay -->
+  <div id="victory-overlay" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+      <div id="victory-card" class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-3xl p-6 border border-green-500/30 shadow-2xl">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2">
+            <img src="logo.png" alt="QuestGains" class="w-8 h-8 rounded-lg">
+            <span class="text-green-400 font-bold text-sm">QuestGains</span>
+          </div>
+          <div class="text-xs text-gray-500" id="vc-date"></div>
+        </div>
+        <div class="flex items-center gap-4 mb-5">
+          <div id="vc-portrait" class="w-16 h-16 rounded-2xl overflow-hidden bg-gray-800 flex items-center justify-center text-3xl flex-shrink-0"></div>
+          <div>
+            <div id="vc-hero-name" class="font-bold text-white text-sm"></div>
+            <div id="vc-title" class="text-xs text-green-400"></div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs text-gray-400">Level</span>
+              <span id="vc-level" class="text-white font-bold text-sm"></span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-800 mb-4"></div>
+        <div class="text-center mb-4">
+          <div class="text-2xl font-black text-white mb-1">VICTORY</div>
+          <div class="text-green-400 text-lg font-bold" id="vc-xp-earned"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="bg-gray-800/60 rounded-2xl p-3 text-center">
+            <div id="vc-exercises" class="text-white font-bold text-xl"></div>
+            <div class="text-gray-400 text-xs mt-1">Exercises</div>
+          </div>
+          <div class="bg-gray-800/60 rounded-2xl p-3 text-center">
+            <div id="vc-sets" class="text-white font-bold text-xl"></div>
+            <div class="text-gray-400 text-xs mt-1">Sets</div>
+          </div>
+          <div class="bg-gray-800/60 rounded-2xl p-3 text-center">
+            <div id="vc-volume" class="text-white font-bold text-xl"></div>
+            <div class="text-gray-400 text-xs mt-1">Volume</div>
+          </div>
+        </div>
+        <div id="vc-streak-section" class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-3 text-center mb-4">
+          <span class="text-orange-400 font-bold" id="vc-streak"></span>
+        </div>
+        <div class="text-center text-xs text-gray-600">questgains.github.io/questgains</div>
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button onclick="closeVictoryCard()" class="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-2xl text-sm font-medium">Close</button>
+        <button onclick="shareVictoryCard()" class="flex-1 bg-green-500 hover:bg-green-600 py-3 rounded-2xl text-sm font-bold">📤 Share</button>
+      </div>
+      <p class="text-center text-xs text-gray-600 mt-2">Long press the card to save as image</p>
+    </div>
+  </div>
 </body>
 </html>

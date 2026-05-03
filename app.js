@@ -1631,9 +1631,69 @@ window.finishSession = function finishSession() {
   currentSession = [];
   openSetFormIndex = null;
   workoutSuggestionMeta = { note: '', focusMuscles: [] };
-  alert([`Session saved! +${earnedXP} XP 🔥`, ...messages].join('\n'));
+  showVictoryCard(sessionCopy, earnedXP, messages);
   renderCurrentSession();
   showTab(3);
+};
+
+function showVictoryCard(session, xpEarned, messages) {
+  document.getElementById('vc-date').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  const activeHero = (typeof heroRoster !== 'undefined') && character.activeCharId
+    ? heroRoster.find(h => h.id === character.activeCharId) : null;
+  const portraitEl = document.getElementById('vc-portrait');
+  if (activeHero) {
+    document.getElementById('vc-hero-name').textContent = activeHero.name;
+    const spriteHtml = getSpriteImg(activeHero, 'small');
+    portraitEl.innerHTML = spriteHtml || `<span style="font-size:2rem">${activeHero.icon || '🦸'}</span>`;
+  } else {
+    document.getElementById('vc-hero-name').textContent = 'No Hero Selected';
+    portraitEl.innerHTML = '<span style="font-size:2rem">🦸</span>';
+  }
+
+  document.getElementById('vc-title').textContent = character.equippedTitle || 'Hero';
+  document.getElementById('vc-level').textContent = character.level;
+  document.getElementById('vc-xp-earned').textContent = `+${xpEarned} XP Earned`;
+
+  const totalExercises = session.length;
+  const totalSets = session.reduce((s, item) => s + (item.sets || []).length, 0);
+  const totalVolume = session.reduce((s, item) =>
+    s + (item.sets || []).reduce((ss, set) => ss + (set.reps || 0) * (set.weight || 0), 0), 0);
+
+  document.getElementById('vc-exercises').textContent = totalExercises;
+  document.getElementById('vc-sets').textContent = totalSets;
+  document.getElementById('vc-volume').textContent = totalVolume >= 1000
+    ? (totalVolume / 1000).toFixed(1) + 'k' : totalVolume || '—';
+
+  const streak = character.currentStreak || 0;
+  const streakSection = document.getElementById('vc-streak-section');
+  if (streak > 0) {
+    document.getElementById('vc-streak').textContent = `🔥 ${streak} Day Streak`;
+    streakSection.classList.remove('hidden');
+  } else {
+    streakSection.classList.add('hidden');
+  }
+
+  document.getElementById('victory-overlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  SoundFX.play('levelup');
+}
+
+window.closeVictoryCard = function() {
+  document.getElementById('victory-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+};
+
+window.shareVictoryCard = function() {
+  const classEmoji = { warrior: '⚔️', rogue: '🗡️', mage: '🔮', paladin: '🛡️' };
+  const emoji = classEmoji[character.heroClass] || '🦸';
+  const streak = character.currentStreak || 0;
+  const text = `Just earned my Victory Card on QuestGains! ${emoji} Level ${character.level}${streak > 0 ? ` · 🔥 ${streak} day streak` : ''}\n\nLevel up your fitness: questgains.github.io/questgains`;
+  if (navigator.share) {
+    navigator.share({ title: 'QuestGains Victory Card', text, url: 'https://questgains.github.io/questgains' }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => alert('Copied to clipboard! Paste to share.')).catch(() => alert(text));
+  }
 };
 
 function getStrengthEntries() {
