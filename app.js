@@ -1708,55 +1708,129 @@ function getRecentRecoverySummary() {
   return `Last 7 days: avg sleep ${avgSleep.toFixed(1)}h • avg energy ${avgEnergy.toFixed(1)}/5 across ${entries.length} check-in${entries.length === 1 ? '' : 's'}.`;
 }
 
+function getWeeklyVolumeByMuscle(weeksBack = 6) {
+  const weeks = [];
+  const now = new Date();
+  for (let i = weeksBack - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i * 7);
+    weeks.push(getWeekStampForDate(d.toISOString().split('T')[0]));
+  }
+  const muscleSet = new Set();
+  const volumeByWeek = {};
+  weeks.forEach(w => { volumeByWeek[w] = {}; });
+  workoutLog.forEach(entry => {
+    const ws = getWeekStampForDate(entry.date);
+    if (!volumeByWeek[ws]) return;
+    (entry.session || []).forEach(item => {
+      const muscles = (item.exercise?.muscles || '').split(',').map(m => m.trim()).filter(Boolean);
+      const vol = (item.sets || []).reduce((s, set) => s + (set.reps || 0) * (set.weight || 0), 0);
+      muscles.forEach(m => {
+        muscleSet.add(m);
+        volumeByWeek[ws][m] = (volumeByWeek[ws][m] || 0) + vol;
+      });
+    });
+  });
+  return { weeks, volumeByWeek, muscles: Array.from(muscleSet).sort() };
+}
+
+const MUSCLE_COLORS = [
+  '#22c55e','#3b82f6','#f59e0b','#ef4444','#a855f7',
+  '#06b6d4','#f97316','#ec4899','#84cc16','#14b8a6'
+];
+
 function renderProgress() {
-  const strengthEntries = getStrengthEntries();
   const weightEntries = getWeightEntries();
-  const labelSet = Array.from(new Set([...strengthEntries.map((point) => point.date), ...weightEntries.map((point) => point.date)])).sort();
+  const { weeks, volumeByWeek, muscles } = getWeeklyVolumeByMuscle(6);
+  const weekLabels = weeks.map(w => {
+    const parts = w.split('-W');
+    return `W${parts[1]}`;
+  });
 
   const ctx = document.getElementById('progress-chart');
   if (window.myChart) window.myChart.destroy();
-  window.myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labelSet.map((label) => getDisplayDate(label)),
-      datasets: [
-        {
-          label: 'Strength',
-          data: labelSet.map((label) => {
-            const match = [...strengthEntries].reverse().find((point) => point.date === label);
-            return match ? match.strength : null;
-          }),
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.15)',
-          fill: false,
-          tension: 0.3,
-          spanGaps: true
-        },
-        {
-          label: 'Body Weight',
-          data: labelSet.map((label) => {
-            const match = [...weightEntries].reverse().find((point) => point.date === label);
-            return match ? match.weight : null;
-          }),
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.15)',
-          fill: false,
-          tension: 0.3,
-          spanGaps: true
-        }
-      ]
-    },
-    options: {
-      plugins: { legend: { labels: { color: '#d1d5db' } } },
-      scales: {
-        x: { grid: { color: '#1f2937' }, ticks: { color: '#d1d5db' } },
-        y: { grid: { color: '#333' }, ticks: { color: '#d1d5db' } }
-      }
+
+  const hasVolumeData = muscles.length > 0;
+
+  if (hasVolumeData) {
+    const datasets = muscles.slice(0, 8).map((muscle, i) => ({
+      label: muscle,
+      data: weeks.map(w => volumeByWeek[w][muscle] || 0),
+      backgroundColor: MUSCLE_COLORS[i % MUSCLE_COLORS.length] + '99',
+      borderColor: MUSCLE_COLORS[i % MUSCLE_COLORS.length],
+      borderWidth: 2,
+      borderRadius: 4,
+    }));
+
+    // Add body weight as a line on secondary axis if data exists
+    if (weightEntries.length > 0) {
+      datasets.push({
+        label: 'Body Weight (lbs)',
+        data: weeks.map(w => {
+          const weekStart = new Date(w.split('-W')[0], 0, 1 + (parseInt(w.split('-W')[1]) - 1) * 7);
+          const match = [...weightEntries].reverse().find(e => getWeekStampForDate(e.date) === w);
+          return match ? match.weight : null;
+        }),
+        type: 'line',
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.1)',
+        borderDash: [4,4],
+        fill: false,
+        tension: 0.3,
+        spanGaps: true,
+        yAxisID: 'y2',
+        pointRadius: 4,
+      });
     }
-  });
+
+    window.myChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: weekLabels, datasets },
+      options: {
+        plugins: { legend: { labels: { color: '#d1d5db', boxWidth: 12 } } },
+        scales: {
+          x: { stacked: true, grid: { color: '#1f2937' }, ticks: { color: '#d1d5db' } },
+          y: { stacked: true, grid: { color: '#333' }, ticks: { color: '#d1d5db', callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v } },
+          y2: { position: 'right', display: weightEntries.length > 0, grid: { drawOnChartArea: false }, ticks: { color: '#3b82f6' } }
+        }
+      }
+    });
+  } else {
+    // No workout data yet — show body weight only if available, else placeholder
+    const weightLabels = weightEntries.map(e => getDisplayDate(e.date));
+    window.myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: weightLabels.length ? weightLabels : ['No data'],
+        datasets: [{
+          label: 'Body Weight (lbs)',
+          data: weightEntries.map(e => e.weight),
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.15)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#d1d5db' } } },
+        scales: {
+          x: { grid: { color: '#1f2937' }, ticks: { color: '#d1d5db' } },
+          y: { grid: { color: '#333' }, ticks: { color: '#d1d5db' } }
+        }
+      }
+    });
+  }
+
+  // Chart label
+  const chartLabel = document.getElementById('progress-chart-label');
+  if (chartLabel) {
+    chartLabel.textContent = hasVolumeData
+      ? '📊 Weekly Volume by Muscle Group (lbs lifted) — last 6 weeks'
+      : '📊 Body Weight Over Time';
+  }
 
   const workoutCount = workoutLog.length;
-  document.getElementById('pr-list').innerHTML = `<div class="text-green-400">Push-ups: ${20 + workoutCount} reps</div><div class="text-green-400">Squats: ${35 + workoutCount} reps</div>`;
+  document.getElementById('pr-list').innerHTML = `<div class="text-green-400">Total Sessions: ${workoutCount}</div><div class="text-green-400">Total Sets: ${workoutLog.reduce((s,e) => s + (e.session||[]).reduce((ss,x) => ss+(x.sets||[]).length,0),0)}</div>`;
 
   document.getElementById('1rm-list').innerHTML = `
     <div class="space-y-3">
