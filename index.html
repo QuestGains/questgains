@@ -22,7 +22,7 @@
   <script src="db.js"></script>
   <script src="auth.js"></script>
 </head>
-<body class="text-white min-h-screen pb-8" style="background-color: var(--theme-bg);">
+<body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
   <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
     <div class="w-full max-w-md overflow-hidden rounded-[2rem] border border-green-500/20 bg-gray-900 shadow-2xl shadow-green-500/10">
       <div class="bg-gradient-to-br from-green-500/20 via-gray-900 to-gray-950 px-8 pt-10 pb-8 text-center">
@@ -100,15 +100,10 @@
           <h1 class="text-3xl font-bold text-green-400">QuestGains <span class="text-sm font-normal text-gray-400">v2.13</span></h1>
         </div>
       </div>
-      <div class="text-right shrink-0 max-w-full">
-        <div class="mb-2 flex items-center justify-end gap-2 flex-wrap">
-          <button id="sound-toggle-btn" type="button" onclick="toggleSound()" class="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white">🔊</button>
-          <button id="notif-btn" type="button" onclick="toggleNotifications()" class="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white" title="Notifications">🔕</button>
-          <button id="signout-btn" type="button" class="hidden rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white">👤 Sign out</button>
-          <button id="delete-account-btn" type="button" onclick="deleteAccount()" class="hidden rounded-full border border-red-800 px-3 py-1 text-xs text-red-400 transition hover:border-red-500 hover:text-red-300">🗑️ Delete account</button>
-        </div>
+      <div class="text-right shrink-0">
         <div class="text-sm text-gray-400">Level <span id="level" class="font-bold text-3xl">1</span></div>
-        <div class="text-xs text-green-400 leading-relaxed">XP: <span id="xp">0</span>/<span id="xp-next">100</span> • Hero Points: <span id="hero-points" class="font-bold">0</span> • 🔥 <span id="header-streak" class="font-bold">0 day streak</span> • <span id="header-combo" class="font-bold text-orange-300">1×</span></div>
+        <div class="text-xs text-green-400 leading-relaxed">XP: <span id="xp">0</span>/<span id="xp-next">100</span> • HP: <span id="hero-points" class="font-bold">0</span></div>
+        <div class="text-xs text-orange-300 mt-1">🔥 <span id="header-streak" class="font-bold">0</span> • <span id="header-combo" class="font-bold">1×</span></div>
       </div>
     </div>
 
@@ -420,6 +415,28 @@
     </div>
   </div>
 
+  </div>
+
+  <!-- Settings Bar (bottom) -->
+  <div class="fixed bottom-0 left-0 right-0 z-[80] bg-gray-950/95 backdrop-blur-sm border-t border-gray-800">
+    <div class="max-w-md mx-auto px-4 py-2 flex items-center justify-between gap-2">
+      <button id="sound-toggle-btn" type="button" onclick="toggleSound()" class="flex-1 flex flex-col items-center gap-0.5 py-2 text-gray-400 hover:text-green-400 transition text-xs">
+        <span class="text-lg">🔊</span>
+        <span>Sound</span>
+      </button>
+      <button id="notif-btn" type="button" onclick="toggleNotifications()" class="flex-1 flex flex-col items-center gap-0.5 py-2 text-gray-400 hover:text-green-400 transition text-xs">
+        <span class="text-lg">🔕</span>
+        <span>Alerts</span>
+      </button>
+      <button id="signout-btn" type="button" class="hidden flex-1 flex flex-col items-center gap-0.5 py-2 text-gray-400 hover:text-green-400 transition text-xs">
+        <span class="text-lg">👤</span>
+        <span>Sign out</span>
+      </button>
+      <button id="delete-account-btn" type="button" onclick="deleteAccount()" class="hidden flex-1 flex flex-col items-center gap-0.5 py-2 text-red-500 hover:text-red-400 transition text-xs">
+        <span class="text-lg">🗑️</span>
+        <span>Delete</span>
+      </button>
+    </div>
   </div>
 
   <div id="achievement-toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[90] w-11/12 max-w-sm">
