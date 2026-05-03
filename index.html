@@ -74,15 +74,17 @@
     </div>
   </div>
 
-  <div id="class-overlay" class="class-overlay hidden fixed inset-0 z-[101] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
-    <div class="w-full max-w-3xl rounded-[2rem] border border-green-500/20 bg-gray-900 shadow-2xl shadow-green-500/10 p-6 md:p-8">
-      <div class="text-center mb-6">
-        <div class="text-4xl mb-3">⚔️</div>
-        <h2 class="text-3xl font-black text-green-400">Choose Your Class</h2>
-        <p class="mt-2 text-sm text-gray-300">Your class defines how your XP spikes. Choose once. Build the legend.</p>
+  <div id="class-overlay" class="class-overlay hidden fixed inset-0 z-[101] overflow-y-auto bg-gray-950/95 backdrop-blur-sm">
+    <div class="min-h-full flex items-start justify-center py-6 px-4">
+      <div class="w-full max-w-lg rounded-[2rem] border border-green-500/20 bg-gray-900 shadow-2xl shadow-green-500/10 p-6">
+        <div class="text-center mb-6">
+          <div class="text-4xl mb-3">⚔️</div>
+          <h2 class="text-3xl font-black text-green-400">Choose Your Class</h2>
+          <p class="mt-2 text-sm text-gray-300">Your class defines how your XP spikes. Choose once. Build the legend.</p>
+        </div>
+        <div id="class-grid" class="grid grid-cols-2 gap-4"></div>
+        <button id="confirm-class-btn" onclick="confirmHeroClass()" class="mt-6 w-full rounded-2xl bg-green-500 px-4 py-3 text-base font-semibold text-gray-950 transition hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Confirm Class</button>
       </div>
-      <div id="class-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-      <button id="confirm-class-btn" onclick="confirmHeroClass()" class="mt-6 w-full rounded-2xl bg-green-500 px-4 py-3 text-base font-semibold text-gray-950 transition hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Confirm Class</button>
     </div>
   </div>
 
