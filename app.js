@@ -70,7 +70,13 @@ const DEFAULT_CHARACTER = {
   rivalChallengeStart: null,
   rivalChallengeGoalXP: null,
   weeklyMealLog: {},
-  weeklyQuestLog: {}
+  weeklyQuestLog: {},
+  heroTabVisited: false,
+  libraryTabVisited: false,
+  exerciseModalOpened: false,
+  planModalOpened: false,
+  leaderboardTabVisited: false,
+  aiSuggestTotal: 0
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
@@ -995,6 +1001,18 @@ function showTab(n) {
     character.progressTabVisitedDate = new Date().toDateString();
     saveData();
   }
+  if (n === 4 && !character.heroTabVisited) {
+    character.heroTabVisited = true;
+    saveData();
+  }
+  if (n === 0 && !character.libraryTabVisited) {
+    character.libraryTabVisited = true;
+    saveData();
+  }
+  if (n === 6 && !character.leaderboardTabVisited) {
+    character.leaderboardTabVisited = true;
+    saveData();
+  }
 
   if (n === 0) renderLibrary();
   if (n === 1) renderCurrentSession();
@@ -1064,6 +1082,7 @@ let exerciseImageInterval = null;
 function showExerciseDetail(id) {
   const exercise = exDB.find((entry) => entry.id === id);
   if (!exercise) return;
+  if (!character.exerciseModalOpened) { character.exerciseModalOpened = true; saveData(); }
   document.getElementById('modal-name').textContent = exercise.name;
   document.getElementById('modal-muscles').textContent = `Builds: ${exercise.muscles}`;
   document.getElementById('modal-main-image').src = exercise.image;
@@ -1214,6 +1233,7 @@ window.startTemplateWorkout = function startTemplateWorkout(templateId) {
 };
 
 function showPlanDetail(plan) {
+  if (!character.planModalOpened) { character.planModalOpened = true; saveData(); }
   document.getElementById('plan-modal-name').textContent = plan.name;
   document.getElementById('plan-modal-desc').textContent = plan.desc;
   const container = document.getElementById('plan-weekly-schedule');
@@ -1292,6 +1312,7 @@ window.suggestWorkout = function suggestWorkout() {
   syncWeeklyTrackingFlags();
   character.aiSuggestWeek = getCurrentWeekStamp();
   character.aiSuggestUsedThisWeek = (character.aiSuggestUsedThisWeek || 0) + 1;
+  character.aiSuggestTotal = (character.aiSuggestTotal || 0) + 1;
   const recentSessions = getRecentSessions(3);
   let pickedExercises = [];
 
@@ -2367,6 +2388,70 @@ function isWeeklyQuestComplete(questId) {
   }
 }
 
+function hasCompletedHeroLegend() {
+  if (!character.unlockedCharacters || typeof heroRoster === 'undefined') return false;
+  return heroRoster.some(hero => {
+    const unlocked = character.unlockedCharacters[hero.id] || [];
+    return hero.nodes && unlocked.length >= hero.nodes.length;
+  });
+}
+
+function countCompletedHeroLegends() {
+  if (!character.unlockedCharacters || typeof heroRoster === 'undefined') return 0;
+  return heroRoster.filter(hero => {
+    const unlocked = character.unlockedCharacters[hero.id] || [];
+    return hero.nodes && unlocked.length >= hero.nodes.length;
+  }).length;
+}
+
+function isJumpstartQuestComplete(questId) {
+  switch(questId) {
+    case 1: return workoutLog.length >= 1;
+    case 2: return (character.totalMealsEver || 0) >= 1;
+    case 3: return character.heroTabVisited === true;
+    case 4: return character.progressTabVisitedDate !== null;
+    case 5: return character.libraryTabVisited === true;
+    case 6: return character.exerciseModalOpened === true;
+    case 7: return character.planModalOpened === true;
+    case 8: return (character.totalMealsEver || 0) >= 1;
+    case 9: return character.leaderboardTabVisited === true;
+    case 10: return (character.aiSuggestTotal || 0) >= 1;
+    default: return false;
+  }
+}
+
+function isPersonalQuestComplete(questId) {
+  switch(questId) {
+    case 1: return character.level >= 5;
+    case 2: return (character.totalMealsEver || 0) >= 10;
+    case 3: return hasCompletedHeroLegend();
+    case 4: return workoutLog.length >= 20;
+    case 5: return character.level >= 10;
+    case 6: return (character.totalMealsEver || 0) >= 50;
+    case 7: return countCompletedHeroLegends() >= 5;
+    case 8: return workoutLog.length >= 50;
+    case 9: return character.level >= 25;
+    case 10: return (questProgress.jumpstartCompleted || []).length >= jumpstartQuests.length;
+    default: return false;
+  }
+}
+
+function getPersonalQuestProgress(questId) {
+  switch(questId) {
+    case 1: return `Level ${character.level} / 5`;
+    case 2: return `${Math.min(character.totalMealsEver || 0, 10)} / 10 meals`;
+    case 3: return hasCompletedHeroLegend() ? '✓ Legend completed' : 'Complete all nodes for one hero';
+    case 4: return `${Math.min(workoutLog.length, 20)} / 20 workouts`;
+    case 5: return `Level ${character.level} / 10`;
+    case 6: return `${Math.min(character.totalMealsEver || 0, 50)} / 50 meals`;
+    case 7: return `${Math.min(countCompletedHeroLegends(), 5)} / 5 legends`;
+    case 8: return `${Math.min(workoutLog.length, 50)} / 50 workouts`;
+    case 9: return `Level ${character.level} / 25`;
+    case 10: return `${(questProgress.jumpstartCompleted || []).length} / ${jumpstartQuests.length} jumpstart quests`;
+    default: return '';
+  }
+}
+
 function getQuestProgressLabel(type, questId) {
   if (type === 'daily') {
     syncWaterTracker();
@@ -2463,9 +2548,25 @@ function renderQuests() {
 function appendQuestCard(container, quest, completedList, clickAction, type = 'generic') {
   const completed = completedList.includes(quest.id);
   const honorSystem = isHonorSystem(type, quest.id);
-  const autoVerified = type === 'daily' || type === 'weekly';
-  const claimable = !autoVerified || honorSystem || isQuestClaimable(type, quest.id);
-  const progressLabel = autoVerified && !honorSystem ? getQuestProgressLabel(type, quest.id) : '';
+  const autoVerified = type === 'daily' || type === 'weekly' || type === 'jumpstart' || type === 'personal';
+  let claimable;
+  if (!autoVerified || honorSystem) {
+    claimable = true;
+  } else if (type === 'jumpstart') {
+    claimable = isJumpstartQuestComplete(quest.id);
+  } else if (type === 'personal') {
+    claimable = isPersonalQuestComplete(quest.id);
+  } else {
+    claimable = isQuestClaimable(type, quest.id);
+  }
+  let progressLabel = '';
+  if (autoVerified && !honorSystem) {
+    if (type === 'personal') {
+      progressLabel = getPersonalQuestProgress(quest.id);
+    } else {
+      progressLabel = getQuestProgressLabel(type, quest.id);
+    }
+  }
   const statusMarkup = completed
     ? '<span class="text-green-400 text-xs">✓ Done</span>'
     : claimable
@@ -2492,6 +2593,7 @@ window.showQuestSubTab = function showQuestSubTab(n) {
 };
 
 window.claimJumpstart = function claimJumpstart(id) {
+  if (!isJumpstartQuestComplete(id)) return;
   triggerButtonClickSound();
   if (!questProgress.jumpstartCompleted.includes(id)) {
     questProgress.jumpstartCompleted.push(id);
@@ -2564,6 +2666,7 @@ window.claimWeekly = function claimWeekly(id) {
 };
 
 window.claimPersonal = function claimPersonal(id) {
+  if (!isPersonalQuestComplete(id)) return;
   triggerButtonClickSound();
   if (!questProgress.personalCompleted.includes(id)) {
     questProgress.personalCompleted.push(id);
