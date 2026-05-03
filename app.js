@@ -3455,12 +3455,47 @@ async function lookupBarcode(barcode, statusEl) {
     }
     const p = data.product;
     const name = p.product_name || p.product_name_en || 'Unknown Product';
-    const calories = Math.round(p.nutriments?.['energy-kcal_100g'] || p.nutriments?.['energy-kcal'] || 0);
-    const protein = Math.round((p.nutriments?.['proteins_100g'] || 0) * 10) / 10;
-    const carbs = Math.round((p.nutriments?.['carbohydrates_100g'] || 0) * 10) / 10;
-    const fat = Math.round((p.nutriments?.['fat_100g'] || 0) * 10) / 10;
+    const brand = p.brands || '';
+
+    // Serving size — prefer serving data, fall back to 100g
+    const servingQty = parseFloat(p.serving_quantity) || 100;
+    const servingLabel = p.serving_size || `${servingQty}g`;
+
+    // Nutrition per serving if available, else scale from per-100g
+    const hasServingData = p.nutriments?.['energy-kcal_serving'] != null;
+    let caloriesPer, proteinPer, carbsPer, fatPer, basisLabel, basisQty;
+
+    if (hasServingData) {
+      caloriesPer = Math.round(p.nutriments['energy-kcal_serving'] || 0);
+      proteinPer = Math.round((p.nutriments['proteins_serving'] || 0) * 10) / 10;
+      carbsPer = Math.round((p.nutriments['carbohydrates_serving'] || 0) * 10) / 10;
+      fatPer = Math.round((p.nutriments['fat_serving'] || 0) * 10) / 10;
+      basisLabel = `per serving (${servingLabel})`;
+      basisQty = servingQty;
+    } else {
+      // Fall back to per-100g and scale to serving size
+      const cal100 = p.nutriments?.['energy-kcal_100g'] || p.nutriments?.['energy-kcal'] || 0;
+      const pro100 = p.nutriments?.['proteins_100g'] || 0;
+      const carb100 = p.nutriments?.['carbohydrates_100g'] || 0;
+      const fat100 = p.nutriments?.['fat_100g'] || 0;
+      caloriesPer = Math.round(cal100 * servingQty / 100);
+      proteinPer = Math.round(pro100 * servingQty / 100 * 10) / 10;
+      carbsPer = Math.round(carb100 * servingQty / 100 * 10) / 10;
+      fatPer = Math.round(fat100 * servingQty / 100 * 10) / 10;
+      basisLabel = `per serving (${servingLabel})`;
+      basisQty = servingQty;
+    }
+
+    // Store per-100g values for scaling when user changes qty
+    const cal100g = Math.round(p.nutriments?.['energy-kcal_100g'] || p.nutriments?.['energy-kcal'] || (caloriesPer / servingQty * 100));
+    const pro100g = Math.round((p.nutriments?.['proteins_100g'] || (proteinPer / servingQty * 100)) * 10) / 10;
+
     closeBarcodeScanner();
-    showScannedFoodConfirmation({ name, calories, protein, carbs, fat });
+    showScannedFoodConfirmation({
+      name, brand, caloriesPer, proteinPer, carbsPer, fatPer,
+      basisLabel, basisQty, servingLabel, servingQty,
+      cal100g, pro100g
+    });
   } catch(err) {
     statusEl.textContent = 'Lookup failed. Check your connection and try again.';
     setTimeout(() => closeBarcodeScanner(), 2500);
@@ -3472,15 +3507,20 @@ function showScannedFoodConfirmation(food) {
   const div = document.createElement('div');
   div.id = 'scan-confirm';
   div.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 w-11/12 max-w-sm bg-gray-900 border border-green-500/40 rounded-3xl p-4 z-[140] shadow-xl';
+  const subtitle = food.brand ? `<div class="text-xs text-gray-500 mb-1">${food.brand}</div>` : '';
+  const foodJson = JSON.stringify(food).replace(/\"/g, '&quot;');
   div.innerHTML = `
     <div class="text-green-400 font-semibold mb-1">📷 ${food.name}</div>
-    <div class="text-xs text-gray-400 mb-3">${food.calories} cal · ${food.protein}g protein · ${food.carbs}g carbs · ${food.fat}g fat per 100g</div>
-    <div class="flex gap-3 items-center mb-3">
-      <input id="scan-qty" type="number" value="100" min="1" class="flex-1 bg-gray-800 text-white p-2 rounded-2xl text-sm" placeholder="grams">
-      <span class="text-gray-400 text-sm">g</span>
+    ${subtitle}
+    <div class="text-xs text-gray-400 mb-1">${food.basisLabel}:</div>
+    <div class="text-sm text-white mb-3">${food.caloriesPer} cal · ${food.proteinPer}g protein · ${food.carbsPer}g carbs · ${food.fatPer}g fat</div>
+    <div class="flex gap-2 items-center mb-1">
+      <label class="text-xs text-gray-400 flex-shrink-0">Amount (g):</label>
+      <input id="scan-qty" type="number" value="${food.servingQty}" min="1" class="flex-1 bg-gray-800 text-white p-2 rounded-2xl text-sm">
     </div>
+    <div class="text-xs text-gray-500 mb-3">Default = 1 serving (${food.servingLabel}). Change to log a different amount.</div>
     <div class="flex gap-2">
-      <button onclick="logScannedFood(${JSON.stringify(food).replace(/\"/g,'&quot;')})" class="flex-1 bg-green-500 hover:bg-green-600 py-2 rounded-2xl text-sm font-bold">+ Log Meal</button>
+      <button onclick="logScannedFood(${foodJson})" class="flex-1 bg-green-500 hover:bg-green-600 py-2 rounded-2xl text-sm font-bold">+ Log Meal</button>
       <button onclick="document.getElementById('scan-confirm').remove()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-2xl text-sm">Cancel</button>
     </div>
   `;
@@ -3488,9 +3528,9 @@ function showScannedFoodConfirmation(food) {
 }
 
 window.logScannedFood = function(food) {
-  const qty = parseFloat(document.getElementById('scan-qty')?.value) || 100;
-  const scaledCal = Math.round(food.calories * (qty / 100));
-  const scaledProtein = Math.round(food.protein * (qty / 100) * 10) / 10;
+  const qty = parseFloat(document.getElementById('scan-qty')?.value) || food.servingQty || 100;
+  const scaledCal = Math.round((food.cal100g || food.calories || 0) * (qty / 100));
+  const scaledProtein = Math.round((food.pro100g || food.protein || 0) * (qty / 100) * 10) / 10;
   todaysMeals.push({ name: food.name + ' (scanned)', quantity: qty, calories: scaledCal, protein: scaledProtein });
   const xpBase = applyCombo(getClassBonus(20, 'meal') + getTotalBonus('meal_xp_bonus'));
   character.xp += xpBase;
