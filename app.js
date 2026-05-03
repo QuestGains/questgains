@@ -2171,7 +2171,7 @@ function renderGearTab() {
   container.innerHTML = `
     <div class="flex items-center justify-between gap-3 mb-4">
       <div>
-        <h2 class="text-xl font-semibold">⚔️ Gear</h2>
+        <h2 class="text-xl font-semibold">🛡️ Gear</h2>
         <div class="text-xs text-gray-400 mt-1">Equip up to 2 items at once.</div>
       </div>
       <div class="text-right text-xs text-gray-400">
