@@ -21,6 +21,7 @@ function cacheUi() {
   ui.status = document.getElementById('auth-status');
   ui.googleButton = document.getElementById('google-signin-btn');
   ui.signOutButton = document.getElementById('signout-btn');
+  ui.deleteAccountButton = document.getElementById('delete-account-btn');
   ui.userEmail = document.getElementById('user-email');
   ui.continueOfflineButton = document.getElementById('continue-offline-btn');
 }
@@ -90,6 +91,7 @@ async function handleAuthenticatedUser(user) {
   state.offlineMode = false;
   setUserEmail(user.email || 'Signed in');
   if (ui.signOutButton) ui.signOutButton.classList.remove('hidden');
+  if (ui.deleteAccountButton) ui.deleteAccountButton.classList.remove('hidden');
 
   try {
     const localData = typeof window.getQuestGainsData === 'function' ? window.getQuestGainsData() : {};
@@ -110,6 +112,7 @@ async function handleAuthenticatedUser(user) {
 async function handleSignedOut() {
   window.currentUserId = null;
   if (ui.signOutButton) ui.signOutButton.classList.add('hidden');
+  if (ui.deleteAccountButton) ui.deleteAccountButton.classList.add('hidden');
 
   if (state.logoutRequested) {
     state.logoutRequested = false;
@@ -230,3 +233,68 @@ function initAuth() {
 }
 
 document.addEventListener('DOMContentLoaded', initAuth);
+
+// Password Reset
+window.sendPasswordReset = async function() {
+  const emailInput = document.getElementById('login-email');
+  const email = emailInput?.value?.trim();
+  if (!email) {
+    alert('Enter your email address first, then tap Forgot password.');
+    return;
+  }
+  if (!state.auth) {
+    alert('Not connected to Firebase. Try again in a moment.');
+    return;
+  }
+  try {
+    await state.auth.sendPasswordResetEmail(email);
+    alert(`Password reset email sent to ${email}. Check your inbox.`);
+  } catch(err) {
+    if (err.code === 'auth/user-not-found') {
+      alert('No account found with that email address.');
+    } else {
+      alert('Error: ' + (err.message || 'Could not send reset email.'));
+    }
+  }
+};
+
+// Account Deletion
+window.deleteAccount = async function() {
+  const confirmed = confirm(
+    '⚠️ Delete your QuestGains account?\n\n' +
+    'This will permanently delete:\n' +
+    '• Your account login\n' +
+    '• All your game progress (XP, levels, quests)\n' +
+    '• All workout and meal history\n\n' +
+    'This cannot be undone. Are you sure?'
+  );
+  if (!confirmed) return;
+
+  const doubleConfirm = confirm('This is permanent and cannot be undone. Delete account?');
+  if (!doubleConfirm) return;
+
+  if (!state.auth?.currentUser) {
+    alert('Not logged in.');
+    return;
+  }
+
+  const userId = state.auth.currentUser.uid;
+  try {
+    // Delete Firestore data first
+    if (window.db) {
+      await window.db.collection('users').doc(userId).delete();
+    }
+    // Delete the auth account
+    await state.auth.currentUser.delete();
+    // Clear local data
+    localStorage.clear();
+    alert('Your account has been deleted.');
+    window.location.reload();
+  } catch(err) {
+    if (err.code === 'auth/requires-recent-login') {
+      alert('For security, please sign out and sign back in, then try deleting your account again.');
+    } else {
+      alert('Error deleting account: ' + (err.message || 'Unknown error.'));
+    }
+  }
+};

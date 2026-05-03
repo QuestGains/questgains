@@ -50,6 +50,9 @@
           <div id="login-error" class="hidden rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200"></div>
           <button type="submit" class="w-full rounded-2xl bg-green-500 px-4 py-3 text-base font-semibold text-gray-950 transition hover:bg-green-400">Sign In</button>
           <button id="google-signin-btn" type="button" class="w-full rounded-2xl border border-gray-700 bg-gray-950 px-4 py-3 text-sm font-medium text-white transition hover:border-green-400 hover:text-green-300">Continue with Google</button>
+          <div class="text-center">
+            <button type="button" onclick="sendPasswordReset()" class="text-xs text-gray-500 hover:text-green-400 transition">Forgot password?</button>
+          </div>
         </form>
 
         <form id="register-form" class="hidden space-y-4">
@@ -102,6 +105,7 @@
           <button id="sound-toggle-btn" type="button" onclick="toggleSound()" class="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white">🔊</button>
           <button id="notif-btn" type="button" onclick="toggleNotifications()" class="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white" title="Notifications">🔕</button>
           <button id="signout-btn" type="button" class="hidden rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-300 transition hover:border-green-400 hover:text-white">👤 Sign out</button>
+          <button id="delete-account-btn" type="button" onclick="deleteAccount()" class="hidden rounded-full border border-red-800 px-3 py-1 text-xs text-red-400 transition hover:border-red-500 hover:text-red-300">🗑️ Delete account</button>
         </div>
         <div class="text-sm text-gray-400">Level <span id="level" class="font-bold text-3xl">1</span></div>
         <div class="text-xs text-green-400 leading-relaxed">XP: <span id="xp">0</span>/<span id="xp-next">100</span> • Hero Points: <span id="hero-points" class="font-bold">0</span> • 🔥 <span id="header-streak" class="font-bold">0 day streak</span> • <span id="header-combo" class="font-bold text-orange-300">1×</span></div>
