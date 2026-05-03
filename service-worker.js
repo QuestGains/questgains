@@ -99,3 +99,25 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Push notification handler (FCM-ready)
+self.addEventListener('push', event => {
+  if (!event.data) return;
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body || '',
+      icon: '/questgains/logo.png',
+      badge: '/questgains/favicon.png',
+      vibrate: [200, 100, 200],
+      tag: data.tag || 'questgains',
+      data: { url: data.url || '/questgains/' }
+    };
+    event.waitUntil(self.registration.showNotification(data.title || 'QuestGains', options));
+  } catch(e) {}
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(event.notification.data?.url || '/questgains/'));
+});

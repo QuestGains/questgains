@@ -76,7 +76,9 @@ const DEFAULT_CHARACTER = {
   exerciseModalOpened: false,
   planModalOpened: false,
   leaderboardTabVisited: false,
-  aiSuggestTotal: 0
+  aiSuggestTotal: 0,
+  notificationsEnabled: false,
+  notificationPermissionAsked: false
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
@@ -873,6 +875,7 @@ function updateHeader() {
     }
   }
   updateSoundToggleButton();
+  updateNotifButton();
 }
 
 function getHeroById(heroId) {
@@ -1631,6 +1634,7 @@ window.finishSession = function finishSession() {
   currentSession = [];
   openSetFormIndex = null;
   workoutSuggestionMeta = { note: '', focusMuscles: [] };
+  scheduleStreakReminder();
   showVictoryCard(sessionCopy, earnedXP, messages);
   renderCurrentSession();
   showTab(3);
@@ -3073,6 +3077,7 @@ function addMeal() {
   checkProgressAchievements();
   saveData();
   updateHeader();
+  scheduleStreakReminder();
   renderMealLogger();
   document.getElementById('meal-quantity').value = '';
   alert(messages.join('\n'));
@@ -3391,6 +3396,93 @@ window.confirmHeroClass = function confirmHeroClass() {
   showAchievement('⚔️', 'Class Chosen!', `${getClassMeta()?.icon || ''} ${getClassMeta()?.name || ''}`.trim());
 };
 
+// ============================================================
+// PUSH NOTIFICATIONS
+// ============================================================
+
+function sendNotification(title, body, icon, tag) {
+  icon = icon || './logo.png';
+  tag = tag || 'questgains';
+  if (!character.notificationsEnabled) return;
+  if (Notification.permission !== 'granted') return;
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, { body, icon, tag, badge: './favicon.png', vibrate: [200, 100, 200] });
+    });
+  } else {
+    try { new Notification(title, { body, icon, tag }); } catch(e) {}
+  }
+}
+
+function scheduleStreakReminder() {
+  const existingId = parseInt(localStorage.getItem('streak-reminder-timeout') || '0');
+  if (existingId) clearTimeout(existingId);
+  if (!character.notificationsEnabled) return;
+  if ((character.currentStreak || 0) < 1) return;
+  const now = new Date();
+  const tonight = new Date(now);
+  tonight.setHours(20, 0, 0, 0);
+  if (tonight <= now) return;
+  const msUntil = tonight.getTime() - now.getTime();
+  const tid = setTimeout(() => {
+    const todayEntries = workoutLog.filter(e => e.date === getTodayStamp());
+    const meals = JSON.parse(localStorage.getItem('todaysMeals') || '[]');
+    if (todayEntries.length === 0 && meals.length === 0) {
+      sendNotification(
+        '🔥 Streak at risk!',
+        `You're on a ${character.currentStreak}-day streak. Log something before midnight to keep it alive.`,
+        './logo.png', 'streak-reminder'
+      );
+    }
+  }, msUntil);
+  localStorage.setItem('streak-reminder-timeout', String(tid));
+}
+
+function scheduleBossNotification() {
+  if (!character.notificationsEnabled) return;
+  if (typeof bossBattles === 'undefined') return;
+  const lastBossWeek = localStorage.getItem('last-boss-notif-week');
+  const currentWeek = getWeekStampForDate(getTodayStamp());
+  if (lastBossWeek === currentWeek) return;
+  localStorage.setItem('last-boss-notif-week', currentWeek);
+  const idx = Math.abs(parseInt(currentWeek.split('-W')[1] || '0')) % bossBattles.length;
+  const boss = bossBattles[idx];
+  if (boss) {
+    setTimeout(() => {
+      sendNotification(`⚔️ New Boss: ${boss.name}`, `${boss.desc} Reward: ${boss.rewardXP} XP.`, './logo.png', 'boss-battle');
+    }, 3000);
+  }
+}
+
+function updateNotifButton() {
+  const btn = document.getElementById('notif-btn');
+  if (!btn) return;
+  const enabled = character.notificationsEnabled && Notification.permission === 'granted';
+  btn.textContent = enabled ? '🔔' : '🔕';
+  btn.title = enabled ? 'Notifications on — tap to disable' : 'Notifications off — tap to enable';
+}
+
+window.toggleNotifications = async function() {
+  if (!('Notification' in window)) { alert('Your browser does not support notifications.'); return; }
+  if (Notification.permission === 'denied') {
+    alert('Notifications are blocked. Please enable them in your browser or phone settings, then try again.');
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    const result = await Notification.requestPermission();
+    if (result !== 'granted') return;
+  }
+  character.notificationsEnabled = !character.notificationsEnabled;
+  character.notificationPermissionAsked = true;
+  saveData();
+  updateNotifButton();
+  if (character.notificationsEnabled) {
+    sendNotification('🔔 Notifications enabled', 'You\'ll get streak reminders and boss battle alerts.');
+    scheduleStreakReminder();
+    scheduleBossNotification();
+  }
+};
+
 window.onload = function onLoad() {
   SoundFX.init();
   syncWaterTracker();
@@ -3407,5 +3499,22 @@ window.onload = function onLoad() {
   renderClassSelection();
   checkProgressAchievements();
   showTab(0);
-  console.log(`%c✅ QuestGains v2.12 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
+  // Notifications init
+  scheduleBossNotification();
+  if (character.notificationsEnabled) scheduleStreakReminder();
+  // Auto-ask permission after first workout (politely, once)
+  if (!character.notificationPermissionAsked && workoutLog.length >= 1 && 'Notification' in window && Notification.permission === 'default') {
+    setTimeout(async () => {
+      const result = await Notification.requestPermission();
+      character.notificationPermissionAsked = true;
+      if (result === 'granted') {
+        character.notificationsEnabled = true;
+        sendNotification('🔔 QuestGains', 'Notifications enabled! You\'ll get streak reminders and boss alerts.', './logo.png');
+        scheduleStreakReminder();
+      }
+      saveData();
+      updateNotifButton();
+    }, 4000);
+  }
+  console.log(`%c✅ QuestGains v2.13 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
