@@ -2,7 +2,7 @@
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v18';
+const CACHE_NAME = 'questgains-v19';
 const PRECACHE_URLS = [
   './index.html',
   './firebase-config.js',
@@ -76,22 +76,45 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// App shell files — always try network first, fall back to cache
+const APP_SHELL = [
+  './index.html', './app.js', './data.js', './style.css',
+  './auth.js', './db.js', './firebase-config.js', './manifest.json',
+  './logo.png', './favicon.png', './apple-touch-icon.png', './service-worker.js'
+];
+
+function isAppShell(url) {
+  return APP_SHELL.some(file => url.endsWith(file.replace('./', '/'))) ||
+    url.endsWith('/questgains/') || url.endsWith('/questgains');
+}
+
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
+  if (event.request.method !== 'GET') return;
+
+  const url = event.request.url;
+
+  // Network-first for app shell — always get latest version
+  if (isAppShell(url)) {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => caches.match(event.request))
+    );
     return;
   }
 
+  // Cache-first for sprites and other assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
+      if (cachedResponse) return cachedResponse;
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque')) {
           return networkResponse;
         }
-
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         return networkResponse;
