@@ -279,8 +279,14 @@
       <div class="bg-gray-900 p-4 rounded-3xl mb-4">
         <div class="text-sm font-semibold text-green-400 mb-3">Set Goals</div>
         <div class="grid grid-cols-2 gap-3 mb-3">
-          <input id="calorie-goal" type="number" min="1" placeholder="Daily Calorie Goal" class="bg-gray-800 text-white p-3 rounded-2xl">
-          <input id="protein-goal" type="number" min="1" placeholder="Daily Protein Goal" class="bg-gray-800 text-white p-3 rounded-2xl">
+          <div>
+            <div class="text-xs text-gray-400 mb-1">Calories (cal)</div>
+            <input id="calorie-goal" type="number" min="1" placeholder="e.g. 2000" class="w-full bg-gray-800 text-white p-3 rounded-2xl">
+          </div>
+          <div>
+            <div class="text-xs text-gray-400 mb-1">Protein (g)</div>
+            <input id="protein-goal" type="number" min="1" placeholder="e.g. 150" class="w-full bg-gray-800 text-white p-3 rounded-2xl">
+          </div>
         </div>
         <button onclick="saveMacroGoals()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-3xl text-sm font-medium">Save Goals</button>
       </div>
