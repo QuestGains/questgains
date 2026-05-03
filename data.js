@@ -165,7 +165,7 @@ const exDB = [
     "muscles": "Upper Chest, Front Delts, Triceps",
     "type": "gym",
     "description": "This angled pressing variation emphasizes the upper chest while still loading the shoulders and triceps. It helps build balanced pressing strength and fuller chest development.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Incline_Bench_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
     "cues": [
       "Set your shoulders down and back.",
       "Lower the dumbbells with elbows slightly tucked.",
@@ -178,7 +178,7 @@ const exDB = [
     "muscles": "Lower Chest, Triceps, Front Delts",
     "type": "gym",
     "description": "The decline bench press targets the lower chest through a slightly different pressing path than flat benching. It can help round out chest strength and reduce shoulder strain for some lifters.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Decline_Bench_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg",
     "cues": [
       "Lock your body into the bench.",
       "Lower the bar to the lower chest.",
@@ -217,7 +217,7 @@ const exDB = [
     "muscles": "Chest, Triceps, Front Delts",
     "type": "gym",
     "description": "A chest dip uses bodyweight and torso angle to bias the chest during a deep pressing motion. It builds serious pressing strength and lower-chest development when performed under control.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chest_Dips/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg",
     "cues": [
       "Lean slightly forward.",
       "Lower until shoulders stay comfortable.",
@@ -230,7 +230,7 @@ const exDB = [
     "muscles": "Chest, Front Delts, Serratus",
     "type": "gym",
     "description": "The pec deck isolates the chest with a fixed path that makes it easy to focus on clean contractions. It works well for hypertrophy and controlled high-rep work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pec_Deck_Fly/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Butterfly/0.jpg",
     "cues": [
       "Set the seat so handles align with your chest.",
       "Keep shoulders down as you close the arms.",
@@ -243,7 +243,7 @@ const exDB = [
     "muscles": "Chest, Front Delts, Triceps",
     "type": "bodyweight",
     "description": "A wider push-up stance increases chest involvement and challenges shoulder control. It is a simple bodyweight variation for building pressing volume anywhere.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide_Push-Up/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Barbell_Bench_Press/0.jpg",
     "cues": [
       "Place hands wider than shoulder width.",
       "Keep ribs down and body straight.",
@@ -256,7 +256,7 @@ const exDB = [
     "muscles": "Upper Chest, Front Delts, Triceps",
     "type": "gym",
     "description": "This barbell press shifts emphasis toward the upper chest while allowing heavier loading than many dumbbell options. It is a staple for building top-end pressing strength and upper-chest size.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Incline_Bench_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
     "cues": [
       "Set your upper back tight on the bench.",
       "Lower the bar to the upper chest.",
@@ -308,7 +308,7 @@ const exDB = [
     "muscles": "Mid Back, Lats, Biceps",
     "type": "gym",
     "description": "The T-bar row is a heavy horizontal pull that builds thickness through the mid-back and lats. It is ideal for loading the upper back with a stable pulling pattern.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/T-Bar_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/T-Bar_Row_with_Handle/0.jpg",
     "cues": [
       "Hinge and keep your chest proud.",
       "Pull the handle toward your lower chest.",
@@ -321,7 +321,7 @@ const exDB = [
     "muscles": "Lats, Mid Back, Biceps",
     "type": "gym",
     "description": "This unilateral row helps build lat size while exposing side-to-side imbalances. It also teaches better scapular control and trunk stability during pulling.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_One-Arm_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Dumbbell_Row/0.jpg",
     "cues": [
       "Support yourself solidly on the bench.",
       "Drive your elbow back toward the hip.",
@@ -334,7 +334,7 @@ const exDB = [
     "muscles": "Mid Back, Rhomboids, Lats",
     "type": "gym",
     "description": "A chest-supported row removes much of the lower-back demand so the upper back can do the work. It is excellent for clean back training and hypertrophy.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chest_Supported_Dumbbell_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Cable_Rows/0.jpg",
     "cues": [
       "Keep your chest glued to the pad.",
       "Row elbows back under control.",
@@ -360,7 +360,7 @@ const exDB = [
     "muscles": "Rear Delts, Upper Back, Rotator Cuff",
     "type": "gym",
     "description": "Face pulls strengthen the rear shoulders and upper back while supporting healthier shoulder mechanics. They are a go-to movement for posture, balance, and shoulder resilience.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Face_Pull/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Face_Pull/0.jpg",
     "cues": [
       "Pull the rope toward eye level.",
       "Lead with elbows high and wide.",
@@ -373,7 +373,7 @@ const exDB = [
     "muscles": "Hamstrings, Glutes, Lower Back",
     "type": "gym",
     "description": "The good morning trains the hinge pattern with a strong focus on hamstrings, glutes, and spinal erectors. It builds posterior-chain strength and reinforces bracing under load.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Good_Morning/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Good_Morning/0.jpg",
     "cues": [
       "Unlock the knees slightly.",
       "Push hips back while keeping the spine neutral.",
@@ -386,7 +386,7 @@ const exDB = [
     "muscles": "Lower Back, Glutes, Hamstrings",
     "type": "gym",
     "description": "Hyperextensions strengthen the spinal erectors and glutes through controlled hip extension. They are useful for back endurance, posterior-chain development, and hinge assistance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hyperextension/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
     "cues": [
       "Set the pad below your hips.",
       "Move through the hips instead of rounding your back.",
@@ -399,7 +399,7 @@ const exDB = [
     "muscles": "Upper Back, Glutes, Hamstrings",
     "type": "gym",
     "description": "Rack pulls overload the top portion of the deadlift and let you handle heavier weights from an elevated position. They are effective for lockout strength and upper-back density.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Rack_Pull/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
     "cues": [
       "Set the pins just below or above the knee.",
       "Brace hard before lifting.",
@@ -425,7 +425,7 @@ const exDB = [
     "muscles": "Lats, Teres Major, Triceps",
     "type": "gym",
     "description": "This cable movement isolates shoulder extension and teaches the lats to drive without much elbow flexion. It is a strong accessory for back width and lat awareness.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Straight-Arm_Pulldown/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Straight-Arm_Pulldown/0.jpg",
     "cues": [
       "Keep arms long with a soft elbow bend.",
       "Pull the bar to your thighs.",
@@ -464,7 +464,7 @@ const exDB = [
     "muscles": "Side Delts, Upper Traps, Supraspinatus",
     "type": "gym",
     "description": "Lateral raises isolate the side delts to help build broader shoulders and balanced shoulder development. They work best with control, tension, and moderate load.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/0.jpg",
     "cues": [
       "Lead with the elbows.",
       "Raise to about shoulder height.",
@@ -477,7 +477,7 @@ const exDB = [
     "muscles": "Front Delts, Upper Chest, Serratus",
     "type": "gym",
     "description": "Front raises isolate shoulder flexion and emphasize the anterior delts. They are useful when building pressing support and shoulder size.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Front_Raise/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/1.jpg",
     "cues": [
       "Lift with control in front of the body.",
       "Keep ribs down and torso still.",
@@ -490,7 +490,7 @@ const exDB = [
     "muscles": "Rear Delts, Rhomboids, Upper Back",
     "type": "gym",
     "description": "Rear delt flyes target the often-neglected back side of the shoulder. They improve posture, shoulder balance, and upper-back detail when done with strict form.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Fly/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Barbell_Row/0.jpg",
     "cues": [
       "Hinge and keep your neck neutral.",
       "Open the arms wide without shrugging.",
@@ -503,7 +503,7 @@ const exDB = [
     "muscles": "Side Delts, Upper Traps, Front Delts",
     "type": "gym",
     "description": "The upright row trains the shoulders and traps through a vertical pulling path. It can build upper-body size when performed with a range of motion that feels comfortable.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Upright_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg",
     "cues": [
       "Keep the bar close to your body.",
       "Lead up with your elbows.",
@@ -516,7 +516,7 @@ const exDB = [
     "muscles": "Shoulders, Triceps, Upper Chest",
     "type": "gym",
     "description": "The barbell overhead press is a classic standing strength lift for the shoulders and triceps. It also demands strong bracing and efficient full-body coordination.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Standing_Military_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg",
     "cues": [
       "Squeeze glutes and brace your abs.",
       "Press the bar in a straight path overhead.",
@@ -529,7 +529,7 @@ const exDB = [
     "muscles": "Side Delts, Upper Traps, Supraspinatus",
     "type": "gym",
     "description": "Cable lateral raises keep tension on the side delts from start to finish. They are excellent for clean shoulder isolation and controlled hypertrophy work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Lateral_Raise/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/0.jpg",
     "cues": [
       "Stand tall with the cable slightly behind you.",
       "Raise out to the side without shrugging.",
@@ -542,7 +542,7 @@ const exDB = [
     "muscles": "Shoulders, Triceps, Upper Traps",
     "type": "gym",
     "description": "This overhead press variation places the bar behind the head and heavily challenges shoulder mobility and control. It should be used only with appropriate mobility and careful technique.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Behind_The_Neck_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
     "cues": [
       "Use only a pain-free range.",
       "Keep your ribcage stacked over the hips.",
