@@ -2863,7 +2863,7 @@ function renderMealLogger() {
     todaysMeals.forEach((meal) => {
       const div = document.createElement('div');
       div.className = 'bg-gray-900 p-4 rounded-3xl flex justify-between items-center';
-      div.innerHTML = `<div><span class="font-semibold">${meal.name}</span> × ${meal.quantity}g</div><div class="text-green-400">${meal.calories} cal</div>`;
+      div.innerHTML = `<div><span class="font-semibold">${meal.name}</span> × ${meal.quantity}g</div><div class="text-right"><div class="text-green-400 text-sm">${meal.calories} cal</div><div class="text-blue-400 text-xs">${(meal.protein || 0).toFixed(1)}g protein</div></div>`;
       container.appendChild(div);
     });
   }
