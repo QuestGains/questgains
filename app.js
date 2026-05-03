@@ -2951,20 +2951,49 @@ window.filterMealSelect = function filterMealSelect() {
   populateFoodSelect('meal-food-select', filtered, false);
 };
 
+let converterSelectedFoodId = null;
+
 function renderUnitConverter(resetResult = true) {
-  populateFoodSelect('converter-food-select', nDB, true);
-  if (resetResult) document.getElementById('converter-result').innerHTML = '';
+  if (resetResult) {
+    document.getElementById('converter-result').innerHTML = '';
+    document.getElementById('converter-search').value = '';
+    document.getElementById('converter-food-list').innerHTML = '';
+    document.getElementById('converter-panel').classList.add('hidden');
+    converterSelectedFoodId = null;
+  }
 }
 
-window.filterConverterSelect = function filterConverterSelect() {
+window.renderConverterFoodList = function renderConverterFoodList() {
   const searchTerm = document.getElementById('converter-search').value.toLowerCase().trim();
-  const filtered = nDB.filter((food) => food.name.toLowerCase().includes(searchTerm));
-  populateFoodSelect('converter-food-select', filtered, true);
+  const listEl = document.getElementById('converter-food-list');
+  if (!searchTerm) { listEl.innerHTML = ''; return; }
+  const filtered = nDB.filter(f => f.name.toLowerCase().includes(searchTerm)).slice(0, 8);
+  if (!filtered.length) {
+    listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-3">No matching foods</p>';
+    return;
+  }
+  listEl.innerHTML = filtered.map(f => `
+    <div onclick="selectConverterFood(${f.id})" class="bg-gray-900 p-3 rounded-2xl cursor-pointer hover:bg-gray-800 transition-colors flex justify-between items-center">
+      <div class="font-medium">${f.name}</div>
+      <div class="text-xs text-gray-400">${f.calories} cal · ${f.protein}g pro</div>
+    </div>
+  `).join('');
+};
+
+window.selectConverterFood = function selectConverterFood(id) {
+  converterSelectedFoodId = id;
+  const food = nDB.find(f => f.id === id);
+  if (!food) return;
+  document.getElementById('converter-search').value = food.name;
+  document.getElementById('converter-food-list').innerHTML = '';
+  document.getElementById('converter-selected-food').textContent = '📦 ' + food.name;
+  document.getElementById('converter-panel').classList.remove('hidden');
+  document.getElementById('converter-result').innerHTML = '';
 };
 
 window.convertUnits = function convertUnits() {
-  const foodId = document.getElementById('converter-food-select').value;
-  if (!foodId) return alert('Please select a food');
+  const foodId = converterSelectedFoodId;
+  if (!foodId) return alert('Please search and select a food first');
 
   const amount = parseFloat(document.getElementById('converter-amount').value) || 100;
   const fromUnit = document.getElementById('converter-from-unit').value;
