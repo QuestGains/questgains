@@ -1109,14 +1109,33 @@ function showExerciseDetail(id) {
   exerciseImageInterval = null;
   const imgEl = document.getElementById('modal-main-image');
 
-  // Static images (exercise-images/ folder) — show directly, no cycling
+  imgEl.src = exercise.image;
+
   if (exercise.image.includes('/exercise-images/')) {
-    imgEl.src = exercise.image;
+    // AI-generated images — cycle between _1.jpg and _2.jpg phase images if they exist
+    const baseUrl = exercise.image.replace(/\.jpg$/, '');
+    const frame1 = baseUrl + '_1.jpg';
+    const frame2 = baseUrl + '_2.jpg';
+    // Show main image first, then test if phase images exist
+    const testImg = new Image();
+    testImg.onload = () => {
+      // Phase images exist — cycle: main → _1 → _2 → main
+      const frames = [exercise.image, frame1, frame2];
+      let frame = 0;
+      exerciseImageInterval = setInterval(() => {
+        frame = (frame + 1) % frames.length;
+        imgEl.src = frames[frame];
+      }, 2500);
+    };
+    testImg.onerror = () => {
+      // No phase images — just show the main image statically
+      clearInterval(exerciseImageInterval);
+    };
+    testImg.src = frame1;
   } else {
     // yuhonas free-exercise-db format — try cycling between frame 0 and 1
     const baseUrl = exercise.image.replace(/\/\d+\.jpg$/, '');
     let frame = 0;
-    imgEl.src = exercise.image;
     const testImg = new Image();
     testImg.onload = () => {
       exerciseImageInterval = setInterval(() => {
