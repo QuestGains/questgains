@@ -1108,24 +1108,25 @@ function showExerciseDetail(id) {
   clearInterval(exerciseImageInterval);
   exerciseImageInterval = null;
   const imgEl = document.getElementById('modal-main-image');
-  const baseUrl = exercise.image.replace('/0.jpg', '').replace('/1.jpg', '');
-  let frame = exercise.image.includes('/1.jpg') ? 1 : 0;
-  const frames = [`${baseUrl}/0.jpg`, `${baseUrl}/1.jpg`];
-  imgEl.src = frames[frame];
 
-  const testImg = new Image();
-  testImg.onload = () => {
-    clearInterval(exerciseImageInterval);
-    exerciseImageInterval = setInterval(() => {
-      frame = (frame + 1) % 2;
-      imgEl.src = frames[frame];
-    }, 2500);
-  };
-  testImg.onerror = () => {
-    clearInterval(exerciseImageInterval);
-    exerciseImageInterval = null;
-  };
-  testImg.src = frames[1];
+  // Static images (exercise-images/ folder) — show directly, no cycling
+  if (exercise.image.includes('/exercise-images/')) {
+    imgEl.src = exercise.image;
+  } else {
+    // yuhonas free-exercise-db format — try cycling between frame 0 and 1
+    const baseUrl = exercise.image.replace(/\/\d+\.jpg$/, '');
+    let frame = 0;
+    imgEl.src = exercise.image;
+    const testImg = new Image();
+    testImg.onload = () => {
+      exerciseImageInterval = setInterval(() => {
+        frame = (frame + 1) % 2;
+        imgEl.src = `${baseUrl}/${frame}.jpg`;
+      }, 2500);
+    };
+    testImg.onerror = () => {};
+    testImg.src = `${baseUrl}/1.jpg`;
+  }
 
   document.getElementById('exercise-modal').classList.remove('hidden');
 }
