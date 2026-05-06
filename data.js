@@ -178,7 +178,7 @@ const exDB = [
     "muscles": "Lower Chest, Triceps, Front Delts",
     "type": "gym",
     "description": "The decline bench press targets the lower chest through a slightly different pressing path than flat benching. It can help round out chest strength and reduce shoulder strain for some lifters.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Decline_Bench_Press.jpg",
     "cues": [
       "Lock your body into the bench.",
       "Lower the bar to the lower chest.",
@@ -217,7 +217,7 @@ const exDB = [
     "muscles": "Chest, Triceps, Front Delts",
     "type": "gym",
     "description": "A chest dip uses bodyweight and torso angle to bias the chest during a deep pressing motion. It builds serious pressing strength and lower-chest development when performed under control.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Chest_Dip.jpg",
     "cues": [
       "Lean slightly forward.",
       "Lower until shoulders stay comfortable.",
@@ -243,7 +243,7 @@ const exDB = [
     "muscles": "Chest, Front Delts, Triceps",
     "type": "bodyweight",
     "description": "A wider push-up stance increases chest involvement and challenges shoulder control. It is a simple bodyweight variation for building pressing volume anywhere.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Barbell_Bench_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Push_Up_Wide_Grip.jpg",
     "cues": [
       "Place hands wider than shoulder width.",
       "Keep ribs down and body straight.",
@@ -256,7 +256,7 @@ const exDB = [
     "muscles": "Upper Chest, Front Delts, Triceps",
     "type": "gym",
     "description": "This barbell press shifts emphasis toward the upper chest while allowing heavier loading than many dumbbell options. It is a staple for building top-end pressing strength and upper-chest size.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Incline_Barbell_Press.jpg",
     "cues": [
       "Set your upper back tight on the bench.",
       "Lower the bar to the upper chest.",
@@ -334,7 +334,7 @@ const exDB = [
     "muscles": "Mid Back, Rhomboids, Lats",
     "type": "gym",
     "description": "A chest-supported row removes much of the lower-back demand so the upper back can do the work. It is excellent for clean back training and hypertrophy.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Cable_Rows/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Chest_Supported_Row.jpg",
     "cues": [
       "Keep your chest glued to the pad.",
       "Row elbows back under control.",
@@ -386,7 +386,7 @@ const exDB = [
     "muscles": "Lower Back, Glutes, Hamstrings",
     "type": "gym",
     "description": "Hyperextensions strengthen the spinal erectors and glutes through controlled hip extension. They are useful for back endurance, posterior-chain development, and hinge assistance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Hyperextension.jpg",
     "cues": [
       "Set the pad below your hips.",
       "Move through the hips instead of rounding your back.",
@@ -399,7 +399,7 @@ const exDB = [
     "muscles": "Upper Back, Glutes, Hamstrings",
     "type": "gym",
     "description": "Rack pulls overload the top portion of the deadlift and let you handle heavier weights from an elevated position. They are effective for lockout strength and upper-back density.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Rack_Pull.jpg",
     "cues": [
       "Set the pins just below or above the knee.",
       "Brace hard before lifting.",
@@ -412,7 +412,7 @@ const exDB = [
     "muscles": "Lats, Rear Delts, Mid Back",
     "type": "gym",
     "description": "The Meadows row uses a landmine setup to challenge the lats and upper back through a unique pulling angle. It is excellent for unilateral back growth and grip-intensive work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Dumbbell_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Meadows_Row.jpg",
     "cues": [
       "Hinge and keep your hips square.",
       "Pull the bar toward your hip.",
@@ -477,7 +477,7 @@ const exDB = [
     "muscles": "Front Delts, Upper Chest, Serratus",
     "type": "gym",
     "description": "Front raises isolate shoulder flexion and emphasize the anterior delts. They are useful when building pressing support and shoulder size.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/1.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Front_Raise.jpg",
     "cues": [
       "Lift with control in front of the body.",
       "Keep ribs down and torso still.",
@@ -490,7 +490,7 @@ const exDB = [
     "muscles": "Rear Delts, Rhomboids, Upper Back",
     "type": "gym",
     "description": "Rear delt flyes target the often-neglected back side of the shoulder. They improve posture, shoulder balance, and upper-back detail when done with strict form.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Barbell_Row/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Rear_Delt_Fly.jpg",
     "cues": [
       "Hinge and keep your neck neutral.",
       "Open the arms wide without shrugging.",
@@ -503,7 +503,7 @@ const exDB = [
     "muscles": "Side Delts, Upper Traps, Front Delts",
     "type": "gym",
     "description": "The upright row trains the shoulders and traps through a vertical pulling path. It can build upper-body size when performed with a range of motion that feels comfortable.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Upright_Row.jpg",
     "cues": [
       "Keep the bar close to your body.",
       "Lead up with your elbows.",
@@ -516,7 +516,7 @@ const exDB = [
     "muscles": "Shoulders, Triceps, Upper Chest",
     "type": "gym",
     "description": "The barbell overhead press is a classic standing strength lift for the shoulders and triceps. It also demands strong bracing and efficient full-body coordination.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Barbell_Overhead_Press.jpg",
     "cues": [
       "Squeeze glutes and brace your abs.",
       "Press the bar in a straight path overhead.",
@@ -529,7 +529,7 @@ const exDB = [
     "muscles": "Side Delts, Upper Traps, Supraspinatus",
     "type": "gym",
     "description": "Cable lateral raises keep tension on the side delts from start to finish. They are excellent for clean shoulder isolation and controlled hypertrophy work.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Cable_Lateral_Raise.jpg",
     "cues": [
       "Stand tall with the cable slightly behind you.",
       "Raise out to the side without shrugging.",
@@ -542,7 +542,7 @@ const exDB = [
     "muscles": "Shoulders, Triceps, Upper Traps",
     "type": "gym",
     "description": "This overhead press variation places the bar behind the head and heavily challenges shoulder mobility and control. It should be used only with appropriate mobility and careful technique.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Behind_the_Neck_Press.jpg",
     "cues": [
       "Use only a pain-free range.",
       "Keep your ribcage stacked over the hips.",
@@ -594,7 +594,7 @@ const exDB = [
     "muscles": "Brachialis, Biceps, Forearms",
     "type": "gym",
     "description": "Hammer curls use a neutral grip to emphasize the brachialis and forearms while still training the biceps. They help build thicker-looking arms and stronger grip support.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Alternate_Bicep_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Hammer_Curl.jpg",
     "cues": [
       "Keep palms facing each other.",
       "Curl with the elbows pinned.",
@@ -607,7 +607,7 @@ const exDB = [
     "muscles": "Biceps, Brachialis, Forearms",
     "type": "gym",
     "description": "Concentration curls isolate one arm at a time and reduce momentum, making the biceps work hard through a strict range. They are excellent for focused arm hypertrophy and symmetry.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Curl/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Concentration_Curl.jpg",
     "cues": [
       "Brace the elbow against the inner thigh.",
       "Curl slowly and squeeze hard.",
@@ -698,7 +698,7 @@ const exDB = [
     "muscles": "Triceps, Chest, Front Delts",
     "type": "bodyweight",
     "description": "Diamond push-ups use a narrow hand position to increase triceps demand. They build pressing endurance, arm strength, and bodyweight control.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/1.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Diamond_Push_Up.jpg",
     "cues": [
       "Place hands close beneath the chest.",
       "Keep elbows tracking back.",
@@ -867,7 +867,7 @@ const exDB = [
     "muscles": "Quads, Glutes, Hamstrings",
     "type": "gym",
     "description": "Step-ups build single-leg strength and coordination while closely mimicking athletic and daily movement patterns. They are effective for glutes, quads, and balance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Box_Skip/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Step_Up.jpg",
     "cues": [
       "Use a box height you can control.",
       "Drive through the working leg.",
@@ -906,7 +906,7 @@ const exDB = [
     "muscles": "Quads, Hip Flexors, Core",
     "type": "bodyweight",
     "description": "The sissy squat isolates the quads by allowing the knees to travel forward while the torso leans back. It is a demanding bodyweight option for quad strength and tendon tolerance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Squat/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Sissy_Squat.jpg",
     "cues": [
       "Hold onto support if needed.",
       "Let knees travel forward under control.",
@@ -984,7 +984,7 @@ const exDB = [
     "muscles": "Core, Deep Abs, Hip Flexors",
     "type": "bodyweight",
     "description": "The dead bug teaches bracing and limb movement while keeping the trunk stable. It is one of the best drills for foundational core control and spinal position.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dead_Bug/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Dead_Bug.jpg",
     "cues": [
       "Flatten the ribs gently toward the floor.",
       "Move opposite arm and leg slowly.",
@@ -1049,7 +1049,7 @@ const exDB = [
     "muscles": "Core, Hip Flexors, Quads",
     "type": "bodyweight",
     "description": "The hollow body hold teaches full-body tension and anti-extension strength. It is a valuable core drill for gymnastics control, lifting bracing, and midline endurance.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Plank/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Hollow_Body_Hold.jpg",
     "cues": [
       "Press your low back into the floor.",
       "Reach long through fingers and toes.",
@@ -1062,7 +1062,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Traps",
     "type": "gym",
     "description": "The power clean is an explosive Olympic lift that trains rapid force production from the floor to the shoulders. It develops power, coordination, and athletic extension.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Power_Clean/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Power_Clean.jpg",
     "cues": [
       "Stay over the bar through the first pull.",
       "Explode through hips, knees, and ankles.",
@@ -1153,7 +1153,7 @@ const exDB = [
     "muscles": "Glutes, Hamstrings, Quads",
     "type": "bodyweight",
     "description": "The broad jump develops horizontal power, coordination, and forceful hip extension. It is a simple but highly athletic movement for lower-body explosiveness.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Broad_Jump.jpg",
     "cues": [
       "Swing arms back to load.",
       "Jump forward explosively.",
@@ -1166,7 +1166,7 @@ const exDB = [
     "muscles": "Glutes, Hamstrings, Core",
     "type": "gym",
     "description": "The kettlebell swing is a ballistic hinge that trains power, conditioning, and posterior-chain endurance. It teaches strong hip snap and efficient force transfer.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_Sumo_High_Pull/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Kettlebell_Swing.jpg",
     "cues": [
       "Hinge, do not squat the bell.",
       "Snap the hips forward hard.",
@@ -1322,7 +1322,7 @@ const exDB = [
     "muscles": "Hip Flexors, Hamstrings, Thoracic Spine",
     "type": "bodyweight",
     "description": "This multi-position drill opens the hips, hamstrings, and upper back in one sequence. It is a strong warm-up tool for improving global movement quality.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Worlds_Greatest_Stretch/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Worlds_Greatest_Stretch.jpg",
     "cues": [
       "Step long into the lunge.",
       "Reach and rotate through the upper back.",
@@ -1478,7 +1478,7 @@ const exDB = [
     "muscles": "Glutes, Quads, Adductors",
     "type": "bodyweight",
     "description": "Lateral bounds develop side-to-side power, deceleration, and athletic balance. They are especially useful for field and court athletes.",
-    "image": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lateral_Bound/0.jpg",
+    "image": "https://raw.githubusercontent.com/QuestGains/questgains/main/exercise-images/Lateral_Bound.jpg",
     "cues": [
       "Push hard off the outside leg.",
       "Stick the landing before rebounding.",
