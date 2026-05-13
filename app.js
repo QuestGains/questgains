@@ -3625,10 +3625,54 @@ function startBarcodeDetection(video, statusEl) {
         }
       } catch(e) {}
     }, 500);
+  } else if (window.ZXing) {
+    // ZXing fallback — works on Safari/iOS PWA
+    statusEl.textContent = 'Align barcode in the frame';
+    const hints = new Map();
+    const formats = [
+      ZXing.BarcodeFormat.EAN_13,
+      ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.UPC_A,
+      ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.CODE_128,
+      ZXing.BarcodeFormat.CODE_39,
+    ];
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    const reader = new ZXing.MultiFormatReader();
+    reader.setHints(hints);
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let zxingActive = true;
+
+    // Store cleanup ref on scannerInterval slot so closeBarcodeScanner works
+    const zxingLoop = setInterval(() => {
+      if (!zxingActive || !video.readyState || video.readyState < 2) return;
+      try {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const luminance = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
+        const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
+        const result = reader.decode(bitmap);
+        if (result) {
+          zxingActive = false;
+          clearInterval(zxingLoop);
+          scannerInterval = null;
+          const code = result.getText();
+          statusEl.textContent = `Found: ${code} — Looking up...`;
+          SoundFX.play('quest');
+          lookupBarcode(code, statusEl);
+        }
+      } catch (e) {
+        // NotFoundException is normal when no barcode in frame — suppress
+      }
+    }, 300);
+    scannerInterval = zxingLoop;
   } else {
-    // BarcodeDetector not supported (Safari, Firefox, older browsers)
-    statusEl.textContent = 'Auto-scan not supported on this browser. Use the manual entry below.';
-    // Hide the camera UI, emphasize the manual entry
+    // No scanning support at all — manual only
+    statusEl.textContent = 'Camera scanning unavailable. Use the manual entry below.';
     const videoEl = document.getElementById('scanner-video');
     if (videoEl) videoEl.closest('.relative')?.classList.add('hidden');
     document.querySelector('#scanner-modal > p')?.classList.add('hidden');
