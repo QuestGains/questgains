@@ -447,9 +447,14 @@ function unlockTheme(themeId) {
 function getHeroThemeForHero(heroId) {
   const map = {
     'solaris-prime': 'crimson',
-    nightwarden: 'violet',
-    threadstrike: 'amber',
-    auramancer: 'cyan'
+    'nightwarden':   'violet',
+    'threadstrike':  'amber',
+    'mythara':       'cyan',
+    'voltflare':     'electric',
+    'iron-vanguard': 'steel',
+    'stormforged':   'storm',
+    'goliath-rift':  'bronze',
+    'inevitor':      'indigo',
   };
   return map[heroId] || null;
 }
@@ -2385,10 +2390,36 @@ function renderHero() {
       : '<div class="text-sm text-gray-400">Choose a class to activate a passive XP bonus.</div>';
   }
   if (themeSelector) {
-    themeSelector.innerHTML = `<div class="text-sm font-semibold text-green-400 mb-3">Themes</div><div class="flex flex-wrap gap-3">${appThemes.map((theme) => {
-      const unlocked = (character.unlockedThemes || []).includes(theme.id);
-      return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${character.activeTheme === theme.id ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name} — ${theme.unlockCondition}"></button>`;
-    }).join('')}</div><div class="text-xs text-gray-400 mt-3">Locked themes unlock by completing core hero paths.</div>`;
+    themeSelector.innerHTML = `
+      <div class="text-sm font-semibold text-green-400 mb-3">Themes</div>
+      <div class="flex flex-wrap gap-3 mb-4">
+        ${appThemes.map((theme) => {
+          const unlocked = (character.unlockedThemes || []).includes(theme.id);
+          const isActive = character.activeTheme === theme.id;
+          return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${isActive ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name}"></button>`;
+        }).join('')}
+      </div>
+      <div class="space-y-2">
+        ${appThemes.filter(t => t.hero).map((theme) => {
+          const unlocked = (character.unlockedThemes || []).includes(theme.id);
+          const isActive = character.activeTheme === theme.id;
+          const heroNodes = character.unlockedCharacters?.[theme.hero]?.length || 0;
+          const totalNodes = theme.nodes || 5;
+          const pct = Math.min(100, Math.round((heroNodes / totalNodes) * 100));
+          return `
+            <div class="flex items-center gap-3 text-xs">
+              <div class="w-3 h-3 rounded-full shrink-0 ${unlocked ? 'ring-1 ring-white/30' : 'opacity-40'}" style="background:${theme.primary}"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex justify-between mb-0.5">
+                  <span class="${unlocked ? 'text-white' : 'text-gray-400'}">${theme.name}</span>
+                  <span class="${unlocked ? 'text-green-400' : 'text-gray-500'}">${unlocked ? (isActive ? '✓ Active' : 'Unlocked') : `${heroNodes}/${totalNodes} nodes`}</span>
+                </div>
+                ${!unlocked ? `<div class="w-full bg-gray-800 rounded-full h-1"><div class="h-1 rounded-full transition-all" style="width:${pct}%;background:${theme.primary}"></div></div>
+                <div class="text-gray-600 mt-0.5">Unlock: Complete ${theme.heroName}'s path</div>` : ''}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
   }
   checkProgressAchievements();
 

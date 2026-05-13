@@ -2458,11 +2458,16 @@ const heroClasses = [
 ];
 
 const appThemes = [
-  { id: 'default', name: 'Default', primary: '#22c55e', bg: '#030712', unlockCondition: 'Default — always available' },
-  { id: 'crimson', name: 'Crimson Power', primary: '#ef4444', bg: '#1a0000', unlockCondition: 'Complete the Power Path' },
-  { id: 'violet', name: 'Shadow Violet', primary: '#a855f7', bg: '#0d001a', unlockCondition: 'Complete the Shadow Path' },
-  { id: 'amber', name: 'Speed Amber', primary: '#f59e0b', bg: '#1a0f00', unlockCondition: 'Complete the Speed Path' },
-  { id: 'cyan', name: 'Mystic Cyan', primary: '#06b6d4', bg: '#00141a', unlockCondition: 'Complete the Mystic Path' },
+  { id: 'default',  name: 'Default',         primary: '#22c55e', bg: '#030712', unlockCondition: 'Default — always available',                         hero: null,            heroName: null },
+  { id: 'crimson',  name: 'Crimson Power',    primary: '#ef4444', bg: '#1a0000', unlockCondition: 'Complete all 5 nodes on Solaris Prime',               hero: 'solaris-prime', heroName: 'Solaris Prime',   nodes: 5 },
+  { id: 'violet',   name: 'Shadow Violet',    primary: '#a855f7', bg: '#0d001a', unlockCondition: 'Complete all 5 nodes on Nightwarden',                 hero: 'nightwarden',   heroName: 'Nightwarden',     nodes: 5 },
+  { id: 'amber',    name: 'Speed Amber',      primary: '#f59e0b', bg: '#1a0f00', unlockCondition: 'Complete all 5 nodes on Threadstrike',                hero: 'threadstrike',  heroName: 'Threadstrike',    nodes: 5 },
+  { id: 'cyan',     name: 'Mystic Cyan',      primary: '#06b6d4', bg: '#00141a', unlockCondition: 'Complete all 5 nodes on Mythara',                    hero: 'mythara',       heroName: 'Mythara',         nodes: 5 },
+  { id: 'electric', name: 'Electric Gold',    primary: '#eab308', bg: '#0f0d00', unlockCondition: 'Complete all 5 nodes on Voltflare',                  hero: 'voltflare',     heroName: 'Voltflare',       nodes: 5 },
+  { id: 'steel',    name: 'Iron Steel',       primary: '#94a3b8', bg: '#0a0c10', unlockCondition: 'Complete all 5 nodes on Iron Vanguard',              hero: 'iron-vanguard', heroName: 'Iron Vanguard',   nodes: 5 },
+  { id: 'storm',    name: 'Storm Gray',       primary: '#64748b', bg: '#08090c', unlockCondition: 'Complete all 5 nodes on Stormforged',                hero: 'stormforged',   heroName: 'Stormforged',     nodes: 5 },
+  { id: 'bronze',   name: 'Titan Bronze',     primary: '#b45309', bg: '#120800', unlockCondition: 'Complete all 5 nodes on Goliath Rift',               hero: 'goliath-rift',  heroName: 'Goliath Rift',    nodes: 5 },
+  { id: 'indigo',   name: 'Void Indigo',      primary: '#6366f1', bg: '#04040f', unlockCondition: 'Complete all 5 nodes on Inevitor',                   hero: 'inevitor',      heroName: 'Inevitor',        nodes: 5 },
 ];
 
 const nDB = [
