@@ -1031,6 +1031,85 @@ function showTab(n) {
   if (n === 10) renderWorkoutHistory();
   if (n === 11) renderCardio();
   if (n === 12) renderGearTab();
+  if (n === 13) renderHome();
+}
+
+// ── Home Tab ───────────────────────────────────────────────────────────────
+function renderHome() {
+  const greetingEl = document.getElementById('home-greeting');
+  const statsEl = document.getElementById('home-stats');
+  const dailyQuestsEl = document.getElementById('home-daily-quests');
+  const quickStatsEl = document.getElementById('home-quick-stats');
+  if (!greetingEl) return;
+
+  // Greeting
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const heroName = character.heroName || character.name || 'Hero';
+  const level = character.level || 1;
+  const xp = character.xp || 0;
+  const xpToNext = character.xpToNext || 100;
+  const pct = Math.min(100, Math.round((xp / xpToNext) * 100));
+
+  greetingEl.innerHTML = `
+    <div class="bg-gradient-to-br from-green-900/40 to-gray-900 border border-green-800/30 rounded-3xl p-5">
+      <div class="text-2xl font-black text-white mb-1">${timeOfDay}, ${heroName}! 👊</div>
+      <div class="text-sm text-green-400 mb-3">Level ${level} • ${xp.toLocaleString()} XP</div>
+      <div class="w-full bg-gray-800 rounded-full h-2">
+        <div class="bg-green-500 h-2 rounded-full transition-all" style="width:${pct}%"></div>
+      </div>
+      <div class="text-xs text-gray-400 mt-1">${xp.toLocaleString()} / ${xpToNext.toLocaleString()} XP to next level</div>
+    </div>
+  `;
+
+  // Stat cards
+  const streak = character.streak || 0;
+  const totalWorkouts = workoutLog.length || 0;
+  const heroPoints = character.heroPoints || 0;
+  statsEl.innerHTML = [
+    { icon: '🔥', label: 'Streak', value: `${streak}d` },
+    { icon: '🏋️', label: 'Workouts', value: totalWorkouts },
+    { icon: '⚡', label: 'Hero Pts', value: heroPoints },
+  ].map((s) => `
+    <div class="bg-gray-900 rounded-3xl p-3 text-center">
+      <div class="text-2xl mb-1">${s.icon}</div>
+      <div class="text-lg font-bold text-white">${s.value}</div>
+      <div class="text-xs text-gray-400">${s.label}</div>
+    </div>
+  `).join('');
+
+  // Today's daily quests (up to 4)
+  const today = getTodayStamp ? getTodayStamp() : new Date().toDateString();
+  const claimed = (questProgress.dailyClaimed || {})[today] || [];
+  const pending = dailyQuests.filter((q) => !claimed.includes(q.id)).slice(0, 4);
+  if (pending.length) {
+    dailyQuestsEl.innerHTML = pending.map((q) => `
+      <div class="flex items-center justify-between bg-gray-800 rounded-2xl px-4 py-3">
+        <div>
+          <div class="text-sm font-medium text-white">${q.title}</div>
+          <div class="text-xs text-gray-400">${q.desc || ''}</div>
+        </div>
+        <div class="text-green-400 text-xs font-bold ml-3 shrink-0">+${q.xp} XP</div>
+      </div>
+    `).join('');
+  } else {
+    dailyQuestsEl.innerHTML = '<p class="text-green-400 text-sm text-center py-2">✅ All daily quests complete!</p>';
+  }
+
+  // Quick stats
+  const lastWorkout = workoutLog.length ? workoutLog[workoutLog.length - 1] : null;
+  const lastDate = lastWorkout ? (lastWorkout.date || 'Unknown') : 'None yet';
+  const weekEntries = getCurrentWeekWorkoutEntries ? getCurrentWeekWorkoutEntries() : [];
+  quickStatsEl.innerHTML = [
+    { label: 'Last workout', value: lastDate },
+    { label: 'This week', value: `${weekEntries.length} session${weekEntries.length !== 1 ? 's' : ''}` },
+    { label: 'Total XP earned', value: `${xp.toLocaleString()} XP` },
+  ].map((s) => `
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-gray-400">${s.label}</span>
+      <span class="text-white font-medium">${s.value}</span>
+    </div>
+  `).join('');
 }
 window.showTab = showTab;
 
@@ -3746,7 +3825,7 @@ window.onload = function onLoad() {
   renderHero();
   renderClassSelection();
   checkProgressAchievements();
-  showTab(0);
+  showTab(13);
   // Notifications init
   scheduleBossNotification();
   if (character.notificationsEnabled) scheduleStreakReminder();

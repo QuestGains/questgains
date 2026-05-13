@@ -109,26 +109,42 @@
 
     <div class="bg-gray-900 rounded-3xl p-1 mb-6">
       <div class="grid grid-cols-6 gap-1 mb-1">
-        <button onclick="showTab(0)" id="tab0" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center tab-active">🏋️<br>Library</button>
+        <button onclick="showTab(13)" id="tab13" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center tab-active">🏠<br>Home</button>
+        <button onclick="showTab(0)" id="tab0" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏋️<br>Library</button>
         <button onclick="showTab(1)" id="tab1" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📋<br>Log</button>
         <button onclick="showTab(2)" id="tab2" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📋<br>Plans</button>
         <button onclick="showTab(3)" id="tab3" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📈<br>Progress</button>
         <button onclick="showTab(4)" id="tab4" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🦸<br>Hero</button>
-        <button onclick="showTab(5)" id="tab5" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚔️<br>Quests</button>
       </div>
       <div class="grid grid-cols-6 gap-1">
+        <button onclick="showTab(5)" id="tab5" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚔️<br>Quests</button>
         <button onclick="showTab(6)" id="tab6" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏆<br>Ranks</button>
         <button onclick="showTab(7)" id="tab7" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🥑<br>Nutrition</button>
         <button onclick="showTab(8)" id="tab8" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🍽️<br>Meals</button>
         <button onclick="showTab(9)" id="tab9" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚖️<br>Convert</button>
         <button onclick="showTab(10)" id="tab10" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📜<br>History</button>
+      </div>
+      <div class="grid grid-cols-6 gap-1 mt-1">
         <button onclick="showTab(11)" id="tab11" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏃<br>Cardio</button>
-      </div>
-      <div class="grid grid-cols-3 gap-1 mt-1">
-        <div></div>
+        <div></div><div></div><div></div><div></div>
         <button onclick="showTab(12)" id="tab12" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🛡️<br>Gear</button>
-        <div></div>
       </div>
+    </div>
+
+    <!-- HOME TAB -->
+    <div id="screen13" class="tab-screen hidden">
+      <div id="home-greeting" class="mb-5"></div>
+      <div id="home-stats" class="grid grid-cols-3 gap-3 mb-5"></div>
+      <div class="bg-gray-900 rounded-3xl p-4 mb-4">
+        <div class="text-sm font-semibold text-green-400 mb-3">⚔️ Today's Quests</div>
+        <div id="home-daily-quests" class="space-y-2"></div>
+      </div>
+      <div class="bg-gray-900 rounded-3xl p-4 mb-4">
+        <div class="text-sm font-semibold text-blue-400 mb-3">📊 Quick Stats</div>
+        <div id="home-quick-stats" class="space-y-2"></div>
+      </div>
+      <button onclick="showTab(1)" class="w-full bg-green-500 hover:bg-green-600 py-4 rounded-3xl text-lg font-bold mb-3">🏋️ Start Today's Workout</button>
+      <button onclick="showTab(5)" class="w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-3xl text-sm font-medium">⚔️ View All Quests</button>
     </div>
 
     <div id="screen0" class="tab-screen hidden">
