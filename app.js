@@ -3626,10 +3626,27 @@ function startBarcodeDetection(video, statusEl) {
       } catch(e) {}
     }, 500);
   } else {
-    statusEl.textContent = 'Barcode scanning not supported on this browser. Try Chrome on Android.';
-    setTimeout(() => closeBarcodeScanner(), 3500);
+    // BarcodeDetector not supported (Safari, Firefox, older browsers)
+    statusEl.textContent = 'Auto-scan not supported on this browser. Use the manual entry below.';
+    // Hide the camera UI, emphasize the manual entry
+    const videoEl = document.getElementById('scanner-video');
+    if (videoEl) videoEl.closest('.relative')?.classList.add('hidden');
+    document.querySelector('#scanner-modal > p')?.classList.add('hidden');
+    const manualEl = document.getElementById('manual-barcode-input');
+    if (manualEl) manualEl.focus();
   }
 }
+
+window.submitManualBarcode = async function submitManualBarcode() {
+  const input = document.getElementById('manual-barcode-input');
+  const statusEl = document.getElementById('scanner-status');
+  if (!input || !statusEl) return;
+  const code = input.value.trim().replace(/\D/g, '');
+  if (!code) { statusEl.textContent = 'Please enter a barcode number.'; return; }
+  statusEl.textContent = `Looking up ${code}...`;
+  input.value = '';
+  await lookupBarcode(code, statusEl);
+};
 
 async function lookupBarcode(barcode, statusEl) {
   try {

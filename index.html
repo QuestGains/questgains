@@ -505,7 +505,15 @@
     </div>
     <p class="text-white text-sm mt-4 text-center">Point camera at a food barcode</p>
     <div id="scanner-status" class="text-green-400 text-sm mt-2 text-center px-8 min-h-[20px]"></div>
-    <button onclick="closeBarcodeScanner()" class="mt-6 bg-gray-800 hover:bg-gray-700 px-8 py-3 rounded-3xl text-white">Cancel</button>
+    <!-- Manual barcode fallback (shown when BarcodeDetector unsupported or as always-available option) -->
+    <div id="scanner-manual" class="mt-4 w-full max-w-sm">
+      <p class="text-gray-400 text-xs text-center mb-2">Or enter barcode manually</p>
+      <div class="flex gap-2">
+        <input id="manual-barcode-input" type="text" inputmode="numeric" placeholder="e.g. 012345678901" class="flex-1 bg-gray-800 text-white px-4 py-2 rounded-2xl text-sm outline-none border border-gray-700 focus:border-green-500">
+        <button onclick="submitManualBarcode()" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-2xl text-sm font-semibold text-black">Go</button>
+      </div>
+    </div>
+    <button onclick="closeBarcodeScanner()" class="mt-4 bg-gray-800 hover:bg-gray-700 px-8 py-3 rounded-3xl text-white">Cancel</button>
   </div>
 
   <!-- Victory Card Overlay -->
