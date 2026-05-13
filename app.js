@@ -1377,8 +1377,73 @@ window.suggestWorkout = function suggestWorkout() {
 };
 
 window.addExerciseToSession = function addExerciseToSession() {
-  const exercise = exDB[Math.floor(Math.random() * exDB.length)];
+  openExerciseSearchModal();
+};
+
+// ── Exercise Search Modal ──────────────────────────────────────────────────
+let exerciseSearchFilter = '';
+
+window.openExerciseSearchModal = function openExerciseSearchModal() {
+  const modal = document.getElementById('exercise-search-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  const input = document.getElementById('exercise-search-input');
+  if (input) { input.value = ''; input.focus(); }
+  exerciseSearchFilter = '';
+  // reset chips
+  document.querySelectorAll('.exercise-filter-chip').forEach((c) => {
+    c.classList.toggle('active', c.dataset.filter === '');
+  });
+  renderExerciseSearchResults();
+};
+
+window.closeExerciseSearchModal = function closeExerciseSearchModal() {
+  const modal = document.getElementById('exercise-search-modal');
+  if (modal) modal.classList.add('hidden');
+};
+
+window.setExerciseFilter = function setExerciseFilter(filter) {
+  exerciseSearchFilter = filter;
+  document.querySelectorAll('.exercise-filter-chip').forEach((c) => {
+    c.classList.toggle('active', c.dataset.filter === filter);
+  });
+  renderExerciseSearchResults();
+};
+
+window.renderExerciseSearchResults = function renderExerciseSearchResults() {
+  const container = document.getElementById('exercise-search-results');
+  if (!container) return;
+  const query = (document.getElementById('exercise-search-input')?.value || '').toLowerCase().trim();
+
+  const results = exDB.filter((ex) => {
+    const matchesType = !exerciseSearchFilter || (ex.type || '').toLowerCase() === exerciseSearchFilter;
+    const matchesQuery = !query ||
+      (ex.name || '').toLowerCase().includes(query) ||
+      (ex.muscles || '').toLowerCase().includes(query);
+    return matchesType && matchesQuery;
+  });
+
+  if (!results.length) {
+    container.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">No exercises found. Try a different search.</p>';
+    return;
+  }
+
+  container.innerHTML = results.map((ex) => `
+    <div class="exercise-search-row" onclick="pickExerciseFromSearch(${ex.id})">
+      <div>
+        <div class="text-sm font-semibold text-white">${ex.name}</div>
+        <div class="text-xs text-green-400 mt-0.5">${ex.muscles}</div>
+      </div>
+      <span class="text-xs text-gray-500 capitalize ml-3 shrink-0">${ex.type || ''}</span>
+    </div>
+  `).join('');
+};
+
+window.pickExerciseFromSearch = function pickExerciseFromSearch(id) {
+  const exercise = exDB.find((ex) => ex.id === id);
+  if (!exercise) return;
   currentSession.push({ exercise, sets: [] });
+  closeExerciseSearchModal();
   renderCurrentSession();
 };
 

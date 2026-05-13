@@ -539,5 +539,31 @@
       <p class="text-center text-xs text-gray-600 mt-2">Long press the card to save as image</p>
     </div>
   </div>
+
+  <!-- Exercise Search Modal -->
+  <div id="exercise-search-modal" onclick="if(event.target.id==='exercise-search-modal')closeExerciseSearchModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 pb-16">
+    <div class="bg-gray-900 w-11/12 max-w-md rounded-3xl p-5 modal max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">Add Exercise</h2>
+        <button onclick="closeExerciseSearchModal()" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+      <input
+        id="exercise-search-input"
+        type="text"
+        placeholder="Search by name or muscle group..."
+        oninput="renderExerciseSearchResults()"
+        class="w-full bg-gray-800 text-white px-4 py-3 rounded-2xl mb-3 text-sm outline-none border border-gray-700 focus:border-green-500"
+        autocomplete="off"
+      >
+      <div class="flex gap-2 mb-3 flex-wrap" id="exercise-filter-chips">
+        <button onclick="setExerciseFilter('')" class="exercise-filter-chip active" data-filter="">All</button>
+        <button onclick="setExerciseFilter('bodyweight')" class="exercise-filter-chip" data-filter="bodyweight">Bodyweight</button>
+        <button onclick="setExerciseFilter('gym')" class="exercise-filter-chip" data-filter="gym">Gym</button>
+        <button onclick="setExerciseFilter('cardio')" class="exercise-filter-chip" data-filter="cardio">Cardio</button>
+        <button onclick="setExerciseFilter('dumbbell')" class="exercise-filter-chip" data-filter="dumbbell">Dumbbell</button>
+      </div>
+      <div id="exercise-search-results" class="overflow-y-auto flex-1 space-y-2 pr-1"></div>
+    </div>
+  </div>
 </body>
 </html>
