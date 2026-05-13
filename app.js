@@ -459,37 +459,31 @@ function getHeroThemeForHero(heroId) {
   return map[heroId] || null;
 }
 
-function getLeaderboardPlayers() {
-  const me = {
-    id: 'you',
-    name: 'You',
-    level: character.level || 1,
-    xp: character.xp || 0,
-    workoutsThisWeek: getCurrentWeekWorkoutEntries().length,
-    isUser: true
-  };
-  const rivals = lbD.map((user, index) => ({
-    ...user,
-    id: user.id || `lb-${index + 1}`,
-    workoutsThisWeek: user.workoutsThisWeek || Math.max(2, 8 - index)
-  }));
-  return [me, ...rivals].sort((a, b) => b.xp - a.xp).map((entry, index) => ({ ...entry, rank: index + 1 }));
+// Leaderboard state
+let _lbCurrentTab = 'alltime';
+let _cachedRival = null; // { uid, username, xp, level }
+
+function getRivalFromStorage() {
+  try {
+    const raw = localStorage.getItem('qg_rival');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveRivalToStorage(rivalData) {
+  localStorage.setItem('qg_rival', JSON.stringify(rivalData));
+  _cachedRival = rivalData;
 }
 
 function getRivalPlayer() {
-  const players = getLeaderboardPlayers().filter((entry) => !entry.isUser);
-  if (!players.length) return null;
-  const top = players[0];
-  character.rivalId = top.id;
-  return top;
+  return _cachedRival || getRivalFromStorage();
 }
 
 function checkRivalOvertake(previousXP) {
   const rival = getRivalPlayer();
   if (!rival) return;
   if ((previousXP || 0) <= rival.xp && (character.xp || 0) > rival.xp) {
-    showAchievement('👊', 'Rival Crushed!', `You overtook ${rival.name}! New rival assigned.`);
-    character.rivalId = rival.id;
+    showAchievement('👊', 'Rival Crushed!', `You overtook ${rival.username || rival.name}!`);
   }
 }
 
@@ -950,6 +944,10 @@ function awardXP(baseXP, context = 'generic') {
   character.xp += finalXP;
   SoundFX.play('xp');
   checkRivalOvertake(previousXP);
+  // Weekly XP tracking (for leaderboard) — fire-and-forget
+  if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
+    window.incrementWeeklyXP(window.currentUserId, finalXP);
+  }
   return finalXP;
 }
 
@@ -2530,6 +2528,11 @@ function renderHero() {
     </div>
   `;
 
+  // Render username settings section
+  if (typeof window.renderUsernameSettings === 'function') {
+    window.renderUsernameSettings();
+  }
+
   updateHeader();
 }
 
@@ -3085,43 +3088,298 @@ window.claimBossBattle = function claimBossBattle() {
   renderQuests();
 };
 
-function renderLeaderboard() {
-  const container = document.getElementById('leaderboard-list');
-  container.innerHTML = '';
-  const players = getLeaderboardPlayers();
-  const rival = getRivalPlayer();
-  if (rival) {
-    const gap = Math.max(0, rival.xp - (character.xp || 0));
-    const myWorkouts = getCurrentWeekWorkoutEntries().length;
-    const rivalCard = document.createElement('div');
-    rivalCard.className = 'rival-card';
-    rivalCard.innerHTML = `<div class="text-sm font-semibold text-red-300 mb-2">Your Rival</div><div class="flex items-start justify-between gap-3"><div><div class="text-xl font-black text-white">${rival.name}</div><div class="text-sm text-gray-300">Level ${rival.level} • ${rival.xp.toLocaleString()} XP</div></div><button onclick="startRivalChallenge()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-2xl text-sm font-medium">Challenge</button></div><div class="text-sm text-gray-300 mt-3">Gap: ${gap > 0 ? `You are ${gap.toLocaleString()} XP behind ${rival.name}` : `You are ahead of ${rival.name}`}</div><div class="text-sm text-gray-400 mt-2">This week: ${rival.name} logged ${rival.workoutsThisWeek} workouts. You logged ${myWorkouts}.</div>${character.rivalChallengeStart ? `<div class="text-xs text-green-400 mt-3">Challenge active since ${getDisplayDate(character.rivalChallengeStart)} • Goal XP: ${character.rivalChallengeGoalXP}</div>` : ''}`;
-    container.appendChild(rivalCard);
+// ── LEADERBOARD (Live Firestore) ──────────────────────────────────────────────
+
+function showLeaderboardTab(tab) {
+  _lbCurrentTab = tab;
+  const allBtn = document.getElementById('lb-tab-alltime');
+  const wkBtn = document.getElementById('lb-tab-weekly');
+  if (allBtn && wkBtn) {
+    if (tab === 'alltime') {
+      allBtn.className = 'subtab-active flex-1 py-2 rounded-3xl text-sm font-medium';
+      wkBtn.className = 'tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium';
+    } else {
+      wkBtn.className = 'subtab-active flex-1 py-2 rounded-3xl text-sm font-medium';
+      allBtn.className = 'tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium';
+    }
   }
-  players.forEach((user) => {
-    const div = document.createElement('div');
-    div.className = 'bg-gray-900 p-4 rounded-3xl flex items-center justify-between';
-    div.innerHTML = `<div class="flex items-center gap-4"><div class="text-2xl font-bold text-green-400 w-8">#${user.rank}</div><div><div class="font-semibold">${user.name}</div><div class="text-green-400 text-sm">Level ${user.level}</div></div></div><div class="text-right"><div class="text-xl font-bold">${user.xp.toLocaleString()} XP</div></div>`;
-    container.appendChild(div);
-  });
+  renderLeaderboard();
+}
+window.showLeaderboardTab = showLeaderboardTab;
+
+function renderRivalCard() {
+  const container = document.getElementById('rival-card-container');
+  if (!container) return;
+  const rival = getRivalPlayer();
+  if (!rival) {
+    container.innerHTML = '';
+    return;
+  }
+  const myXP = character.xp || 0;
+  const gap = myXP - rival.xp;
+  const gapText = gap > 0
+    ? `You are <strong>${gap.toLocaleString()} XP ahead</strong> of ${rival.username}`
+    : gap < 0
+    ? `You are <strong>${Math.abs(gap).toLocaleString()} XP behind</strong> ${rival.username}`
+    : `Tied with ${rival.username}`;
+  const challengeInfo = character.rivalChallengeStart
+    ? `<div class="text-xs text-green-400 mt-2">⚔️ Challenge active since ${getDisplayDate(character.rivalChallengeStart)} • Goal: ${(character.rivalChallengeGoalXP || 0).toLocaleString()} XP</div>`
+    : '';
+  container.innerHTML = `
+    <div class="rival-card">
+      <div class="text-sm font-semibold text-red-300 mb-2">⚔️ Your Rival</div>
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-xl font-black text-white">${rival.username}</div>
+          <div class="text-sm text-gray-300">Level ${rival.level} • ${rival.xp.toLocaleString()} XP</div>
+        </div>
+        <button onclick="startRivalChallenge()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-2xl text-sm font-medium">Challenge</button>
+      </div>
+      <div class="text-sm text-gray-300 mt-3">${gapText}</div>
+      ${challengeInfo}
+    </div>`;
+}
+
+async function renderLeaderboard() {
+  const container = document.getElementById('leaderboard-list');
+  if (!container) return;
+
+  // Render rival card
+  renderRivalCard();
+
+  // Loading state
+  container.innerHTML = '<div class="text-center text-gray-400 py-8">Loading…</div>';
+
+  try {
+    const db = window.db;
+    if (!db) throw new Error('No Firestore');
+
+    const myUid = window.currentUserId;
+    const myUsername = window.currentUsername || localStorage.getItem('qg_username') || 'You';
+    let entries = [];
+
+    if (_lbCurrentTab === 'alltime') {
+      // All-Time: sort users by total XP
+      const snap = await db.collection('users').orderBy('character.xp', 'desc').limit(50).get();
+      entries = snap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          uid: doc.id,
+          username: data?.profile?.username || '—',
+          xp: data?.character?.xp || 0,
+          level: data?.character?.level || 1,
+          isUser: doc.id === myUid
+        };
+      });
+    } else {
+      // Weekly: read weeklyXP sub-collection for current week
+      const weekKey = typeof window.getISOWeekKey === 'function' ? window.getISOWeekKey() : 'unknown';
+      // We need to query the subcollection — Firestore doesn't support cross-collection
+      // queries on sub-collections directly, so we do a collectionGroup query.
+      const snap = await db.collectionGroup('weeklyXP')
+        .where(window.firebase.firestore.FieldPath.documentId(), '==', weekKey)
+        .orderBy(window.firebase.firestore.FieldPath.documentId())
+        .get().catch(() => null);
+
+      // fallback: collectionGroup with documentId filter may not work without composite index
+      // Use manual approach: get users, then check weeklyXP per user (not ideal at scale,
+      // but works for small user bases — leaderboard shows what we have)
+      if (!snap || snap.empty) {
+        // Try collectionGroup without filter, get all for this week
+        const cgSnap = await db.collectionGroup('weeklyXP').limit(200).get().catch(() => null);
+        if (cgSnap && !cgSnap.empty) {
+          const weekEntries = [];
+          cgSnap.forEach((doc) => {
+            if (doc.id === weekKey) {
+              const uid = doc.ref.parent.parent.id;
+              weekEntries.push({ uid, xp: doc.data()?.xp || 0 });
+            }
+          });
+          // Fetch user profiles for ranking
+          const enriched = await Promise.all(weekEntries.map(async (e) => {
+            try {
+              const userDoc = await db.collection('users').doc(e.uid).get();
+              const data = userDoc.data() || {};
+              return {
+                uid: e.uid,
+                username: data?.profile?.username || '—',
+                xp: e.xp,
+                level: data?.character?.level || 1,
+                isUser: e.uid === myUid
+              };
+            } catch { return null; }
+          }));
+          entries = enriched.filter(Boolean);
+        }
+      } else {
+        // snap has results
+        const weekEntries = [];
+        snap.forEach((doc) => {
+          const uid = doc.ref.parent.parent.id;
+          weekEntries.push({ uid, xp: doc.data()?.xp || 0 });
+        });
+        const enriched = await Promise.all(weekEntries.map(async (e) => {
+          try {
+            const userDoc = await db.collection('users').doc(e.uid).get();
+            const data = userDoc.data() || {};
+            return {
+              uid: e.uid,
+              username: data?.profile?.username || '—',
+              xp: e.xp,
+              level: data?.character?.level || 1,
+              isUser: e.uid === myUid
+            };
+          } catch { return null; }
+        }));
+        entries = enriched.filter(Boolean);
+      }
+
+      // Always include current user in weekly (with their local weekly XP)
+      const alreadyHasMe = entries.some((e) => e.uid === myUid);
+      if (!alreadyHasMe && myUid) {
+        // Get local weekly XP from Firestore
+        try {
+          const myWeekDoc = await db.collection('users').doc(myUid).collection('weeklyXP').doc(weekKey).get();
+          const myWeekXP = myWeekDoc.exists ? (myWeekDoc.data()?.xp || 0) : 0;
+          entries.push({
+            uid: myUid,
+            username: myUsername,
+            xp: myWeekXP,
+            level: character.level || 1,
+            isUser: true
+          });
+        } catch { /* skip */ }
+      }
+    }
+
+    // Sort descending by XP
+    entries.sort((a, b) => b.xp - a.xp);
+
+    if (entries.length === 0) {
+      container.innerHTML = '<div class="text-center text-gray-400 py-8">No data yet — complete workouts to appear here!</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    entries.forEach((user, idx) => {
+      const rank = idx + 1;
+      const isMe = user.isUser || user.uid === myUid;
+      const div = document.createElement('div');
+      div.className = `p-4 rounded-3xl flex items-center justify-between ${isMe ? 'bg-green-900/40 border border-green-500/30' : 'bg-gray-900'}`;
+      const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      div.innerHTML = `
+        <div class="flex items-center gap-4">
+          <div class="text-2xl font-bold ${isMe ? 'text-green-400' : 'text-gray-400'} w-10">${rankEmoji}</div>
+          <div>
+            <div class="font-semibold ${isMe ? 'text-green-300' : 'text-white'}">${user.username}${isMe ? ' (You)' : ''}</div>
+            <div class="${isMe ? 'text-green-400' : 'text-gray-400'} text-sm">Level ${user.level}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-xl font-bold">${user.xp.toLocaleString()} XP</div>
+        </div>`;
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error('renderLeaderboard error:', err);
+    container.innerHTML = '<div class="text-center text-gray-400 py-8">Could not load leaderboard. Check your connection.</div>';
+  }
 }
 
 window.startRivalChallenge = function startRivalChallenge() {
   const rival = getRivalPlayer();
   if (!rival) return;
-  character.rivalId = rival.id;
+  character.rivalId = rival.uid || rival.id || null;
   character.rivalChallengeStart = getTodayStamp();
   character.rivalChallengeGoalXP = rival.xp + 1;
   saveData();
-  renderLeaderboard();
-  alert(`Challenge accepted. Beat ${rival.name} within 7 days.`);
+  renderRivalCard();
+  alert(`Challenge accepted! Beat ${rival.username} (${rival.xp.toLocaleString()} XP) within 7 days.`);
 };
 
+// Rival search box toggle
+window.showRivalSearch = function showRivalSearch() {
+  const box = document.getElementById('rival-search-box');
+  if (box) box.classList.toggle('hidden');
+};
+
+// Search by username and set as rival
+window.searchAndSetRival = async function searchAndSetRival() {
+  const input = document.getElementById('rival-username-input');
+  const errorEl = document.getElementById('rival-search-error');
+  if (!input || !errorEl) return;
+  const username = input.value.trim();
+  errorEl.textContent = '';
+  if (!username) { errorEl.textContent = 'Enter a username.'; return; }
+  if (username.toLowerCase() === (window.currentUsername || '').toLowerCase()) {
+    errorEl.textContent = 'You cannot rival yourself.';
+    return;
+  }
+  errorEl.textContent = 'Searching…';
+  try {
+    const result = await window.findUserByUsername(username);
+    if (!result) { errorEl.textContent = 'User not found.'; return; }
+    saveRivalToStorage(result);
+    character.rivalId = result.uid;
+    saveData();
+    document.getElementById('rival-search-box').classList.add('hidden');
+    input.value = '';
+    errorEl.textContent = '';
+    renderRivalCard();
+    alert(`${result.username} is now your rival! 🔥`);
+  } catch (err) {
+    console.error('searchAndSetRival error:', err);
+    errorEl.textContent = 'Error searching. Try again.';
+  }
+};
+
+// Random rival: query for users within ±20% of current XP
+window.setRandomRival = async function setRandomRival() {
+  const db = window.db;
+  if (!db) { alert('Not connected to Firebase.'); return; }
+  const myXP = character.xp || 0;
+  const myUid = window.currentUserId;
+  const low = Math.floor(myXP * 0.8);
+  const high = Math.ceil(myXP * 1.2);
+  try {
+    // Query users with XP in range
+    const snap = await db.collection('users')
+      .where('character.xp', '>=', low)
+      .where('character.xp', '<=', high)
+      .limit(20)
+      .get();
+    const candidates = [];
+    snap.forEach((doc) => {
+      if (doc.id === myUid) return;
+      const data = doc.data();
+      const username = data?.profile?.username;
+      if (!username) return;
+      candidates.push({
+        uid: doc.id,
+        username,
+        xp: data?.character?.xp || 0,
+        level: data?.character?.level || 1
+      });
+    });
+    if (candidates.length === 0) {
+      alert('No rivals found near your XP level yet. Try again later!');
+      return;
+    }
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    saveRivalToStorage(pick);
+    character.rivalId = pick.uid;
+    saveData();
+    renderRivalCard();
+    alert(`${pick.username} (${pick.xp.toLocaleString()} XP) is your new random rival! 🎲`);
+  } catch (err) {
+    console.error('setRandomRival error:', err);
+    alert('Error finding rival. Check connection.');
+  }
+};
+
+// Legacy — kept for compat but replaced by live data
 window.refreshLeaderboard = function refreshLeaderboard() {
-  lbD.sort(() => Math.random() - 0.5);
-  lbD.forEach((user, index) => { user.rank = index + 1; user.id = user.id || `lb-${index + 1}`; user.workoutsThisWeek = user.workoutsThisWeek || Math.max(2, 8 - index); });
   renderLeaderboard();
-  alert('Leaderboard refreshed with new heroes! 🔥');
 };
 
 function renderNutrition(foodList = nDB) {

@@ -40,6 +40,12 @@ async function saveUserData(userId, data) {
 
   payload.updatedAt = window.firebase.firestore.FieldValue.serverTimestamp();
 
+  // Also persist username in profile so leaderboard queries work
+  const username = window.currentUsername || localStorage.getItem('qg_username');
+  if (username) {
+    payload.profile = { username };
+  }
+
   await db.collection('users').doc(userId).set(payload, { merge: true });
   return true;
 }

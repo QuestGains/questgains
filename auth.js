@@ -105,6 +105,15 @@ async function handleAuthenticatedUser(user) {
     showStatus('Signed in, but cloud data could not be loaded. Local data is still available.');
   }
 
+  // Ensure username is set before showing app (prompts on first login)
+  if (typeof window.ensureUsername === 'function') {
+    try {
+      await window.ensureUsername(user.uid);
+    } catch (err) {
+      console.warn('ensureUsername failed:', err);
+    }
+  }
+
   showApp();
   showStatus('');
 }

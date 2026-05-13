@@ -21,6 +21,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="db.js"></script>
+  <script src="username.js"></script>
   <script src="auth.js"></script>
 </head>
 <body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
@@ -264,6 +265,8 @@
       </div>
       <div id="hero-character-grid" class="hero-character-grid"></div>
       <div id="hero-skill-tree-panel" class="hero-skill-tree-panel mt-5"></div>
+      <!-- Username Settings -->
+      <div class="bg-gray-900 p-4 rounded-3xl mt-5" id="username-settings-section"></div>
     </div>
 
     <div id="screen12" class="tab-screen hidden"></div>
@@ -283,10 +286,38 @@
     <div id="screen6" class="tab-screen hidden">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold">🏆 Global Leaderboard</h2>
-        <button onclick="refreshLeaderboard()" class="bg-green-600 hover:bg-green-700 px-4 py-1 rounded-2xl text-sm">Refresh</button>
+        <button onclick="renderLeaderboard()" class="bg-green-600 hover:bg-green-700 px-4 py-1 rounded-2xl text-sm">Refresh</button>
       </div>
+
+      <!-- Rival Card -->
+      <div id="rival-card-container" class="mb-4"></div>
+
+      <!-- Rival Search / Find -->
+      <div class="bg-gray-900 p-4 rounded-3xl mb-4">
+        <div class="text-sm font-semibold text-red-300 mb-3">⚔️ Rival</div>
+        <div class="flex gap-2 mb-2">
+          <button onclick="showRivalSearch()" class="flex-1 bg-red-700 hover:bg-red-600 py-2 rounded-2xl text-sm font-medium">🔍 Find a Rival</button>
+          <button onclick="setRandomRival()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-2xl text-sm font-medium">🎲 Random Rival</button>
+        </div>
+        <div id="rival-search-box" class="hidden mt-2">
+          <div class="flex gap-2">
+            <input id="rival-username-input" type="text" maxlength="20" placeholder="Enter username…"
+              class="flex-1 bg-gray-800 text-white px-3 py-2 rounded-2xl text-sm outline-none border border-gray-700 focus:border-red-500"
+              autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <button onclick="searchAndSetRival()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-2xl text-sm font-semibold">Set</button>
+          </div>
+          <div id="rival-search-error" class="text-xs text-red-400 mt-1"></div>
+        </div>
+      </div>
+
+      <!-- Leaderboard Sub-tabs -->
+      <div class="flex gap-1 bg-gray-900 rounded-3xl p-1 mb-4">
+        <button onclick="showLeaderboardTab('alltime')" id="lb-tab-alltime" class="subtab-active flex-1 py-2 rounded-3xl text-sm font-medium">🏆 All-Time</button>
+        <button onclick="showLeaderboardTab('weekly')" id="lb-tab-weekly" class="tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium">📅 Weekly</button>
+      </div>
+
       <div id="leaderboard-list" class="space-y-3"></div>
-      <p class="text-xs text-gray-400 text-center mt-6">Top heroes around the world • Updated live</p>
+      <p class="text-xs text-gray-400 text-center mt-6">Top heroes around the world • Live data</p>
     </div>
 
     <div id="screen7" class="tab-screen hidden">
