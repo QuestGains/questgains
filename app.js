@@ -2,6 +2,7 @@
 // v2.13 update: CSS pixel-art hero portraits in the Hero tab.
 
 const DEFAULT_CHARACTER = {
+  heroName: '',
   level: 1,
   xp: 0,
   xpToNext: 100,
@@ -1053,7 +1054,10 @@ function renderHome() {
 
   greetingEl.innerHTML = `
     <div class="bg-gradient-to-br from-green-900/40 to-gray-900 border border-green-800/30 rounded-3xl p-5">
-      <div class="text-2xl font-black text-white mb-1">${timeOfDay}, ${heroName}! 👊</div>
+      <div class="flex items-start justify-between gap-2 mb-1">
+        <div class="text-2xl font-black text-white">${timeOfDay}, ${heroName}! 👊</div>
+        <button onclick="toggleHeroNameEditor()" class="text-gray-500 hover:text-green-400 text-xs mt-1 shrink-0">✏️ Edit</button>
+      </div>
       <div class="text-sm text-green-400 mb-3">Level ${level} • ${xp.toLocaleString()} XP</div>
       <div class="w-full bg-gray-800 rounded-full h-2">
         <div class="bg-green-500 h-2 rounded-full transition-all" style="width:${pct}%"></div>
@@ -1108,6 +1112,28 @@ function renderHome() {
   `).join('');
 }
 window.showTab = showTab;
+
+window.toggleHeroNameEditor = function toggleHeroNameEditor() {
+  const editor = document.getElementById('home-name-editor');
+  const input = document.getElementById('hero-name-input');
+  if (!editor) return;
+  const isHidden = editor.classList.toggle('hidden');
+  if (!isHidden && input) {
+    input.value = character.heroName || '';
+    input.focus();
+  }
+};
+
+window.saveHeroName = function saveHeroName() {
+  const input = document.getElementById('hero-name-input');
+  if (!input) return;
+  const name = input.value.trim();
+  if (!name) return;
+  character.heroName = name;
+  saveData();
+  document.getElementById('home-name-editor').classList.add('hidden');
+  renderHome();
+};
 
 function getMuscleList(exercise) {
   return String(exercise?.muscles || '').split(',').map((part) => part.trim()).filter(Boolean);
