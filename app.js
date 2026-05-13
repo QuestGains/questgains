@@ -1118,6 +1118,14 @@ function renderHome() {
 }
 window.showTab = showTab;
 
+window.toggleThemePanel = function toggleThemePanel() {
+  const panel = document.getElementById('theme-panel');
+  const arrow = document.getElementById('theme-arrow');
+  if (!panel) return;
+  const open = panel.classList.toggle('hidden');
+  if (arrow) arrow.style.transform = open ? '' : 'rotate(180deg)';
+};
+
 window.toggleHeroNameEditor = function toggleHeroNameEditor() {
   const editor = document.getElementById('home-name-editor');
   const input = document.getElementById('hero-name-input');
@@ -2391,34 +2399,39 @@ function renderHero() {
   }
   if (themeSelector) {
     themeSelector.innerHTML = `
-      <div class="text-sm font-semibold text-green-400 mb-3">Themes</div>
-      <div class="flex flex-wrap gap-3 mb-4">
-        ${appThemes.map((theme) => {
-          const unlocked = (character.unlockedThemes || []).includes(theme.id);
-          const isActive = character.activeTheme === theme.id;
-          return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${isActive ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name}"></button>`;
-        }).join('')}
-      </div>
-      <div class="space-y-2">
-        ${appThemes.filter(t => t.hero).map((theme) => {
-          const unlocked = (character.unlockedThemes || []).includes(theme.id);
-          const isActive = character.activeTheme === theme.id;
-          const heroNodes = character.unlockedCharacters?.[theme.hero]?.length || 0;
-          const totalNodes = theme.nodes || 5;
-          const pct = Math.min(100, Math.round((heroNodes / totalNodes) * 100));
-          return `
-            <div class="flex items-center gap-3 text-xs">
-              <div class="w-3 h-3 rounded-full shrink-0 ${unlocked ? 'ring-1 ring-white/30' : 'opacity-40'}" style="background:${theme.primary}"></div>
-              <div class="flex-1 min-w-0">
-                <div class="flex justify-between mb-0.5">
-                  <span class="${unlocked ? 'text-white' : 'text-gray-400'}">${theme.name}</span>
-                  <span class="${unlocked ? 'text-green-400' : 'text-gray-500'}">${unlocked ? (isActive ? '✓ Active' : 'Unlocked') : `${heroNodes}/${totalNodes} nodes`}</span>
+      <button type="button" onclick="toggleThemePanel()" class="w-full flex items-center justify-between mb-3 group">
+        <span class="text-sm font-semibold text-green-400">Themes</span>
+        <span id="theme-arrow" class="text-gray-400 group-hover:text-green-400 transition-transform duration-200 text-lg">▼</span>
+      </button>
+      <div id="theme-panel" class="hidden">
+        <div class="flex flex-wrap gap-3 mb-4">
+          ${appThemes.map((theme) => {
+            const unlocked = (character.unlockedThemes || []).includes(theme.id);
+            const isActive = character.activeTheme === theme.id;
+            return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${isActive ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name}"></button>`;
+          }).join('')}
+        </div>
+        <div class="space-y-2">
+          ${appThemes.filter(t => t.hero).map((theme) => {
+            const unlocked = (character.unlockedThemes || []).includes(theme.id);
+            const isActive = character.activeTheme === theme.id;
+            const heroNodes = character.unlockedCharacters?.[theme.hero]?.length || 0;
+            const totalNodes = theme.nodes || 5;
+            const pct = Math.min(100, Math.round((heroNodes / totalNodes) * 100));
+            return `
+              <div class="flex items-center gap-3 text-xs">
+                <div class="w-3 h-3 rounded-full shrink-0 ${unlocked ? 'ring-1 ring-white/30' : 'opacity-40'}" style="background:${theme.primary}"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-0.5">
+                    <span class="${unlocked ? 'text-white' : 'text-gray-400'}">${theme.name}</span>
+                    <span class="${unlocked ? 'text-green-400' : 'text-gray-500'}">${unlocked ? (isActive ? '✓ Active' : 'Unlocked') : `${heroNodes}/${totalNodes} nodes`}</span>
+                  </div>
+                  ${!unlocked ? `<div class="w-full bg-gray-800 rounded-full h-1"><div class="h-1 rounded-full transition-all" style="width:${pct}%;background:${theme.primary}"></div></div>
+                  <div class="text-gray-600 mt-0.5">Unlock: Complete ${theme.heroName}'s path</div>` : ''}
                 </div>
-                ${!unlocked ? `<div class="w-full bg-gray-800 rounded-full h-1"><div class="h-1 rounded-full transition-all" style="width:${pct}%;background:${theme.primary}"></div></div>
-                <div class="text-gray-600 mt-0.5">Unlock: Complete ${theme.heroName}'s path</div>` : ''}
-              </div>
-            </div>`;
-        }).join('')}
+              </div>`;
+          }).join('')}
+        </div>
       </div>`;
   }
   checkProgressAchievements();
