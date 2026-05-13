@@ -2399,18 +2399,21 @@ function renderHero() {
   }
   if (themeSelector) {
     themeSelector.innerHTML = `
-      <button type="button" onclick="toggleThemePanel()" class="w-full flex items-center justify-between mb-3 group">
+      <div class="flex items-center justify-between mb-3">
         <span class="text-sm font-semibold text-green-400">Themes</span>
-        <span id="theme-arrow" class="text-gray-400 group-hover:text-green-400 transition-transform duration-200 text-lg">▼</span>
-      </button>
+        <button type="button" onclick="toggleThemePanel()" class="flex items-center gap-1 text-xs text-gray-400 hover:text-green-400 transition-colors">
+          <span>Details</span>
+          <span id="theme-arrow" class="text-lg leading-none transition-transform duration-200">▼</span>
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-3 mb-3">
+        ${appThemes.map((theme) => {
+          const unlocked = (character.unlockedThemes || []).includes(theme.id);
+          const isActive = character.activeTheme === theme.id;
+          return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${isActive ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name}"></button>`;
+        }).join('')}
+      </div>
       <div id="theme-panel" class="hidden">
-        <div class="flex flex-wrap gap-3 mb-4">
-          ${appThemes.map((theme) => {
-            const unlocked = (character.unlockedThemes || []).includes(theme.id);
-            const isActive = character.activeTheme === theme.id;
-            return `<button type="button" class="theme-swatch ${unlocked ? '' : 'locked'} ${isActive ? 'active' : ''}" style="background:${unlocked ? theme.primary : '#4b5563'}" onclick="selectTheme('${theme.id}')" title="${theme.name}"></button>`;
-          }).join('')}
-        </div>
         <div class="space-y-2">
           ${appThemes.filter(t => t.hero).map((theme) => {
             const unlocked = (character.unlockedThemes || []).includes(theme.id);
