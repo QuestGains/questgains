@@ -1079,16 +1079,12 @@ function renderHome() {
   `).join('');
 
   // Today's daily quests (up to 4)
-  const today = getTodayStamp ? getTodayStamp() : new Date().toDateString();
-  const claimed = (questProgress.dailyClaimed || {})[today] || [];
-  const pending = dailyQuests.filter((q) => !claimed.includes(q.id)).slice(0, 4);
+  const completed = questProgress.dailyCompleted || [];
+  const pending = dailyQuests.filter((q) => !completed.includes(q.id)).slice(0, 4);
   if (pending.length) {
     dailyQuestsEl.innerHTML = pending.map((q) => `
       <div class="flex items-center justify-between bg-gray-800 rounded-2xl px-4 py-3">
-        <div>
-          <div class="text-sm font-medium text-white">${q.title}</div>
-          <div class="text-xs text-gray-400">${q.desc || ''}</div>
-        </div>
+        <div class="text-sm font-medium text-white">${q.name}</div>
         <div class="text-green-400 text-xs font-bold ml-3 shrink-0">+${q.xp} XP</div>
       </div>
     `).join('');
