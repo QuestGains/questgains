@@ -877,6 +877,39 @@ function updateHeader() {
   }
   updateSoundToggleButton();
   updateNotifButton();
+  updateTrialBanner();
+}
+
+function updateTrialBanner() {
+  const banner = document.getElementById('trial-banner');
+  if (!banner) return;
+  const appShell = document.getElementById('app-shell');
+
+  if (typeof window.isProUser !== 'function') {
+    banner.classList.add('hidden');
+    if (appShell) appShell.style.paddingTop = '';
+    return;
+  }
+
+  const daysLeft = typeof window.getTrialDaysRemaining === 'function' ? window.getTrialDaysRemaining() : 0;
+  const trialExpired = typeof window.isTrialExpired === 'function' ? window.isTrialExpired() : false;
+
+  if (window.isProUser() && daysLeft > 0) {
+    // Active trial
+    banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-green-600 text-white';
+    banner.innerHTML = `🎉 Pro Trial: ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining — <button onclick="window.openUpgradeFlow()" class="underline hover:text-green-200">Upgrade to keep access</button>`;
+    banner.classList.remove('hidden');
+    if (appShell) appShell.style.paddingTop = '36px';
+  } else if (trialExpired) {
+    // Trial expired, not Pro
+    banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-red-700 text-white';
+    banner.innerHTML = `Your trial has ended — <button onclick="window.openUpgradeFlow()" class="underline hover:text-red-200">Upgrade to keep Pro features</button>`;
+    banner.classList.remove('hidden');
+    if (appShell) appShell.style.paddingTop = '36px';
+  } else {
+    banner.classList.add('hidden');
+    if (appShell) appShell.style.paddingTop = '';
+  }
 }
 
 function getHeroById(heroId) {
@@ -998,6 +1031,31 @@ function levelUp() {
   }
 }
 
+/**
+ * Injects a full-screen paywall overlay over a tab's content if user is not Pro.
+ * Removes the overlay if user IS Pro (so Pro users see content normally).
+ */
+function applyProGateOverlay(screenNum, featureName) {
+  const screen = document.getElementById(`screen${screenNum}`);
+  if (!screen) return;
+  // Remove any existing overlay
+  const existing = screen.querySelector('.pro-gate-overlay');
+  if (existing) existing.remove();
+
+  if (typeof window.isProUser === 'function' && !window.isProUser()) {
+    const overlay = document.createElement('div');
+    overlay.className = 'pro-gate-overlay absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-950/95 rounded-3xl p-6 text-center';
+    overlay.innerHTML = `
+      <div class="text-4xl mb-3">👑</div>
+      <div class="text-lg font-bold text-white mb-1">${featureName}</div>
+      <div class="text-sm text-gray-400 mb-5">This feature requires QuestGains Pro</div>
+      <button onclick="window.showPaywall('${featureName}')" class="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-2xl font-bold text-gray-950">Unlock with Pro</button>
+    `;
+    screen.style.position = 'relative';
+    screen.appendChild(overlay);
+  }
+}
+
 function showTab(n) {
   currentTab = n;
   document.querySelectorAll('.tab-screen').forEach((screen) => screen.classList.add('hidden'));
@@ -1024,16 +1082,16 @@ function showTab(n) {
 
   if (n === 0) renderLibrary();
   if (n === 1) renderCurrentSession();
-  if (n === 2) renderPlans();
+  if (n === 2) { renderPlans(); applyProGateOverlay(2, 'Training Plans'); }
   if (n === 3) renderProgress();
   if (n === 4) renderHero();
   if (n === 5) renderQuests();
   if (n === 6) renderLeaderboard();
-  if (n === 7) renderNutrition();
-  if (n === 8) renderMealLogger();
+  if (n === 7) { renderNutrition(); applyProGateOverlay(7, 'Nutrition Tracker'); }
+  if (n === 8) { renderMealLogger(); applyProGateOverlay(8, 'Meal Logger'); }
   if (n === 9) renderUnitConverter(false);
   if (n === 10) renderWorkoutHistory();
-  if (n === 11) renderCardio();
+  if (n === 11) { renderCardio(); applyProGateOverlay(11, 'Cardio Tracker'); }
   if (n === 12) renderGearTab();
   if (n === 13) renderHome();
 }
@@ -2447,15 +2505,19 @@ function renderHero() {
   }
 
   heroGrid.innerHTML = '';
-  heroRoster.forEach((hero) => {
+  heroRoster.forEach((hero, heroIndex) => {
     const unlockedNodes = getUnlockedNodeIds(hero.id);
+    const isProGated = heroIndex >= 5 && typeof window.isProUser === 'function' && !window.isProUser();
     const card = document.createElement('button');
     card.className = `character-card bg-gradient-to-br ${hero.color.from} ${hero.color.to} ${selectedHeroId === hero.id ? 'active' : ''}`;
     card.innerHTML = `
       <div class="character-card-overlay">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div class="text-2xl leading-none hero-card-icon">${hero.icon}</div>
-          <span class="${getFactionLabelClass(hero.faction)}">${hero.faction.toUpperCase()}</span>
+          <div class="flex items-center gap-1">
+            ${isProGated ? '<span class="text-xs font-bold bg-yellow-500 text-gray-950 px-1.5 py-0.5 rounded-full">👑 PRO</span>' : ''}
+            <span class="${getFactionLabelClass(hero.faction)}">${hero.faction.toUpperCase()}</span>
+          </div>
         </div>
         <div class="pixel-sprite-container small">
           ${getSpriteImg(hero, 'small')}
@@ -2577,6 +2639,13 @@ window.unlockHeroNode = function unlockHeroNode(heroId, nodeId) {
   const hero = getHeroById(heroId);
   if (!hero) return;
 
+  // Gate: heroes at index 5+ require Pro
+  const heroIndex = heroRoster.findIndex(h => h.id === heroId);
+  if (heroIndex >= 5 && typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Hero Skill Trees');
+    return;
+  }
+
   const node = hero.nodes.find((entry) => entry.id === nodeId);
   if (!node) return;
 
@@ -2628,6 +2697,11 @@ window.equipTitle = function equipTitle(heroId, nodeId) {
 };
 
 window.selectTheme = function selectTheme(themeId) {
+  // Gate non-default themes for free users
+  if (themeId !== 'default' && typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Themes');
+    return;
+  }
   if (!(character.unlockedThemes || []).includes(themeId)) return;
   applyTheme(themeId);
   saveData();
@@ -2961,6 +3035,13 @@ function appendQuestCard(container, quest, completedList, clickAction, type = 'g
 }
 
 window.showQuestSubTab = function showQuestSubTab(n) {
+  // Tabs 0 (Jumpstart), 2 (Weekly), 3 (Personal), 4 (Boss) are Pro-only
+  const proOnlyTabs = [0, 2, 3, 4];
+  if (proOnlyTabs.includes(n) && typeof window.isProUser === 'function' && !window.isProUser()) {
+    const tabNames = { 0: 'Jumpstart Quests', 2: 'Weekly Quests', 3: 'Personal Achievements', 4: 'Boss Battles' };
+    window.showPaywall(tabNames[n] || 'Pro Quests');
+    return;
+  }
   currentQuestSubTab = n;
   document.querySelectorAll('#screen5 button[id^="quest-sub"]').forEach((button) => button.classList.remove('subtab-active'));
   document.getElementById(`quest-sub${n}`).classList.add('subtab-active');
@@ -3299,6 +3380,10 @@ window.startRivalChallenge = function startRivalChallenge() {
 
 // Rival search box toggle
 window.showRivalSearch = function showRivalSearch() {
+  if (typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Rival System');
+    return;
+  }
   const box = document.getElementById('rival-search-box');
   if (box) box.classList.toggle('hidden');
 };
@@ -3335,6 +3420,10 @@ window.searchAndSetRival = async function searchAndSetRival() {
 
 // Random rival: query for users within ±20% of current XP
 window.setRandomRival = async function setRandomRival() {
+  if (typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Rival System');
+    return;
+  }
   const db = window.db;
   if (!db) { alert('Not connected to Firebase.'); return; }
   const myXP = character.xp || 0;
@@ -3743,6 +3832,10 @@ function renderCardio() {
 }
 
 window.exportData = function exportData() {
+  if (typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Data Export');
+    return;
+  }
   const payload = {
     exportDate: new Date().toISOString(),
     character,
@@ -3896,6 +3989,10 @@ let scannerStream = null;
 let scannerInterval = null;
 
 window.openBarcodeScanner = async function() {
+  if (typeof window.isProUser === 'function' && !window.isProUser()) {
+    window.showPaywall('Barcode Scanner');
+    return;
+  }
   const modal = document.getElementById('scanner-modal');
   const video = document.getElementById('scanner-video');
   const status = document.getElementById('scanner-status');

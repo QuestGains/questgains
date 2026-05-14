@@ -22,6 +22,7 @@
   <script src="firebase-config.js"></script>
   <script src="db.js"></script>
   <script src="username.js"></script>
+  <script src="subscription.js"></script>
   <script src="auth.js"></script>
 </head>
 <body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
@@ -92,6 +93,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Trial Banner -->
+  <div id="trial-banner" class="hidden fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold"></div>
 
   <div id="app-shell" class="hidden">
   <div class="max-w-md mx-auto p-4">
@@ -599,6 +603,70 @@
         <button onclick="shareVictoryCard()" class="flex-1 bg-green-500 hover:bg-green-600 py-3 rounded-2xl text-sm font-bold">📤 Share</button>
       </div>
       <p class="text-center text-xs text-gray-600 mt-2">Long press the card to save as image</p>
+    </div>
+  </div>
+
+  <!-- Paywall Modal -->
+  <div id="paywall-modal" class="hidden fixed inset-0 z-[160] bg-black/80 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-gray-900 rounded-3xl border border-green-500/20 shadow-2xl shadow-green-500/10 overflow-hidden">
+      <!-- Header -->
+      <div class="bg-gradient-to-br from-green-900/40 to-gray-900 px-6 pt-8 pb-6 text-center">
+        <div class="text-4xl mb-3">👑</div>
+        <div class="text-xs font-bold uppercase tracking-widest text-green-400 mb-1">Pro Feature</div>
+        <h2 id="paywall-feature-name" class="text-2xl font-black text-white mb-2">Feature</h2>
+        <p id="paywall-status-text" class="text-sm text-gray-400">You're on the Free plan</p>
+      </div>
+
+      <!-- Benefits -->
+      <div class="px-6 py-4">
+        <div class="text-xs font-semibold text-green-400 uppercase tracking-widest mb-3">QuestGains Pro includes:</div>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All 40 heroes + complete skill trees</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All quest types — Jumpstart, Weekly, Personal, Boss battles</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Rival system, challenges, full leaderboard</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Nutrition tracker, meal logger, barcode scanner</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Training plans, cardio tracker, data export</li>
+        </ul>
+      </div>
+
+      <!-- Plans -->
+      <div class="px-6 pb-4">
+        <div id="paywall-plans" class="space-y-2 mb-4">
+          <div class="flex justify-between items-center bg-gray-800 rounded-2xl px-4 py-3">
+            <div>
+              <div class="text-sm font-semibold text-white">Monthly</div>
+              <div class="text-xs text-gray-400">Billed monthly</div>
+            </div>
+            <div class="text-green-400 font-bold">$4.99/mo</div>
+          </div>
+          <div class="flex justify-between items-center bg-gray-800 rounded-2xl px-4 py-3">
+            <div>
+              <div class="text-sm font-semibold text-white">Annual</div>
+              <div class="text-xs text-gray-400">Save 42% — best value</div>
+            </div>
+            <div class="text-green-400 font-bold">$34.99/yr</div>
+          </div>
+          <div id="paywall-founding-section" class="hidden">
+            <div class="flex justify-between items-center bg-gradient-to-r from-yellow-900/40 to-gray-800 rounded-2xl px-4 py-3 border border-yellow-500/30">
+              <div>
+                <div class="text-sm font-semibold text-yellow-300">👑 Founding Member</div>
+                <div id="paywall-founding-count" class="text-xs text-yellow-500">Locked forever — limited slots</div>
+              </div>
+              <div class="text-yellow-300 font-bold">$2.99/mo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary CTA -->
+        <button id="paywall-cta-btn" onclick="window.openUpgradeFlow()" class="w-full bg-green-500 hover:bg-green-400 py-4 rounded-3xl text-base font-bold text-gray-950 transition mb-3">
+          Upgrade to Pro — $4.99/mo
+        </button>
+
+        <!-- Dismiss -->
+        <button onclick="closePaywall()" class="w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-3xl text-sm font-medium text-gray-300 transition">
+          Maybe later
+        </button>
+      </div>
     </div>
   </div>
 

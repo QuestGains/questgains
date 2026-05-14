@@ -114,6 +114,22 @@ async function handleAuthenticatedUser(user) {
     }
   }
 
+  // Load subscription state and auto-start trial on first login
+  if (typeof window.initSubscription === 'function') {
+    try {
+      await window.initSubscription(user.uid);
+    } catch (err) {
+      console.warn('initSubscription failed:', err);
+    }
+  }
+  if (typeof window.startTrial === 'function') {
+    try {
+      await window.startTrial(user.uid);
+    } catch (err) {
+      console.warn('startTrial failed:', err);
+    }
+  }
+
   showApp();
   showStatus('');
 }
