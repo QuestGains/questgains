@@ -10,9 +10,21 @@ let _subscriptionState = {
   loaded: false
 };
 
-// ── Placeholder upgrade flow ───────────────────────────────────────────────
-window.openUpgradeFlow = function openUpgradeFlow() {
-  alert('💳 Payment coming soon — thank you for your interest!\n\nQuestGains Pro will be available at $4.99/mo or $39.99/yr.\nFounding Members lock in this rate forever (first 500 only).');
+// ── Stripe Payment Links ──────────────────────────────────────────────────
+const STRIPE_PAYMENT_LINKS = {
+  monthly: 'https://buy.stripe.com/test_eVqcMY1yW7Hg9XA38aafS00',
+  annual:  'https://buy.stripe.com/test_7sY14g91o6Dc8TwcIKafS01',
+  founding: 'https://buy.stripe.com/test_eVqcMY1yW7Hg9XA38aafS00', // same as monthly — founding flag set via metadata
+};
+
+// ── Upgrade flow ───────────────────────────────────────────────────────────
+window.openUpgradeFlow = function openUpgradeFlow(plan) {
+  const url = STRIPE_PAYMENT_LINKS[plan] || STRIPE_PAYMENT_LINKS.monthly;
+  window.open(url, '_blank');
+};
+
+window.getPaymentLink = function getPaymentLink(plan) {
+  return STRIPE_PAYMENT_LINKS[plan] || STRIPE_PAYMENT_LINKS.monthly;
 };
 
 // ── Firestore helpers ──────────────────────────────────────────────────────
@@ -210,7 +222,7 @@ window.showPaywall = async function showPaywall(featureName) {
       ctaEl.textContent = 'Upgrade to Pro — $4.99/mo';
       ctaEl.onclick = () => {
         closePaywall();
-        window.openUpgradeFlow();
+        window.openUpgradeFlow('monthly');
       };
     }
   }

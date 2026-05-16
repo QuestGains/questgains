@@ -897,13 +897,13 @@ function updateTrialBanner() {
   if (window.isProUser() && daysLeft > 0) {
     // Active trial
     banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-green-600 text-white';
-    banner.innerHTML = `🎉 Pro Trial: ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining — <button onclick="window.openUpgradeFlow()" class="underline hover:text-green-200">Upgrade to keep access</button>`;
+    banner.innerHTML = `🎉 Pro Trial: ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-green-200">Upgrade to keep access</button>`;
     banner.classList.remove('hidden');
     if (appShell) appShell.style.paddingTop = '36px';
   } else if (trialExpired) {
     // Trial expired, not Pro
     banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-red-700 text-white';
-    banner.innerHTML = `Your trial has ended — <button onclick="window.openUpgradeFlow()" class="underline hover:text-red-200">Upgrade to keep Pro features</button>`;
+    banner.innerHTML = `Your trial has ended — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-red-200">Upgrade to keep Pro features</button>`;
     banner.classList.remove('hidden');
     if (appShell) appShell.style.paddingTop = '36px';
   } else {
@@ -1268,7 +1268,9 @@ async function renderProScreen() {
 }
 
 window.startProCheckout = function startProCheckout() {
-  alert(`💳 Payment coming soon!\n\nYou selected: ${_selectedPlan === 'monthly' ? '$4.99/mo' : _selectedPlan === 'annual' ? '$39.99/yr' : 'Founding Member'}\n\nStripe checkout will be wired up in Phase II.`);
+  if (typeof window.openUpgradeFlow === 'function') {
+    window.openUpgradeFlow(_selectedPlan);
+  }
 };
 
 window.startProTrial = async function startProTrial() {
