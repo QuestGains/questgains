@@ -1082,16 +1082,16 @@ function showTab(n) {
 
   if (n === 0) renderLibrary();
   if (n === 1) renderCurrentSession();
-  if (n === 2) { renderPlans(); applyProGateOverlay(2, 'Training Plans'); }
+  if (n === 2) { renderPlans(); }
   if (n === 3) renderProgress();
   if (n === 4) renderHero();
   if (n === 5) renderQuests();
   if (n === 6) renderLeaderboard();
-  if (n === 7) { renderNutrition(); applyProGateOverlay(7, 'Nutrition Tracker'); }
-  if (n === 8) { renderMealLogger(); applyProGateOverlay(8, 'Meal Logger'); }
+  if (n === 7) { renderNutrition(); }
+  if (n === 8) { renderMealLogger(); }
   if (n === 9) renderUnitConverter(false);
   if (n === 10) renderWorkoutHistory();
-  if (n === 11) { renderCardio(); applyProGateOverlay(11, 'Cardio Tracker'); }
+  if (n === 11) { renderCardio(); }
   if (n === 12) renderGearTab();
   if (n === 13) renderHome();
 }
@@ -3035,8 +3035,8 @@ function appendQuestCard(container, quest, completedList, clickAction, type = 'g
 }
 
 window.showQuestSubTab = function showQuestSubTab(n) {
-  // Tabs 0 (Jumpstart), 2 (Weekly), 3 (Personal), 4 (Boss) are Pro-only
-  const proOnlyTabs = [0, 2, 3, 4];
+  // Tabs 0 (Jumpstart), 3 (Personal), 4 (Boss) are Pro-only; Weekly (2) is free
+  const proOnlyTabs = [0, 3, 4];
   if (proOnlyTabs.includes(n) && typeof window.isProUser === 'function' && !window.isProUser()) {
     const tabNames = { 0: 'Jumpstart Quests', 2: 'Weekly Quests', 3: 'Personal Achievements', 4: 'Boss Battles' };
     window.showPaywall(tabNames[n] || 'Pro Quests');

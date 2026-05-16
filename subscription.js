@@ -12,7 +12,7 @@ let _subscriptionState = {
 
 // ── Placeholder upgrade flow ───────────────────────────────────────────────
 window.openUpgradeFlow = function openUpgradeFlow() {
-  alert('💳 Payment coming soon — thank you for your interest!\n\nQuestGains Pro will be available at $4.99/mo or $34.99/yr.\nFounding Members lock in $2.99/mo forever (first 500 only).');
+  alert('💳 Payment coming soon — thank you for your interest!\n\nQuestGains Pro will be available at $4.99/mo or $39.99/yr.\nFounding Members lock in this rate forever (first 500 only).');
 };
 
 // ── Firestore helpers ──────────────────────────────────────────────────────
