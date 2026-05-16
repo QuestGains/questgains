@@ -1094,6 +1094,7 @@ function showTab(n) {
   if (n === 11) { renderCardio(); }
   if (n === 12) renderGearTab();
   if (n === 13) renderHome();
+  if (n === 14) renderProScreen();
 }
 
 // ── Home Tab ───────────────────────────────────────────────────────────────
@@ -1173,6 +1174,113 @@ function renderHome() {
   `).join('');
 }
 window.showTab = showTab;
+
+// ── Pro / Account Screen ───────────────────────────────────────────────────
+let _selectedPlan = 'annual'; // default selection
+
+window.showProScreen = function showProScreen() {
+  currentTab = 14;
+  document.querySelectorAll('.tab-screen').forEach((s) => s.classList.add('hidden'));
+  document.getElementById('screen14').classList.remove('hidden');
+  document.querySelectorAll('button[id^="tab"]').forEach((b) => b.classList.remove('tab-active'));
+  renderProScreen();
+  const backBtn = document.getElementById('pro-back-btn');
+  if (backBtn) backBtn.onclick = () => showTab(4);
+};
+
+window.selectPlan = function selectPlan(plan) {
+  _selectedPlan = plan;
+  document.querySelectorAll('.plan-option').forEach((el) => {
+    el.classList.remove('border-green-500', 'border-yellow-500');
+    el.classList.add('border-transparent');
+  });
+  const target = document.getElementById(`plan-${plan}`);
+  if (target) {
+    const highlight = plan === 'founding' ? 'border-yellow-500' : 'border-green-500';
+    target.classList.remove('border-transparent');
+    target.classList.add(highlight);
+  }
+  const upgradeBtn = document.getElementById('pro-upgrade-btn');
+  if (upgradeBtn) {
+    const labels = { monthly: 'Upgrade — $4.99/mo', annual: 'Upgrade — $39.99/yr', founding: 'Become a Founding Member' };
+    upgradeBtn.textContent = labels[plan] || 'Upgrade to Pro';
+  }
+};
+
+async function renderProScreen() {
+  const statusCard = document.getElementById('pro-status-content');
+  const planSelector = document.getElementById('pro-plan-selector');
+  const manageSection = document.getElementById('pro-manage-section');
+  const trialBtn = document.getElementById('pro-trial-btn');
+  const heroPropBtn = document.getElementById('hero-pro-btn');
+  if (!statusCard) return;
+
+  const isPro = typeof window.isProUser === 'function' && window.isProUser();
+  const isFounding = typeof window.isFoundingMember === 'function' && window.isFoundingMember();
+  const trialDays = typeof window.getTrialDaysRemaining === 'function' ? window.getTrialDaysRemaining() : 0;
+  const trialExpired = typeof window.isTrialExpired === 'function' && window.isTrialExpired();
+
+  if (isPro) {
+    const planLabel = isFounding ? '👑 Founding Member' : (trialDays > 0 ? `🎉 Free Trial — ${trialDays} day${trialDays !== 1 ? 's' : ''} left` : '✅ QuestGains Pro');
+    statusCard.innerHTML = `
+      <div class="text-center py-2">
+        <div class="text-3xl mb-2">${isFounding ? '👑' : '✅'}</div>
+        <div class="text-lg font-bold text-green-400">${planLabel}</div>
+        <div class="text-sm text-gray-400 mt-1">You have full Pro access</div>
+      </div>`;
+    if (planSelector) planSelector.classList.add('hidden');
+    if (manageSection) manageSection.classList.remove('hidden');
+    if (heroPropBtn) heroPropBtn.textContent = '👑 Pro Member';
+  } else {
+    statusCard.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">${trialExpired ? '⏰' : '🆓'}</div>
+        <div>
+          <div class="text-sm font-bold text-white">${trialExpired ? 'Trial Expired' : 'Free Plan'}</div>
+          <div class="text-xs text-gray-400">${trialExpired ? 'Upgrade to restore full access' : 'Upgrade anytime to unlock everything'}</div>
+        </div>
+      </div>`;
+    if (planSelector) planSelector.classList.remove('hidden');
+    if (manageSection) manageSection.classList.add('hidden');
+    if (trialBtn) {
+      if (!trialExpired) {
+        trialBtn.classList.remove('hidden');
+      } else {
+        trialBtn.classList.add('hidden');
+      }
+    }
+  }
+
+  const foundingEl = document.getElementById('plan-founding');
+  const slotsEl = document.getElementById('pro-founding-slots');
+  if (foundingEl && typeof window.getFoundingMemberCount === 'function') {
+    const count = await window.getFoundingMemberCount();
+    const slotsLeft = Math.max(0, 500 - count);
+    if (slotsLeft > 0 && !isPro) {
+      foundingEl.classList.remove('hidden');
+      if (slotsEl) slotsEl.textContent = `Only ${slotsLeft} founding spots remaining — locked forever`;
+    } else {
+      foundingEl.classList.add('hidden');
+    }
+  }
+
+  selectPlan(_selectedPlan);
+}
+
+window.startProCheckout = function startProCheckout() {
+  alert(`💳 Payment coming soon!\n\nYou selected: ${_selectedPlan === 'monthly' ? '$4.99/mo' : _selectedPlan === 'annual' ? '$39.99/yr' : 'Founding Member'}\n\nStripe checkout will be wired up in Phase II.`);
+};
+
+window.startProTrial = async function startProTrial() {
+  const uid = window.currentUserId;
+  if (!uid) { alert('Please sign in first.'); return; }
+  if (typeof window.startTrial === 'function') {
+    await window.startTrial(uid);
+    alert('🎉 Your 14-day Pro trial has started! Enjoy full access.');
+    if (typeof window.updateHeader === 'function') window.updateHeader();
+    renderProScreen();
+  }
+};
 
 window.toggleThemePanel = function toggleThemePanel() {
   const panel = document.getElementById('theme-panel');
