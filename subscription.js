@@ -1,7 +1,7 @@
-// QuestGains Subscription System v1.0
-// Phase 1: UI/Logic gates — no real payment processing
+// QuestGains Subscription System v2.0
+// Phase II: Real Stripe checkout via Firebase Cloud Functions
 
-// ── Module-level state (synchronous after load) ────────────────────────────
+// ── Module-level state ────────────────────────────────────────────────────
 let _subscriptionState = {
   isPro: false,
   plan: null,
@@ -10,21 +10,49 @@ let _subscriptionState = {
   loaded: false
 };
 
-// ── Stripe Payment Links ──────────────────────────────────────────────────
-const STRIPE_PAYMENT_LINKS = {
-  monthly: 'https://buy.stripe.com/test_eVqcMY1yW7Hg9XA38aafS00',
-  annual:  'https://buy.stripe.com/test_7sY14g91o6Dc8TwcIKafS01',
-  founding: 'https://buy.stripe.com/test_eVqcMY1yW7Hg9XA38aafS00', // same as monthly — founding flag set via metadata
-};
+const FUNCTIONS_BASE = 'https://us-central1-questgains.cloudfunctions.net';
+
+// ── Firebase Functions helpers ─────────────────────────────────────────────
+async function callFunction(name, data) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error('Not signed in');
+  const token = await user.getIdToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/${name}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ data }),
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || 'Function error');
+  return json.result;
+}
 
 // ── Upgrade flow ───────────────────────────────────────────────────────────
-window.openUpgradeFlow = function openUpgradeFlow(plan) {
-  const url = STRIPE_PAYMENT_LINKS[plan] || STRIPE_PAYMENT_LINKS.monthly;
-  window.open(url, '_blank');
+window.openUpgradeFlow = async function openUpgradeFlow(plan) {
+  try {
+    const result = await callFunction('createCheckoutSession', { plan });
+    if (result?.url) {
+      window.location.href = result.url;
+    }
+  } catch (err) {
+    console.error('[subscription] openUpgradeFlow failed:', err);
+    alert('Unable to start checkout. Please try again.');
+  }
 };
 
-window.getPaymentLink = function getPaymentLink(plan) {
-  return STRIPE_PAYMENT_LINKS[plan] || STRIPE_PAYMENT_LINKS.monthly;
+window.openCustomerPortal = async function openCustomerPortal() {
+  try {
+    const result = await callFunction('createPortalSession', {});
+    if (result?.url) {
+      window.location.href = result.url;
+    }
+  } catch (err) {
+    console.error('[subscription] openCustomerPortal failed:', err);
+    alert('Unable to open billing portal. Please try again.');
+  }
 };
 
 // ── Firestore helpers ──────────────────────────────────────────────────────
@@ -58,27 +86,42 @@ async function loadSubscriptionState(uid) {
     console.warn('[subscription] Failed to load subscription state:', err);
     _subscriptionState.loaded = true;
   }
-  // Re-render trial banner whenever state refreshes
   if (typeof window.updateHeader === 'function') {
     window.updateHeader();
   }
 }
 
-// ── Public API ─────────────────────────────────────────────────────────────
+// ── Checkout success handler ───────────────────────────────────────────────
+window.handleCheckoutReturn = async function handleCheckoutReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const checkout = params.get('checkout');
+  const plan = params.get('plan');
 
-/**
- * Returns true if the user has Pro access (paid, founding member, or active trial).
- * Synchronous after initial auth load.
- */
+  if (checkout === 'success') {
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+    // Reload subscription state from Firestore (webhook may have already fired)
+    const uid = getUid();
+    if (uid) {
+      await loadSubscriptionState(uid);
+    }
+    if (typeof window.updateHeader === 'function') window.updateHeader();
+    // Show success message
+    setTimeout(() => {
+      alert(`🎉 Welcome to QuestGains Pro! Your ${plan || ''} subscription is now active.`);
+    }, 500);
+  } else if (checkout === 'cancelled') {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+};
+
+// ── Public API ─────────────────────────────────────────────────────────────
 window.isProUser = function isProUser() {
   if (_subscriptionState.isPro) return true;
   if (_subscriptionState.isFoundingMember) return true;
   return getTrialDaysRemaining() > 0;
 };
 
-/**
- * Returns the number of trial days remaining (0 if expired or not started).
- */
 function getTrialDaysRemaining() {
   const trialStart = _subscriptionState.trialStartDate;
   if (!trialStart) return 0;
@@ -90,9 +133,6 @@ function getTrialDaysRemaining() {
 }
 window.getTrialDaysRemaining = getTrialDaysRemaining;
 
-/**
- * Returns true if the trial was started but has expired (and user is not Pro).
- */
 window.isTrialExpired = function isTrialExpired() {
   if (_subscriptionState.isPro || _subscriptionState.isFoundingMember) return false;
   const trialStart = _subscriptionState.trialStartDate;
@@ -100,15 +140,9 @@ window.isTrialExpired = function isTrialExpired() {
   return getTrialDaysRemaining() === 0;
 };
 
-/**
- * Starts a 14-day trial. No-op if trial already started.
- */
 window.startTrial = async function startTrial(uid) {
   if (!uid) return;
-  // If already set (in memory), skip
   if (_subscriptionState.trialStartDate) return;
-
-  // Also check Firestore to be safe
   const db = getDb();
   if (!db) return;
   try {
@@ -119,7 +153,6 @@ window.startTrial = async function startTrial(uid) {
       _subscriptionState.trialStartDate = existing;
       return;
     }
-
     const now = Date.now();
     await db.collection('users').doc(uid).set(
       { subscription: { trialStartDate: now } },
@@ -132,9 +165,6 @@ window.startTrial = async function startTrial(uid) {
   }
 };
 
-/**
- * Activates Pro for a user. plan: 'monthly' | 'annual' | 'founding'
- */
 window.activatePro = async function activatePro(uid, plan) {
   if (!uid) return;
   const db = getDb();
@@ -155,17 +185,10 @@ window.activatePro = async function activatePro(uid, plan) {
   }
 };
 
-/**
- * Returns true if user is a Founding Member.
- */
 window.isFoundingMember = function isFoundingMember() {
   return _subscriptionState.isFoundingMember === true;
 };
 
-/**
- * Reads the Founding Member count from Firestore meta doc.
- * Returns 0 if unavailable.
- */
 window.getFoundingMemberCount = async function getFoundingMemberCount() {
   const db = getDb();
   if (!db) return 0;
@@ -179,10 +202,6 @@ window.getFoundingMemberCount = async function getFoundingMemberCount() {
 };
 
 // ── Paywall Modal ──────────────────────────────────────────────────────────
-
-/**
- * Show the paywall modal for a specific feature.
- */
 window.showPaywall = async function showPaywall(featureName) {
   const modal = document.getElementById('paywall-modal');
   if (!modal) return;
@@ -199,11 +218,7 @@ window.showPaywall = async function showPaywall(featureName) {
   const trialExpired = window.isTrialExpired();
 
   if (statusEl) {
-    if (trialExpired) {
-      statusEl.textContent = "Your trial has expired";
-    } else {
-      statusEl.textContent = "You're on the Free plan";
-    }
+    statusEl.textContent = trialExpired ? "Your trial has expired" : "You're on the Free plan";
   }
 
   if (ctaEl) {
@@ -211,9 +226,7 @@ window.showPaywall = async function showPaywall(featureName) {
       ctaEl.textContent = '🎉 Start 14-Day Free Trial';
       ctaEl.onclick = async () => {
         const uid = getUid();
-        if (uid) {
-          await window.startTrial(uid);
-        }
+        if (uid) await window.startTrial(uid);
         closePaywall();
         if (typeof window.updateHeader === 'function') window.updateHeader();
         alert('Your 14-day Pro trial has started! Enjoy full access.');
@@ -227,7 +240,6 @@ window.showPaywall = async function showPaywall(featureName) {
     }
   }
 
-  // Show Founding Member section if slots available
   if (foundingSection && foundingCountEl) {
     const count = await window.getFoundingMemberCount();
     const slotsLeft = Math.max(0, 500 - count);
@@ -247,7 +259,7 @@ window.closePaywall = function closePaywall() {
   if (modal) modal.classList.add('hidden');
 };
 
-// ── Init: called on auth state change ─────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────
 window.initSubscription = async function initSubscription(uid) {
   _subscriptionState = {
     isPro: false,
@@ -257,4 +269,6 @@ window.initSubscription = async function initSubscription(uid) {
     loaded: false
   };
   await loadSubscriptionState(uid);
+  // Handle Stripe redirect return
+  await window.handleCheckoutReturn();
 };
