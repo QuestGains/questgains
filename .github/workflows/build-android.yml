@@ -23,71 +23,49 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Bubblewrap
-        run: npm install -g @bubblewrap/cli
+      - name: Install tools
+        run: |
+          sudo apt-get install -y expect
+          npm install -g @bubblewrap/cli
 
       - name: Configure Bubblewrap JDK path
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
-          cat ~/.bubblewrap/config.json
 
       - name: Generate keystore
         run: keytool -genkeypair -v -keystore $GITHUB_WORKSPACE/questgains-release.keystore -alias questgains -keyalg RSA -keysize 2048 -validity 10000 -storepass questgains2025 -keypass questgains2025 -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
-      - name: Create TWA project
+      - name: Init TWA project with expect
         run: |
-          mkdir -p twa-project
-          cat > twa-project/twa-manifest.json << 'MANIFEST'
-          {
-            "packageId": "com.questgains.app",
-            "host": "questgains.github.io",
-            "name": "QuestGains",
-            "launcherName": "QuestGains",
-            "display": "standalone",
-            "orientation": "portrait",
-            "themeColor": "#22c55e",
-            "navigationColor": "#030712",
-            "navigationColorDark": "#030712",
-            "navigationDividerColor": "#030712",
-            "navigationDividerColorDark": "#030712",
-            "backgroundColor": "#030712",
-            "enableNotifications": true,
-            "startUrl": "/questgains/",
-            "iconUrl": "https://questgains.github.io/questgains/logo.png",
-            "maskableIconUrl": "https://questgains.github.io/questgains/logo.png",
-            "monochromeIconUrl": "https://questgains.github.io/questgains/logo.png",
-            "shortcuts": [],
-            "webManifestUrl": "https://questgains.github.io/questgains/manifest.json",
-            "isChromeOSOnly": false,
-            "isMetaQuest": false,
-            "fullScopeUrl": "https://questgains.github.io/questgains/",
-            "minSdkVersion": 19,
-            "targetSdkVersion": 34,
-            "appVersionCode": 1,
-            "appVersionName": "1.0.0",
-            "signingMode": "mine",
-            "keystore": "KEYSTORE_PATH",
-            "keystorePassword": "questgains2025",
-            "keyAlias": "questgains",
-            "keyPassword": "questgains2025",
-            "useBrowserOnChromeOS": false,
-            "splashScreenFadeOutDuration": 300,
-            "fallbackType": "customtabs",
-            "features": {},
-            "alphaDependencies": {"enabled": false},
-            "enableSiteSettingsShortcut": true,
-            "isSplashScreenEnabled": true,
-            "generatorApp": "bubblewrap-cli",
-            "sdkVersions": {"minSdkVersion": 19, "compileSdkVersion": 34, "targetSdkVersion": 34}
-          }
-          MANIFEST
-          sed -i "s|KEYSTORE_PATH|$GITHUB_WORKSPACE/questgains-release.keystore|g" twa-project/twa-manifest.json
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/questgains-release.keystore"
+          expect -c "
+            set timeout 120
+            spawn bubblewrap init --manifest https://questgains.github.io/questgains/manifest.json --directory ./twa-project
+            expect -re {JDK.*\(Y/n\)} { send \"No\r\" }
+            expect -re {application name.*:} { send \"QuestGains\r\" }
+            expect -re {short name.*:} { send \"QuestGains\r\" }
+            expect -re {package identifier.*:} { send \"com.questgains.app\r\" }
+            expect -re {keystore.*:} { send \"$KEYSTORE_PATH\r\" }
+            expect -re {key alias.*:} { send \"questgains\r\" }
+            expect -re {key password.*:} { send \"questgains2025\r\" }
+            expect -re {keystore password.*:} { send \"questgains2025\r\" }
+            expect -re {signing key.*:} { send \"\r\" }
+            expect eof
+          "
+        env:
+          BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
 
       - name: Build TWA
         run: |
           cd twa-project
-          bubblewrap build --skipPwaShellUpdate
+          expect -c "
+            set timeout 300
+            spawn bubblewrap build --skipPwaShellUpdate
+            expect -re {regenerate.*\(Y/n\)} { send \"n\r\" }
+            expect -re {JDK.*\(Y/n\)} { send \"No\r\" }
+            expect eof
+          "
         env:
           BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
 
