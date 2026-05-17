@@ -13,78 +13,75 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+          java-version: 17
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Install tools
         run: |
           sudo apt-get install -y expect
           npm install -g @bubblewrap/cli
 
-      - name: Configure Bubblewrap paths
+      - name: Accept Android SDK licenses and install build tools
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" "platforms;android-34" || true
+
+      - name: Configure Bubblewrap
         run: |
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          cat ~/.bubblewrap/config.json
 
       - name: Generate keystore
-        run: |
-          keytool -genkeypair -v \
-            -keystore $GITHUB_WORKSPACE/questgains-release.keystore \
-            -alias questgains \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass questgains2025 -keypass questgains2025 \
-            -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
-
-      - name: Pre-create TWA directory
-        run: mkdir -p ./twa-project
+        run: keytool -genkeypair -v -keystore $GITHUB_WORKSPACE/questgains-release.keystore -alias questgains -keyalg RSA -keysize 2048 -validity 10000 -storepass questgains2025 -keypass questgains2025 -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
       - name: Init TWA project
         run: |
           KEYSTORE_PATH="$GITHUB_WORKSPACE/questgains-release.keystore"
           expect -c "
             set timeout 120
-            spawn bubblewrap init \
-              --manifest https://questgains.github.io/questgains/manifest.json \
-              --directory ./twa-project
-            expect -re {create it now} { send \"Y\r\" }
-            expect -re {JDK} { send \"\r\" }
-            expect -re {application name} { send \"QuestGains\r\" }
-            expect -re {short name} { send \"QuestGains\r\" }
-            expect -re {package id} { send \"com.questgains.app\r\" }
-            expect -re {keystore} { send \"$KEYSTORE_PATH\r\" }
-            expect -re {key alias} { send \"questgains\r\" }
-            expect -re {key password} { send \"questgains2025\r\" }
-            expect -re {keystore password} { send \"questgains2025\r\" }
+            spawn bubblewrap init --manifest https://questgains.github.io/questgains/manifest.json --directory ./twa-project
+            expect -re {JDK.*\(Y/n\)} { send \"No\r\" }
+            expect -re {application name.*:} { send \"QuestGains\r\" }
+            expect -re {short name.*:} { send \"QuestGains\r\" }
+            expect -re {package identifier.*:} { send \"com.questgains.app\r\" }
+            expect -re {keystore.*:} { send \"$KEYSTORE_PATH\r\" }
+            expect -re {key alias.*:} { send \"questgains\r\" }
+            expect -re {key password.*:} { send \"questgains2025\r\" }
+            expect -re {keystore password.*:} { send \"questgains2025\r\" }
+            expect -re {signing key.*:} { send \"\r\" }
             expect eof
           "
+          ls ./twa-project/
         env:
           BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
 
-      - name: Build AAB with Gradle
+      - name: Build TWA
         run: |
           cd twa-project
-          chmod +x gradlew
-          ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/questgains-release.keystore \
-            -Pandroid.injected.signing.store.password=questgains2025 \
-            -Pandroid.injected.signing.key.alias=questgains \
-            -Pandroid.injected.signing.key.password=questgains2025
-
-      - name: Find outputs
-        run: find twa-project -name "*.aab" -o -name "*.apk" | head -20
+          expect -c "
+            set timeout 600
+            spawn bubblewrap build --skipPwaShellUpdate
+            expect -re {regenerate.*\(Y/n\)} { send \"n\r\" }
+            expect -re {JDK.*\(Y/n\)} { send \"No\r\" }
+            expect eof
+          "
+          ls -la *.aab *.apk 2>/dev/null || echo "Looking for build outputs..."
+          find . -name "*.aab" -o -name "*.apk" 2>/dev/null | head -10
+        env:
+          BUBBLEWRAP_ACCEPT_TERMOS_OF_SERVICE: true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: questgains-android
           path: |
-            twa-project/**/*.aab
-            twa-project/**/*.apk
+            twa-project/*.aab
+            twa-project/*.apk
+            twa-project/app/build/outputs/**/*.aab
+            twa-project/app/build/outputs/**/*.apk
           retention-days: 30
