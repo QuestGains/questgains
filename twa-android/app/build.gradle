@@ -1,0 +1,37 @@
+apply plugin: 'com.android.application'
+android {
+    namespace 'com.questgains.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.questgains.app'
+        minSdk 19
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        release {
+            if (project.hasProperty('android.injected.signing.store.file')) {
+                storeFile file(project.property('android.injected.signing.store.file'))
+                storePassword project.property('android.injected.signing.store.password')
+                keyAlias project.property('android.injected.signing.key.alias')
+                keyPassword project.property('android.injected.signing.key.password')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (project.hasProperty('android.injected.signing.store.file')) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
