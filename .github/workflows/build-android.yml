@@ -13,35 +13,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: 17
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
       - name: Generate keystore
-        run: |
-          keytool -genkeypair \
-            -v \
-            -keystore questgains-release.keystore \
-            -alias questgains \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass questgains2025 \
-            -keypass questgains2025 \
-            -dname "CN=QuestGains, OU=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
+        run: keytool -genkeypair -v -keystore questgains-release.keystore -alias questgains -keyalg RSA -keysize 2048 -validity 10000 -storepass questgains2025 -keypass questgains2025 -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
       - name: Init and build TWA
         run: |
-          printf 'No
-' | bubblewrap init \
-            --manifest https://questgains.github.io/questgains/manifest.json \
-            --directory ./twa-project
+          echo No | bubblewrap init --manifest https://questgains.github.io/questgains/manifest.json --directory ./twa-project
           cd twa-project
           bubblewrap build --skipPwaShellUpdate
         env:
