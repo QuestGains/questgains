@@ -15,6 +15,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -23,13 +26,19 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
+      - name: Configure Bubblewrap JDK path
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          cat ~/.bubblewrap/config.json
+
       - name: Generate keystore
         run: keytool -genkeypair -v -keystore $GITHUB_WORKSPACE/questgains-release.keystore -alias questgains -keyalg RSA -keysize 2048 -validity 10000 -storepass questgains2025 -keypass questgains2025 -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
       - name: Create TWA project
         run: |
           mkdir -p twa-project
-          cat > twa-project/twa-manifest.json << EOF
+          cat > twa-project/twa-manifest.json << 'MANIFEST'
           {
             "packageId": "com.questgains.app",
             "host": "questgains.github.io",
@@ -58,7 +67,7 @@ jobs:
             "appVersionCode": 1,
             "appVersionName": "1.0.0",
             "signingMode": "mine",
-            "keystore": "$GITHUB_WORKSPACE/questgains-release.keystore",
+            "keystore": "KEYSTORE_PATH",
             "keystorePassword": "questgains2025",
             "keyAlias": "questgains",
             "keyPassword": "questgains2025",
@@ -72,7 +81,8 @@ jobs:
             "generatorApp": "bubblewrap-cli",
             "sdkVersions": {"minSdkVersion": 19, "compileSdkVersion": 34, "targetSdkVersion": 34}
           }
-          EOF
+          MANIFEST
+          sed -i "s|KEYSTORE_PATH|$GITHUB_WORKSPACE/questgains-release.keystore|g" twa-project/twa-manifest.json
 
       - name: Build TWA
         run: |
@@ -80,7 +90,6 @@ jobs:
           bubblewrap build --skipPwaShellUpdate
         env:
           BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
