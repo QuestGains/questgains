@@ -1,3 +1,34 @@
+// Firebase Cloud Messaging support
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyB4B4WY32oMm39_W_Nm67_Lvklf27g423w",
+  authDomain: "questgains.firebaseapp.com",
+  projectId: "questgains",
+  storageBucket: "questgains.firebasestorage.app",
+  messagingSenderId: "830471147283",
+  appId: "1:830471147283:web:d70dfd9b177c1de31e54e6"
+});
+
+const messaging = firebase.messaging();
+
+// Background message handler (when app is not in foreground)
+messaging.onBackgroundMessage(function(payload) {
+  const n = payload.notification || {};
+  const title = n.title || 'QuestGains';
+  const options = {
+    body: n.body || '',
+    icon: '/questgains/logo.png',
+    badge: '/questgains/favicon.png',
+    vibrate: [200, 100, 200],
+    tag: payload.data?.tag || 'questgains',
+    data: { url: payload.data?.url || '/questgains/' }
+  };
+  return self.registration.showNotification(title, options);
+});
+
+
 /*
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
@@ -121,26 +152,4 @@ self.addEventListener('fetch', (event) => {
       });
     })
   );
-});
-
-// Push notification handler (FCM-ready)
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  try {
-    const data = event.data.json();
-    const options = {
-      body: data.body || '',
-      icon: '/questgains/logo.png',
-      badge: '/questgains/favicon.png',
-      vibrate: [200, 100, 200],
-      tag: data.tag || 'questgains',
-      data: { url: data.url || '/questgains/' }
-    };
-    event.waitUntil(self.registration.showNotification(data.title || 'QuestGains', options));
-  } catch(e) {}
-});
-
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data?.url || '/questgains/'));
 });
