@@ -36,50 +36,6 @@ jobs:
             -keypass questgains2025 \
             -dname "CN=QuestGains, OU=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
-      - name: Create TWA manifest
-        run: |
-          mkdir -p twa-project
-          cat > twa-manifest.json << 'MANIFEST'
-          {
-            "packageId": "com.questgains.app",
-            "host": "questgains.github.io",
-            "name": "QuestGains",
-            "launcherName": "QuestGains",
-            "display": "standalone",
-            "orientation": "portrait",
-            "themeColor": "#22c55e",
-            "navigationColor": "#030712",
-            "navigationColorDark": "#030712",
-            "navigationDividerColor": "#030712",
-            "navigationDividerColorDark": "#030712",
-            "backgroundColor": "#030712",
-            "enableNotifications": true,
-            "startUrl": "/questgains/",
-            "iconUrl": "https://questgains.github.io/questgains/logo.png",
-            "maskableIconUrl": "https://questgains.github.io/questgains/logo.png",
-            "monochromeIconUrl": "https://questgains.github.io/questgains/logo.png",
-            "shortcuts": [],
-            "webManifestUrl": "https://questgains.github.io/questgains/manifest.json",
-            "isChromeOSOnly": false,
-            "isMetaQuest": false,
-            "fullScopeUrl": "https://questgains.github.io/questgains/",
-            "minSdkVersion": 19,
-            "targetSdkVersion": 34,
-            "versionCode": 1,
-            "versionName": "1.0.0",
-            "signingMode": "mine",
-            "useBrowserOnChromeOS": false,
-            "splashScreenFadeOutDuration": 300,
-            "fallbackType": "customtabs",
-            "features": {},
-            "alphaDependencies": {"enabled": false},
-            "enableSiteSettingsShortcut": true,
-            "isSplashScreenEnabled": true,
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1
-          }
-          MANIFEST
-
       - name: Init and build TWA
         run: |
           printf 'No
@@ -90,7 +46,6 @@ jobs:
           bubblewrap build --skipPwaShellUpdate
         env:
           BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
