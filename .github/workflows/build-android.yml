@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Bubblewrap
+      - name: Install tools
         run: |
           sudo apt-get install -y expect
           npm install -g @bubblewrap/cli
@@ -42,6 +42,9 @@ jobs:
             -storepass questgains2025 -keypass questgains2025 \
             -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
 
+      - name: Pre-create TWA directory
+        run: mkdir -p ./twa-project
+
       - name: Init TWA project
         run: |
           KEYSTORE_PATH="$GITHUB_WORKSPACE/questgains-release.keystore"
@@ -50,20 +53,21 @@ jobs:
             spawn bubblewrap init \
               --manifest https://questgains.github.io/questgains/manifest.json \
               --directory ./twa-project
-            expect -re {\(Y/n\)} { send \"No\r\" }
+            expect -re {create it now} { send \"Y\r\" }
+            expect -re {JDK} { send \"\r\" }
             expect -re {application name} { send \"QuestGains\r\" }
-            expect -re {short name}       { send \"QuestGains\r\" }
-            expect -re {package id}       { send \"com.questgains.app\r\" }
-            expect -re {keystore}         { send \"$KEYSTORE_PATH\r\" }
-            expect -re {key alias}        { send \"questgains\r\" }
-            expect -re {key password}     { send \"questgains2025\r\" }
+            expect -re {short name} { send \"QuestGains\r\" }
+            expect -re {package id} { send \"com.questgains.app\r\" }
+            expect -re {keystore} { send \"$KEYSTORE_PATH\r\" }
+            expect -re {key alias} { send \"questgains\r\" }
+            expect -re {key password} { send \"questgains2025\r\" }
             expect -re {keystore password} { send \"questgains2025\r\" }
             expect eof
           "
         env:
           BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
 
-      - name: Build AAB with Gradle (no interactivity)
+      - name: Build AAB with Gradle
         run: |
           cd twa-project
           chmod +x gradlew
@@ -73,7 +77,7 @@ jobs:
             -Pandroid.injected.signing.key.alias=questgains \
             -Pandroid.injected.signing.key.password=questgains2025
 
-      - name: Locate build outputs
+      - name: Find outputs
         run: find twa-project -name "*.aab" -o -name "*.apk" | head -20
 
       - name: Upload artifacts
