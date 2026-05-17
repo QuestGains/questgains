@@ -2,7 +2,7 @@
 // Firebase Cloud Messaging: token registration, permission, preferences
 
 const FUNCTIONS_BASE = 'https://us-central1-questgains.cloudfunctions.net';
-let VAPID_KEY = null; // Set after Firebase Console VAPID key is retrieved
+let VAPID_KEY = 'BP1PeF03ad4icaYXrCKjVaWA_uMv4o1EYneM5wLZuVhKvj63Llq3SgKxtR5zmkhtSt0ZH_H2eN_Ju9CjLQQuT9s';
 
 // ── State ─────────────────────────────────────────────────────────────────
 let _fcmToken = null;
