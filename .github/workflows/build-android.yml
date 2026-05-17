@@ -38,7 +38,7 @@ jobs:
 
       - name: Init Bubblewrap project
         run: |
-          bubblewrap init \
+                    echo "No" | bubblewrap init \
             --manifest https://questgains.github.io/questgains/manifest.json \
             --directory ./twa-project
         env:
