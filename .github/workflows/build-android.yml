@@ -1,0 +1,61 @@
+name: Build Android TWA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Generate keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore questgains-release.keystore \
+            -alias questgains \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass questgains2025 \
+            -keypass questgains2025 \
+            -dname "CN=QuestGains, OU=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
+
+      - name: Init Bubblewrap project
+        run: |
+          bubblewrap init \
+            --manifest https://questgains.github.io/questgains/manifest.json \
+            --directory ./twa-project
+        env:
+          BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
+
+      - name: Build AAB
+        run: |
+          cd twa-project
+          bubblewrap build --skipPwaShellUpdate
+        env:
+          BUBBLEWRAP_ACCEPT_TERMS_OF_SERVICE: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: questgains-android
+          path: |
+            twa-project/*.aab
+            twa-project/*.apk
+          retention-days: 30
