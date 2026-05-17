@@ -3285,16 +3285,27 @@ function showLeaderboardTab(tab) {
   _lbCurrentTab = tab;
   const allBtn = document.getElementById('lb-tab-alltime');
   const wkBtn = document.getElementById('lb-tab-weekly');
-  if (allBtn && wkBtn) {
-    if (tab === 'alltime') {
-      allBtn.className = 'subtab-active flex-1 py-2 rounded-3xl text-sm font-medium';
-      wkBtn.className = 'tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium';
-    } else {
-      wkBtn.className = 'subtab-active flex-1 py-2 rounded-3xl text-sm font-medium';
-      allBtn.className = 'tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium';
-    }
+  const frBtn = document.getElementById('lb-tab-friends');
+  const lbList = document.getElementById('leaderboard-list');
+  const frPanel = document.getElementById('friends-lb-panel');
+  const lbFooter = document.getElementById('lb-footer');
+  const active = 'subtab-active flex-1 py-2 rounded-3xl text-sm font-medium';
+  const inactive = 'tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium';
+  if (allBtn) allBtn.className = tab === 'alltime' ? active : inactive;
+  if (wkBtn) wkBtn.className = tab === 'weekly' ? active : inactive;
+  if (frBtn) frBtn.className = tab === 'friends' ? active : inactive;
+  if (tab === 'friends') {
+    if (lbList) lbList.classList.add('hidden');
+    if (frPanel) frPanel.classList.remove('hidden');
+    if (lbFooter) lbFooter.classList.add('hidden');
+    if (typeof window.renderFriendsLeaderboard === 'function') window.renderFriendsLeaderboard();
+    if (typeof window.renderFriendRequests === 'function') window.renderFriendRequests();
+  } else {
+    if (lbList) lbList.classList.remove('hidden');
+    if (frPanel) frPanel.classList.add('hidden');
+    if (lbFooter) lbFooter.classList.remove('hidden');
+    renderLeaderboard();
   }
-  renderLeaderboard();
 }
 window.showLeaderboardTab = showLeaderboardTab;
 

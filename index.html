@@ -25,6 +25,7 @@
   <script src="username.js"></script>
   <script src="subscription.js"></script>
   <script src="notifications.js"></script>
+  <script src="social.js"></script>
   <script src="auth.js"></script>
 </head>
 <body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
@@ -399,10 +400,41 @@
       <div class="flex gap-1 bg-gray-900 rounded-3xl p-1 mb-4">
         <button onclick="showLeaderboardTab('alltime')" id="lb-tab-alltime" class="subtab-active flex-1 py-2 rounded-3xl text-sm font-medium">🏆 All-Time</button>
         <button onclick="showLeaderboardTab('weekly')" id="lb-tab-weekly" class="tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium">📅 Weekly</button>
+        <button onclick="showLeaderboardTab('friends')" id="lb-tab-friends" class="tab-bar-btn flex-1 py-2 rounded-3xl text-sm font-medium">👥 Friends</button>
       </div>
 
       <div id="leaderboard-list" class="space-y-3"></div>
-      <p class="text-xs text-gray-400 text-center mt-6">Top heroes around the world • Live data</p>
+
+      <!-- Friends leaderboard (shown on friends tab) -->
+      <div id="friends-lb-panel" class="hidden">
+        <!-- Add friend -->
+        <div class="bg-gray-900 p-4 rounded-3xl mb-4">
+          <div class="text-sm font-semibold text-blue-300 mb-3">👥 Add a Friend</div>
+          <div class="flex gap-2">
+            <input id="friend-username-input" type="text" maxlength="20" placeholder="Enter username…"
+              class="flex-1 bg-gray-800 text-white px-3 py-2 rounded-2xl text-sm outline-none border border-gray-700 focus:border-blue-500"
+              autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <button onclick="window.searchAndAddFriend()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-2xl text-sm font-semibold">Add</button>
+          </div>
+          <div id="friend-search-error" class="text-xs text-red-400 mt-1"></div>
+        </div>
+        <!-- Pending requests -->
+        <div id="friend-requests-container" class="mb-4"></div>
+        <!-- Friends leaderboard -->
+        <div id="friends-leaderboard-list" class="space-y-3"></div>
+      </div>
+
+      <p id="lb-footer" class="text-xs text-gray-400 text-center mt-6">Top heroes around the world • Live data</p>
+
+      <!-- Share progress -->
+      <div class="mt-6 bg-gray-900 rounded-3xl p-4">
+        <div class="text-sm font-semibold text-gray-300 mb-3">📣 Share Your Progress</div>
+        <div class="flex gap-2">
+          <button onclick="window.shareProgress('xp')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-2xl text-xs font-medium">💪 Share XP</button>
+          <button onclick="window.shareProgress('streak')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-2xl text-xs font-medium">🔥 Share Streak</button>
+          <button onclick="window.shareProgress('level')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-2xl text-xs font-medium">⚔️ Share Level</button>
+        </div>
+      </div>
     </div>
 
     <div id="screen7" class="tab-screen hidden">

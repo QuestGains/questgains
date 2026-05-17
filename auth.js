@@ -129,6 +129,12 @@ async function handleAuthenticatedUser(user) {
       console.warn('startTrial failed:', err);
     }
   }
+  if (typeof window.initNotifications === 'function') {
+    window.initNotifications(user.uid).catch(() => {});
+  }
+  if (typeof window.initSocial === 'function') {
+    window.initSocial(user.uid).catch(() => {});
+  }
 
   showApp();
   showStatus('');
