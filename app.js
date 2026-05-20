@@ -4461,3 +4461,36 @@ window.onload = function onLoad() {
   }
   console.log(`%c✅ QuestGains v2.13 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
+
+// ─── Delete Account ───────────────────────────────────────────────────────────
+window.confirmDeleteAccount = async function() {
+  const confirmed = confirm('Are you sure you want to permanently delete your account? This cannot be undone. All your data, XP, and progress will be lost.');
+  if (!confirmed) return;
+  const confirmed2 = confirm('Last chance — delete your QuestGains account permanently?');
+  if (!confirmed2) return;
+  try {
+    const user = window.firebase?.auth?.()?.currentUser;
+    if (!user) { alert('Not logged in.'); return; }
+    const uid = user.uid;
+    const db = window.db;
+    // Remove Firestore data
+    if (db) {
+      const username = window.currentUsername || localStorage.getItem('qg_username');
+      if (username) await db.collection('usernames').doc(username.toLowerCase()).delete().catch(() => {});
+      await db.collection('users').doc(uid).delete().catch(() => {});
+    }
+    // Clear local storage
+    localStorage.clear();
+    // Delete Firebase Auth account
+    await user.delete();
+    alert('Your account has been permanently deleted.');
+    window.location.reload();
+  } catch (err) {
+    console.error('Delete account error:', err);
+    if (err.code === 'auth/requires-recent-login') {
+      alert('For security, please sign out and sign back in, then try deleting your account again.');
+    } else {
+      alert('Error deleting account. Please email support@questgains.com and we will delete it within 30 days.');
+    }
+  }
+};
