@@ -1308,6 +1308,10 @@ window.saveHeroName = function saveHeroName() {
   if (!input) return;
   const name = input.value.trim();
   if (!name) return;
+  if (typeof window.containsProfanityInUsername === 'function' && window.containsProfanityInUsername(name)) {
+    alert('That name is not allowed. Please choose a different one.');
+    return;
+  }
   character.heroName = name;
   saveData();
   document.getElementById('home-name-editor').classList.add('hidden');
