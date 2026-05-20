@@ -124,6 +124,10 @@ function showUsernameSetupModal(uid) {
         errorEl.textContent = 'Username must be 3–20 characters: letters, numbers, underscores only.';
         return;
       }
+      if (containsProfanity(val)) {
+        errorEl.textContent = 'That username is not allowed. Please choose a different name.';
+        return;
+      }
       btn.disabled = true;
       btn.textContent = 'Checking…';
       try {
@@ -179,6 +183,9 @@ window.ensureUsername = ensureUsername;
 async function changeUsername(uid, newUsername) {
   if (!USERNAME_REGEX.test(newUsername)) {
     return { ok: false, error: 'Username must be 3–20 characters: letters, numbers, underscores only.' };
+  }
+  if (containsProfanity(newUsername)) {
+    return { ok: false, error: 'That username is not allowed. Please choose a different name.' };
   }
   if (!window.db) {
     return { ok: false, error: 'Not connected to Firebase.' };
@@ -276,3 +283,17 @@ async function incrementWeeklyXP(uid, amount) {
   }
 }
 window.incrementWeeklyXP = incrementWeeklyXP;
+
+// ─── Profanity / Inappropriate Username Filter ───────────────────────────────
+const BLOCKED_TERMS = [
+  'fuck','shit','bitch','cunt','cock','dick','pussy','nigger','nigga',
+  'faggot','fag','whore','slut','retard','rape','nazi','hitler','porn',
+  'nude','naked','pedo','piss','bastard','spic','kike','chink','gook',
+  'wetback','tranny','dyke'
+];
+
+function containsProfanity(str) {
+  const lower = str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return BLOCKED_TERMS.some(t => lower.includes(t));
+}
+window.containsProfanityInUsername = containsProfanity;
