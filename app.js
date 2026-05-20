@@ -1509,6 +1509,9 @@ window.saveTemplate = function saveTemplate() {
   const name = document.getElementById('template-name').value.trim();
   const selectedIds = Array.from(document.querySelectorAll('#template-exercise-options input:checked')).map((input) => Number(input.value));
   if (!name) return alert('Give your template a name.');
+  if (typeof window.containsProfanityInUsername === 'function' && window.containsProfanityInUsername(name)) {
+    return alert('That template name is not allowed. Please choose a different one.');
+  }
   if (!selectedIds.length) return alert('Select at least one exercise.');
 
   const exercises = exDB.filter((exercise) => selectedIds.includes(exercise.id));
@@ -3900,6 +3903,9 @@ window.logCardio = function logCardio() {
   const distanceValue = document.getElementById('cardio-distance').value;
   const notes = document.getElementById('cardio-notes').value.trim();
   if (!duration || duration <= 0) return alert('Enter a valid cardio duration.');
+  if (notes && typeof window.containsProfanityInUsername === 'function' && window.containsProfanityInUsername(notes)) {
+    return alert('Your cardio notes contain inappropriate content. Please revise.');
+  }
 
   const activePerk = getActivePerk();
   if (activePerk && activePerk.type === 'cardio_streak_credit') {
