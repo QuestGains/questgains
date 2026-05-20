@@ -92,6 +92,8 @@ async function handleAuthenticatedUser(user) {
   setUserEmail(user.email || 'Signed in');
   if (ui.signOutButton) ui.signOutButton.classList.remove('hidden');
   if (ui.deleteAccountButton) ui.deleteAccountButton.classList.remove('hidden');
+  const resetBtn = document.getElementById('reset-progress-btn');
+  if (resetBtn) resetBtn.classList.remove('hidden');
 
   try {
     const localData = typeof window.getQuestGainsData === 'function' ? window.getQuestGainsData() : {};
@@ -144,6 +146,8 @@ async function handleSignedOut() {
   window.currentUserId = null;
   if (ui.signOutButton) ui.signOutButton.classList.add('hidden');
   if (ui.deleteAccountButton) ui.deleteAccountButton.classList.add('hidden');
+  const resetBtn2 = document.getElementById('reset-progress-btn');
+  if (resetBtn2) resetBtn2.classList.add('hidden');
 
   if (state.logoutRequested) {
     state.logoutRequested = false;
@@ -327,5 +331,56 @@ window.deleteAccount = async function() {
     } else {
       alert('Error deleting account: ' + (err.message || 'Unknown error.'));
     }
+  }
+};
+
+// ─── Reset Progress ───────────────────────────────────────────────────────────
+window.resetProgress = async function() {
+  const confirmed = confirm(
+    '🔄 Reset your QuestGains progress?\n\n' +
+    'This will permanently delete:\n' +
+    '• All XP, levels, and badges\n' +
+    '• All workout, cardio, and meal logs\n' +
+    '• Your streak and quest history\n\n' +
+    'Your account, username, and friends will be kept.\n\n' +
+    'This cannot be undone. Continue?'
+  );
+  if (!confirmed) return;
+  const doubleConfirm = confirm('Reset all progress? This is permanent.');
+  if (!doubleConfirm) return;
+
+  if (!state.auth?.currentUser) { alert('Not logged in.'); return; }
+  const uid = state.auth.currentUser.uid;
+
+  try {
+    if (window.db) {
+      // Preserve profile and friends, wipe everything else
+      const userRef = window.db.collection('users').doc(uid);
+      const doc = await userRef.get();
+      const data = doc.exists ? doc.data() : {};
+      const preserved = {
+        profile: data.profile || {},
+        friends: data.friends || [],
+        friendRequests: data.friendRequests || []
+      };
+      await userRef.set(preserved);
+      // Wipe weeklyXP subcollection
+      const weeklySnap = await userRef.collection('weeklyXP').get();
+      const batch = window.db.batch();
+      weeklySnap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    // Clear local game state
+    const keysToKeep = ['qg_username'];
+    const kept = {};
+    keysToKeep.forEach(k => { const v = localStorage.getItem(k); if (v) kept[k] = v; });
+    localStorage.clear();
+    keysToKeep.forEach(k => { if (kept[k]) localStorage.setItem(k, kept[k]); });
+
+    alert('✅ Progress reset. Starting fresh!');
+    window.location.reload();
+  } catch(err) {
+    console.error('resetProgress error:', err);
+    alert('Error resetting progress: ' + (err.message || 'Unknown error.'));
   }
 };
