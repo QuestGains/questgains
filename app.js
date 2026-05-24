@@ -305,6 +305,8 @@ function applyQuestGainsCloudState(payload = {}) {
   renderUnitConverter();
   renderClassSelection();
   showTab(currentTab);
+  // If home is active, ensure it re-renders with fresh cloud data
+  if (currentTab === 13) renderHome();
 }
 
 window.getQuestGainsData = getQuestGainsData;
@@ -1095,6 +1097,17 @@ function showTab(n) {
   if (n === 12) renderGearTab();
   if (n === 13) renderHome();
   if (n === 14) renderProScreen();
+}
+
+// Safety re-render: if home screen elements are empty after 1.5s, re-render
+function scheduleHomeRerender() {
+  setTimeout(() => {
+    const statsEl = document.getElementById('home-stats');
+    const questsEl = document.getElementById('home-daily-quests');
+    if (statsEl && questsEl && (!statsEl.innerHTML.trim() || !questsEl.innerHTML.trim())) {
+      renderHome();
+    }
+  }, 1500);
 }
 
 // ── Home Tab ───────────────────────────────────────────────────────────────
@@ -4442,6 +4455,7 @@ window.onload = function onLoad() {
   renderClassSelection();
   checkProgressAchievements();
   showTab(13);
+  scheduleHomeRerender();
   // Notifications init
   scheduleBossNotification();
   if (character.notificationsEnabled) scheduleStreakReminder();
