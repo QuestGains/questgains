@@ -7,8 +7,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.questgains.mobile
-        provisioning_profile_type: APP_STORE
-        automatic_provisioning: true
       vars:
         BUNDLE_ID: "com.questgains.mobile"
         APP_NAME: "QuestGains"
