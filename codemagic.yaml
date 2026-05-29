@@ -19,18 +19,19 @@ workflows:
           echo "$CM_CERTIFICATE" | base64 --decode > /tmp/distribution.p12
           echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/QuestGains_AppStore.mobileprovision
 
-          # Install certificate into keychain
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security import /tmp/distribution.p12 -k build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+          # Use Codemagic keychain CLI
+          keychain initialize
+          keychain add-certificates --certificate /tmp/distribution.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
 
           # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           PROFILE_UUID=$(security cms -D -i /tmp/QuestGains_AppStore.mobileprovision | plutil -extract UUID raw -)
+          echo "Profile UUID: $PROFILE_UUID"
           cp /tmp/QuestGains_AppStore.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
-          echo "Installed profile UUID: $PROFILE_UUID"
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/
+
+          # Verify signing identity is available
+          security find-identity -v -p codesigning
 
       - name: Verify iOS project
         script: |

@@ -13,11 +13,11 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.microsoft.pwabuilder-ios</string>
+	<string>com.questgains.mobile</string>
 	<key>PROJECT_ID</key>
-	<string>pwabuilder-ios-template</string>
+	<string>questgains</string>
 	<key>STORAGE_BUCKET</key>
-	<string>pwabuilder-ios-template.appspot.com</string>
+	<string>questgains.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
