@@ -71,35 +71,39 @@ workflows:
 
       - name: Build iOS app
         script: |
+          set -o pipefail
+          ARCHIVE_PATH="$CM_BUILD_DIR/QuestGains.xcarchive"
           cd ios
           WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 2 | head -1)
           PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
           SCHEME=$(basename "${WORKSPACE:-$PROJ}" | sed 's/\..*//')
           echo "Building scheme: $SCHEME"
+          echo "Archive path: $ARCHIVE_PATH"
           if [ -n "$WORKSPACE" ]; then
             xcodebuild -workspace "$WORKSPACE" \
               -scheme "$SCHEME" \
               -configuration Release \
-              -archivePath build/QuestGains.xcarchive \
+              -archivePath "$ARCHIVE_PATH" \
               archive \
               CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               CODE_SIGN_IDENTITY="Apple Distribution" \
-              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty && exit ${PIPESTATUS[0]}
           else
             xcodebuild -project "$PROJ" \
               -scheme "$SCHEME" \
               -configuration Release \
-              -archivePath build/QuestGains.xcarchive \
+              -archivePath "$ARCHIVE_PATH" \
               archive \
               CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               CODE_SIGN_IDENTITY="Apple Distribution" \
-              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty && exit ${PIPESTATUS[0]}
           fi
 
       - name: Export IPA
         script: |
+          ARCHIVE_PATH="$CM_BUILD_DIR/QuestGains.xcarchive"
           cd ios
           cat > ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -125,7 +129,7 @@ workflows:
           </plist>
           EOF
           xcodebuild -exportArchive \
-            -archivePath build/QuestGains.xcarchive \
+            -archivePath "$ARCHIVE_PATH" \
             -exportOptionsPlist ExportOptions.plist \
             -exportPath build/ipa
 
