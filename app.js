@@ -1,5 +1,5 @@
-// QuestGains v2.13 application logic
-// v2.13 update: CSS pixel-art hero portraits in the Hero tab.
+// QuestGains v2.14 application logic
+// v2.14 update: Fix default tab to Home (was Library). Re-render home after cloud load.
 
 const DEFAULT_CHARACTER = {
   heroName: '',
@@ -166,7 +166,7 @@ let questProgress = JSON.parse(localStorage.getItem('questProgress')) || {
   bossDefeatedWeek: null
 };
 let currentQuestSubTab = 0;
-let currentTab = 4;
+let currentTab = 13;
 let restTimerInterval = null;
 let selectedHeroId = character.activeCharId || (heroRoster[0] ? heroRoster[0].id : null);
 let openSetFormIndex = null;
@@ -306,7 +306,11 @@ function applyQuestGainsCloudState(payload = {}) {
   renderClassSelection();
   showTab(currentTab);
   // If home is active, ensure it re-renders with fresh cloud data
-  if (currentTab === 13) renderHome();
+  if (currentTab === 13) {
+    renderHome();
+    // Belt-and-suspenders: re-render after a tick to catch any late DOM updates
+    setTimeout(renderHome, 300);
+  }
 }
 
 window.getQuestGainsData = getQuestGainsData;
@@ -4473,7 +4477,7 @@ window.onload = function onLoad() {
       updateNotifButton();
     }, 4000);
   }
-  console.log(`%c✅ QuestGains v2.13 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
+  console.log(`%c✅ QuestGains v2.14 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
 
 // ─── Delete Account ───────────────────────────────────────────────────────────
