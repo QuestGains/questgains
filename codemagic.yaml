@@ -7,21 +7,34 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.questgains.mobile
-        certificate: $CM_CERTIFICATE
-        certificate_password: $CM_CERTIFICATE_PASSWORD
-        provisioning_profile: $CM_PROVISIONING_PROFILE
       groups:
         - ios
       vars:
         BUNDLE_ID: "com.questgains.mobile"
         APP_NAME: "QuestGains"
         PWA_URL: "https://questgains.github.io/questgains/"
-        XCODE_WORKSPACE: "ios/QuestGains.xcworkspace"
-        XCODE_SCHEME: "QuestGains"
       xcode: latest
       cocoapods: default
 
     scripts:
+      - name: Install certificate and provisioning profile
+        script: |
+          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/distribution.p12
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/QuestGains_AppStore.mobileprovision
+
+          # Install certificate into keychain
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import /tmp/distribution.p12 -k build.keychain -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
+
+          # Install provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(security cms -D -i /tmp/QuestGains_AppStore.mobileprovision | plutil -extract UUID raw -)
+          cp /tmp/QuestGains_AppStore.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          echo "Installed profile UUID: $PROFILE_UUID"
+
       - name: Fetch iOS package from PWABuilder
         script: |
           mkdir -p ios
@@ -42,7 +55,6 @@ workflows:
             }" \
             --output ios_package.zip
           unzip -o ios_package.zip -d ios_extracted
-          # Find the xcworkspace
           WORKSPACE=$(find ios_extracted -name "*.xcworkspace" -maxdepth 4 | head -1)
           if [ -z "$WORKSPACE" ]; then
             WORKSPACE=$(find ios_extracted -name "*.xcodeproj" -maxdepth 4 | head -1)
@@ -60,15 +72,6 @@ workflows:
             echo "No Podfile found, skipping CocoaPods"
           fi
 
-      - name: Set bundle ID and version
-        script: |
-          cd ios
-          PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
-          if [ -n "$PROJ" ]; then
-            agvtool new-marketing-version 1.0.0
-            agvtool new-version -all $BUILD_NUMBER
-          fi
-
       - name: Build iOS app
         script: |
           cd ios
@@ -77,23 +80,25 @@ workflows:
           SCHEME=$(basename "${WORKSPACE:-$PROJ}" | sed 's/\..*//')
           echo "Building scheme: $SCHEME"
           if [ -n "$WORKSPACE" ]; then
-            xcode-project use-profiles
             xcodebuild -workspace "$WORKSPACE" \
               -scheme "$SCHEME" \
               -configuration Release \
               -archivePath build/QuestGains.xcarchive \
               archive \
-              CODE_SIGN_STYLE=Automatic \
-              DEVELOPMENT_TEAM=$APPLE_TEAM_ID | xcpretty
+              CODE_SIGN_STYLE=Manual \
+              DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+              CODE_SIGN_IDENTITY="Apple Distribution" \
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty
           else
-            xcode-project use-profiles
             xcodebuild -project "$PROJ" \
               -scheme "$SCHEME" \
               -configuration Release \
               -archivePath build/QuestGains.xcarchive \
               archive \
-              CODE_SIGN_STYLE=Automatic \
-              DEVELOPMENT_TEAM=$APPLE_TEAM_ID | xcpretty
+              CODE_SIGN_STYLE=Manual \
+              DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+              CODE_SIGN_IDENTITY="Apple Distribution" \
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" | xcpretty
           fi
 
       - name: Export IPA
@@ -108,6 +113,13 @@ workflows:
             <string>app-store</string>
             <key>teamID</key>
             <string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.questgains.mobile</key>
+              <string>QuestGains AppStore</string>
+            </dict>
             <key>uploadSymbols</key>
             <true/>
             <key>compileBitcode</key>
