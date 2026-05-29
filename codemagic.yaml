@@ -1,0 +1,126 @@
+workflows:
+  ios-pwa-workflow:
+    name: QuestGains iOS (PWA)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.questgains.mobile
+      vars:
+        BUNDLE_ID: "com.questgains.mobile"
+        APP_NAME: "QuestGains"
+        PWA_URL: "https://questgains.github.io/questgains/"
+        XCODE_WORKSPACE: "ios/QuestGains.xcworkspace"
+        XCODE_SCHEME: "QuestGains"
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Fetch iOS package from PWABuilder
+        script: |
+          mkdir -p ios
+          echo "Fetching iOS package from PWABuilder..."
+          curl -s -X POST "https://pwabuilder-ios.centralus.cloudapp.azure.com/packages/create" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"url\": \"$PWA_URL\",
+              \"bundleId\": \"$BUNDLE_ID\",
+              \"appName\": \"$APP_NAME\",
+              \"imageUrl\": \"https://questgains.github.io/questgains/logo.png\",
+              \"splashColor\": \"#030712\",
+              \"progressBarColor\": \"#22c55e\",
+              \"statusBarColor\": \"#030712\",
+              \"navColor\": \"#030712\",
+              \"permittedUrls\": [],
+              \"manifestUrl\": \"https://questgains.github.io/questgains/manifest.json\"
+            }" \
+            --output ios_package.zip
+          unzip -o ios_package.zip -d ios_extracted
+          # Find the xcworkspace
+          WORKSPACE=$(find ios_extracted -name "*.xcworkspace" -maxdepth 4 | head -1)
+          if [ -z "$WORKSPACE" ]; then
+            WORKSPACE=$(find ios_extracted -name "*.xcodeproj" -maxdepth 4 | head -1)
+          fi
+          echo "Found project: $WORKSPACE"
+          cp -r "$(dirname "$WORKSPACE")"/* ios/
+          ls ios/
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          if [ -f "Podfile" ]; then
+            pod install --repo-update
+          else
+            echo "No Podfile found, skipping CocoaPods"
+          fi
+
+      - name: Set bundle ID and version
+        script: |
+          cd ios
+          PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
+          if [ -n "$PROJ" ]; then
+            agvtool new-marketing-version 1.0.0
+            agvtool new-version -all $BUILD_NUMBER
+          fi
+
+      - name: Build iOS app
+        script: |
+          cd ios
+          WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 2 | head -1)
+          PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
+          SCHEME=$(basename "${WORKSPACE:-$PROJ}" | sed 's/\..*//')
+          echo "Building scheme: $SCHEME"
+          if [ -n "$WORKSPACE" ]; then
+            xcode-project use-profiles
+            xcodebuild -workspace "$WORKSPACE" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -archivePath build/QuestGains.xcarchive \
+              archive \
+              CODE_SIGN_STYLE=Automatic \
+              DEVELOPMENT_TEAM=$APPLE_TEAM_ID | xcpretty
+          else
+            xcode-project use-profiles
+            xcodebuild -project "$PROJ" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -archivePath build/QuestGains.xcarchive \
+              archive \
+              CODE_SIGN_STYLE=Automatic \
+              DEVELOPMENT_TEAM=$APPLE_TEAM_ID | xcpretty
+          fi
+
+      - name: Export IPA
+        script: |
+          cd ios
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath build/QuestGains.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ipa
+
+    artifacts:
+      - ios/build/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - "Internal Testers"
