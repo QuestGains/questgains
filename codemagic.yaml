@@ -118,6 +118,9 @@ workflows:
     artifacts:
       - ios/build/ipa/*.ipa
 
+    integrations:
+      app_store_connect: QuestGains
+
     publishing:
       app_store_connect:
         auth: integration
