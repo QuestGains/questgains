@@ -34,30 +34,29 @@ workflows:
 
       - name: Fetch iOS package from PWABuilder
         script: |
-          mkdir -p ios
+          mkdir -p ios ios_extracted
           echo "Fetching iOS package from PWABuilder..."
-          curl -s -X POST "https://pwabuilder-ios.centralus.cloudapp.azure.com/packages/create" \
+          curl -v -X POST "https://pwabuilder-ios.centralus.cloudapp.azure.com/packages/create" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"url\": \"$PWA_URL\",
-              \"bundleId\": \"$BUNDLE_ID\",
-              \"appName\": \"$APP_NAME\",
-              \"imageUrl\": \"https://questgains.github.io/questgains/logo.png\",
-              \"splashColor\": \"#030712\",
-              \"progressBarColor\": \"#22c55e\",
-              \"statusBarColor\": \"#030712\",
-              \"navColor\": \"#030712\",
-              \"permittedUrls\": [],
-              \"manifestUrl\": \"https://questgains.github.io/questgains/manifest.json\"
-            }" \
-            --output ios_package.zip
+            -d '{"url":"https://questgains.github.io/questgains/","bundleId":"com.questgains.mobile","appName":"QuestGains","imageUrl":"https://questgains.github.io/questgains/logo.png","splashColor":"#030712","progressBarColor":"#22c55e","statusBarColor":"#030712","navColor":"#030712","permittedUrls":[],"manifestUrl":"https://questgains.github.io/questgains/manifest.json"}' \
+            --output ios_package.zip 2>&1 | tail -5
+          echo "--- zip size ---"
+          ls -lh ios_package.zip
+          file ios_package.zip
           unzip -o ios_package.zip -d ios_extracted
-          WORKSPACE=$(find ios_extracted -name "*.xcworkspace" -maxdepth 4 | head -1)
-          if [ -z "$WORKSPACE" ]; then
-            WORKSPACE=$(find ios_extracted -name "*.xcodeproj" -maxdepth 4 | head -1)
+          echo "--- extracted contents ---"
+          find ios_extracted -maxdepth 5 | head -30
+          WORKSPACE=$(find ios_extracted -name "*.xcworkspace" -maxdepth 6 | grep -v ".xcodeproj" | head -1)
+          PROJ=$(find ios_extracted -name "*.xcodeproj" -maxdepth 6 | head -1)
+          echo "Workspace: $WORKSPACE"
+          echo "Project: $PROJ"
+          if [ -z "$WORKSPACE" ] && [ -z "$PROJ" ]; then
+            echo "ERROR: No Xcode project found in package"
+            cat ios_package.zip | head -c 500
+            exit 1
           fi
-          echo "Found project: $WORKSPACE"
-          cp -r "$(dirname "$WORKSPACE")"/* ios/
+          TARGET="${WORKSPACE:-$PROJ}"
+          cp -r "$(dirname "$TARGET")"/* ios/ || true
           ls ios/
 
       - name: Install CocoaPods dependencies
@@ -72,7 +71,7 @@ workflows:
       - name: Build iOS app
         script: |
           set -o pipefail
-          ARCHIVE_PATH="$CM_BUILD_DIR/QuestGains.xcarchive"
+          ARCHIVE_PATH="/Users/builder/clone/QuestGains.xcarchive"
           cd ios
           WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 2 | head -1)
           PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
@@ -103,7 +102,7 @@ workflows:
 
       - name: Export IPA
         script: |
-          ARCHIVE_PATH="$CM_BUILD_DIR/QuestGains.xcarchive"
+          ARCHIVE_PATH="/Users/builder/clone/QuestGains.xcarchive"
           cd ios
           cat > ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
