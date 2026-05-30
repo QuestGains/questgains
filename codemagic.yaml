@@ -48,11 +48,17 @@ workflows:
 
       - name: Set build number
         script: |
+          set -e
           PLIST="ios/QuestGains/Info.plist"
+          # Use timestamp for guaranteed uniqueness
+          TIMESTAMP=$(date +%s)
+          BUILD_VER="$BUILD_NUMBER.$TIMESTAMP"
+          echo "Setting CFBundleVersion=$BUILD_NUMBER (timestamp=$TIMESTAMP)"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.$BUILD_NUMBER" "$PLIST"
-          echo "Build number set to: $BUILD_NUMBER"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0" "$PLIST"
+          echo "Confirmed:"
           /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST"
 
       - name: Install CocoaPods dependencies
         script: |
