@@ -46,6 +46,13 @@ workflows:
             exit 1
           fi
 
+      - name: Set build number
+        script: |
+          cd ios
+          agvtool new-version -all $BUILD_NUMBER
+          agvtool new-marketing-version 1.0.$BUILD_NUMBER
+          echo "Build number set to: $BUILD_NUMBER"
+
       - name: Install CocoaPods dependencies
         script: |
           cd ios
