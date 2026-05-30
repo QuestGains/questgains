@@ -48,10 +48,11 @@ workflows:
 
       - name: Set build number
         script: |
-          cd ios
-          agvtool new-version -all $BUILD_NUMBER
-          agvtool new-marketing-version 1.0.$BUILD_NUMBER
+          PLIST="ios/QuestGains/Info.plist"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.$BUILD_NUMBER" "$PLIST"
           echo "Build number set to: $BUILD_NUMBER"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST"
 
       - name: Install CocoaPods dependencies
         script: |
