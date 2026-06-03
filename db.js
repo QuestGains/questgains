@@ -1,5 +1,5 @@
 const CLOUD_SYNC_KEYS = ['character', 'workoutLog', 'progressHistory', 'todaysMeals', 'questProgress', 'cardioLog'];
-const SAVE_DEBOUNCE_MS = 10000;
+const SAVE_DEBOUNCE_MS = 2000;
 let pendingSaveTimer = null;
 
 function getFirestore() {
