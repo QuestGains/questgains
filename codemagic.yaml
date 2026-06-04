@@ -6,6 +6,7 @@ workflows:
     environment:
       groups:
         - app_store_credentials
+        - ios
       vars:
         BUNDLE_ID: "com.questgains.mobile"
         APP_NAME: "QuestGains"
