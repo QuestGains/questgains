@@ -49,6 +49,7 @@ workflows:
           keychain initialize
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --private-key "$APPLE_STORE_CONNECT_PRIVATE_KEY" \
             --create
           keychain add-certificates
           xcode-project use-profiles
@@ -71,7 +72,7 @@ workflows:
               archive \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               SUPPORTS_MACCATALYST=NO \
-              ONLY_ACTIVE_ARCH=NO | xcpretty
+              ONLY_ACTIVE_ARCH=NO
           else
             xcodebuild -project "$PROJ" \
               -scheme "$SCHEME" \
@@ -81,7 +82,7 @@ workflows:
               archive \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               SUPPORTS_MACCATALYST=NO \
-              ONLY_ACTIVE_ARCH=NO | xcpretty
+              ONLY_ACTIVE_ARCH=NO
           fi
 
       - name: Export IPA
@@ -112,6 +113,7 @@ workflows:
           echo "Uploading $IPA to TestFlight..."
           app-store-connect publish \
             --path "$IPA" \
+            --private-key "$APPLE_STORE_CONNECT_PRIVATE_KEY" \
             --submit-to-testflight
 
     artifacts:
