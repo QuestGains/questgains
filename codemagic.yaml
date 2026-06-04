@@ -3,12 +3,7 @@ workflows:
     name: QuestGains iOS (PWA)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    integrations:
-      app_store_connect: QuestGains
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.questgains.mobile
       groups:
         - ios
       vars:
@@ -19,6 +14,25 @@ workflows:
       cocoapods: default
 
     scripts:
+      - name: Install certificate and provisioning profile
+        script: |
+          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/distribution.p12
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/QuestGains_AppStore.mobileprovision
+
+          # Use Codemagic keychain CLI
+          keychain initialize
+          keychain add-certificates --certificate /tmp/distribution.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
+
+          # Install provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(security cms -D -i /tmp/QuestGains_AppStore.mobileprovision | plutil -extract UUID raw -)
+          echo "Profile UUID: $PROFILE_UUID"
+          cp /tmp/QuestGains_AppStore.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/
+
+          # Verify signing identity is available
+          security find-identity -v -p codesigning
+
       - name: Verify iOS project
         script: |
           echo "--- iOS project contents ---"
@@ -36,8 +50,15 @@ workflows:
         script: |
           set -e
           PLIST="ios/QuestGains/Info.plist"
+          # Use timestamp for guaranteed uniqueness
+          TIMESTAMP=$(date +%s)
+          BUILD_VER="$BUILD_NUMBER.$TIMESTAMP"
+          echo "Setting CFBundleVersion=$BUILD_NUMBER (timestamp=$TIMESTAMP)"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0" "$PLIST"
+          echo "Confirmed:"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST"
 
       - name: Install CocoaPods dependencies
         script: |
@@ -57,6 +78,7 @@ workflows:
           PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
           SCHEME=$(basename "${WORKSPACE:-$PROJ}" | sed 's/\..*//')
           echo "Building scheme: $SCHEME"
+          echo "Archive path: $ARCHIVE_PATH"
           if [ -n "$WORKSPACE" ]; then
             xcodebuild -workspace "$WORKSPACE" \
               -scheme "$SCHEME" \
@@ -64,7 +86,10 @@ workflows:
               -destination 'generic/platform=iOS' \
               -archivePath "$ARCHIVE_PATH" \
               archive \
+              CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+              CODE_SIGN_IDENTITY="Apple Distribution" \
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" \
               SUPPORTS_MACCATALYST=NO \
               ONLY_ACTIVE_ARCH=NO
           else
@@ -74,7 +99,10 @@ workflows:
               -destination 'generic/platform=iOS' \
               -archivePath "$ARCHIVE_PATH" \
               archive \
+              CODE_SIGN_STYLE=Manual \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+              CODE_SIGN_IDENTITY="Apple Distribution" \
+              PROVISIONING_PROFILE_SPECIFIER="QuestGains AppStore" \
               SUPPORTS_MACCATALYST=NO \
               ONLY_ACTIVE_ARCH=NO
           fi
@@ -82,23 +110,44 @@ workflows:
       - name: Export IPA
         script: |
           ARCHIVE_PATH="/Users/builder/clone/QuestGains.xcarchive"
+          cd ios
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.questgains.mobile</key>
+              <string>QuestGains AppStore</string>
+            </dict>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE_PATH" \
-            -exportOptionsPlist /Users/builder/export_options.plist \
-            -exportPath ios/build/ipa
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ipa
 
     artifacts:
       - ios/build/ipa/*.ipa
+
+    integrations:
+      app_store_connect: QuestGains
 
     publishing:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
         beta_groups:
-          - Internal Testers
-      email:
-        recipients:
-          - questgains2026@gmail.com
-        notify:
-          success: true
-          failure: true
+          - "Internal Testers"
