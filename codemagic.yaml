@@ -44,6 +44,15 @@ workflows:
             echo "No Podfile found, skipping CocoaPods"
           fi
 
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
       - name: Build iOS app
         script: |
           set -o pipefail
@@ -60,11 +69,9 @@ workflows:
               -destination 'generic/platform=iOS' \
               -archivePath "$ARCHIVE_PATH" \
               archive \
-              -allowProvisioningUpdates \
-              CODE_SIGN_STYLE=Automatic \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               SUPPORTS_MACCATALYST=NO \
-              ONLY_ACTIVE_ARCH=NO
+              ONLY_ACTIVE_ARCH=NO | xcpretty
           else
             xcodebuild -project "$PROJ" \
               -scheme "$SCHEME" \
@@ -72,11 +79,9 @@ workflows:
               -destination 'generic/platform=iOS' \
               -archivePath "$ARCHIVE_PATH" \
               archive \
-              -allowProvisioningUpdates \
-              CODE_SIGN_STYLE=Automatic \
               DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
               SUPPORTS_MACCATALYST=NO \
-              ONLY_ACTIVE_ARCH=NO
+              ONLY_ACTIVE_ARCH=NO | xcpretty
           fi
 
       - name: Export IPA
@@ -90,7 +95,7 @@ workflows:
           <dict>
             <key>method</key><string>app-store</string>
             <key>teamID</key><string>$APPLE_TEAM_ID</string>
-            <key>signingStyle</key><string>automatic</string>
+            <key>signingStyle</key><string>manual</string>
             <key>uploadSymbols</key><true/>
             <key>compileBitcode</key><false/>
           </dict>
@@ -105,12 +110,9 @@ workflows:
         script: |
           IPA=$(find ios/build/ipa -name "*.ipa" | head -1)
           echo "Uploading $IPA to TestFlight..."
-          xcrun altool --upload-app \
-            --type ios \
-            --file "$IPA" \
-            --apiKey "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
-            --privateKeyPath <(echo "$APP_STORE_CONNECT_PRIVATE_KEY")
+          app-store-connect publish \
+            --path "$IPA" \
+            --submit-to-testflight
 
     artifacts:
       - ios/build/ipa/*.ipa
