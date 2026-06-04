@@ -4,6 +4,8 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
+      groups:
+        - app_store_credentials
       vars:
         BUNDLE_ID: "com.questgains.mobile"
         APP_NAME: "QuestGains"
@@ -29,15 +31,8 @@ workflows:
         script: |
           set -e
           PLIST="ios/QuestGains/Info.plist"
-          # Use timestamp for guaranteed uniqueness
-          TIMESTAMP=$(date +%s)
-          BUILD_VER="$BUILD_NUMBER.$TIMESTAMP"
-          echo "Setting CFBundleVersion=$BUILD_NUMBER (timestamp=$TIMESTAMP)"
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0" "$PLIST"
-          echo "Confirmed:"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST"
 
       - name: Install CocoaPods dependencies
         script: |
@@ -57,7 +52,6 @@ workflows:
           PROJ=$(find . -name "*.xcodeproj" -maxdepth 2 | head -1)
           SCHEME=$(basename "${WORKSPACE:-$PROJ}" | sed 's/\..*//')
           echo "Building scheme: $SCHEME"
-          echo "Archive path: $ARCHIVE_PATH"
           if [ -n "$WORKSPACE" ]; then
             xcodebuild -workspace "$WORKSPACE" \
               -scheme "$SCHEME" \
@@ -91,16 +85,11 @@ workflows:
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>$APPLE_TEAM_ID</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>uploadSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <false/>
+            <key>method</key><string>app-store</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+            <key>compileBitcode</key><false/>
           </dict>
           </plist>
           EOF
@@ -109,15 +98,24 @@ workflows:
             -exportOptionsPlist ExportOptions.plist \
             -exportPath build/ipa
 
+      - name: Upload to TestFlight
+        script: |
+          IPA=$(find ios/build/ipa -name "*.ipa" | head -1)
+          echo "Uploading $IPA to TestFlight..."
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA" \
+            --apiKey "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
+            --privateKeyPath <(echo "$APP_STORE_CONNECT_PRIVATE_KEY")
+
     artifacts:
       - ios/build/ipa/*.ipa
 
-    integrations:
-      app_store_connect: QuestGains
-
     publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        beta_groups:
-          - "Internal Testers"
+      email:
+        recipients:
+          - questgains2026@gmail.com
+        notify:
+          success: true
+          failure: true
