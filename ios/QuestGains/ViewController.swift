@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import AuthenticationServices
 
 var webView: WKWebView! = nil
 
@@ -272,5 +273,33 @@ extension ViewController: WKScriptMessageHandler {
         if message.name == "push-token" {
             handleFCMToken()
         }
+        if message.name == "sign-in-with-apple" {
+            handleAppleSignIn()
+        }
+  }
+
+  // MARK: - Sign in with Apple bridge
+
+  func handleAppleSignIn() {
+      AppleSignInManager.shared.signIn(from: self) { result in
+          switch result {
+          case .success(let payload):
+              // Serialize to JSON and deliver back to the WebView
+              guard let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+                    let jsonString = String(data: jsonData, encoding: .utf8) else { return }
+              let js = "if(window.onAppleSignIn){window.onAppleSignIn(\(jsonString));}"
+              DispatchQueue.main.async {
+                  QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+              }
+          case .failure(let error):
+              let authError = error as? ASAuthorizationError
+              // Don't surface cancellation to the web layer
+              if authError?.code == .canceled { return }
+              let js = "if(window.onAppleSignInError){window.onAppleSignInError(\"\(error.localizedDescription)\");}"
+              DispatchQueue.main.async {
+                  QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+              }
+          }
+      }
   }
 }

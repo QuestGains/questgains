@@ -1,6 +1,7 @@
 import UIKit
 import FirebaseCore
 import FirebaseMessaging
+import AuthenticationServices
 
 
 @UIApplicationMain
@@ -13,6 +14,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 // TODO: if we're using Firebase, uncomment next string
         //FirebaseApp.configure()
+
+        // Sign in with Apple — check credential state for any previously signed-in user
+        AppleSignInManager.checkCredentialState { state in
+            // Credential state is handled inside checkCredentialState;
+            // revoked/transferred users are signed out and WebView notified.
+            _ = state
+        }
 
         // [START set_messaging_delegate]
         Messaging.messaging().delegate = self

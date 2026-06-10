@@ -20,6 +20,8 @@ function cacheUi() {
   ui.registerError = document.getElementById('register-error');
   ui.status = document.getElementById('auth-status');
   ui.googleButton = document.getElementById('google-signin-btn');
+  ui.appleButton = document.getElementById('apple-signin-btn');
+  ui.appleButtonRegister = document.getElementById('apple-signin-btn-register');
   ui.signOutButton = document.getElementById('signout-btn');
   ui.deleteAccountButton = document.getElementById('delete-account-btn');
   ui.userEmail = document.getElementById('user-email');
@@ -79,6 +81,8 @@ function enableOfflineMode(message) {
   ui.continueOfflineButton.classList.remove('hidden');
   ui.googleButton.disabled = true;
   ui.googleButton.classList.add('opacity-50', 'cursor-not-allowed');
+  if (ui.appleButton) { ui.appleButton.disabled = true; ui.appleButton.classList.add('opacity-50', 'cursor-not-allowed'); }
+  if (ui.appleButtonRegister) { ui.appleButtonRegister.disabled = true; ui.appleButtonRegister.classList.add('opacity-50', 'cursor-not-allowed'); }
   document.querySelectorAll('#login-form input, #register-form input, #login-form button[type="submit"], #register-form button[type="submit"]').forEach((node) => {
     node.disabled = true;
     node.classList.add('opacity-50', 'cursor-not-allowed');
@@ -203,6 +207,61 @@ async function registerWithEmail(event) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Sign in with Apple — native iOS bridge
+// ---------------------------------------------------------------------------
+function isNativeIOS() {
+  return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['sign-in-with-apple']);
+}
+
+function setupAppleSignInBridge() {
+  if (!isNativeIOS()) return;
+
+  // Show the Apple buttons
+  [ui.appleButton, ui.appleButtonRegister].forEach(btn => {
+    if (btn) btn.style.display = '';
+  });
+
+  // Handle successful sign-in from native layer
+  window.onAppleSignIn = async function(payload) {
+    try {
+      showStatus('Signing in with Apple…');
+
+      // Build a Firebase custom-token or use credential directly.
+      // Since this is a WKWebView app we use the identityToken with
+      // firebase.auth.OAuthProvider to create a Firebase credential.
+      const provider = new window.firebase.auth.OAuthProvider('apple.com');
+      const credential = provider.credential({
+        idToken: payload.identityToken,
+        rawNonce: undefined  // nonce not used — add for production hardening
+      });
+      await state.auth.signInWithCredential(credential);
+      // onAuthStateChanged handles the rest
+    } catch(err) {
+      console.error('Apple sign-in error:', err);
+      showError(ui.loginError, err.message || 'Apple sign-in failed.');
+    }
+  };
+
+  // Handle revoked credential (called on app launch by native layer)
+  window.onAppleSignInRevoked = function() {
+    if (state.auth && state.auth.currentUser) {
+      state.auth.signOut();
+    }
+  };
+
+  // Handle errors from native layer
+  window.onAppleSignInError = function(message) {
+    showError(ui.loginError, message || 'Apple sign-in failed.');
+  };
+}
+
+function signInWithApple() {
+  if (!isNativeIOS()) return;
+  // Trigger native ASAuthorizationAppleIDProvider
+  window.webkit.messageHandlers['sign-in-with-apple'].postMessage({});
+}
+
 async function signInWithGoogle() {
   clearErrors();
   if (!state.auth || !state.provider) return;
@@ -233,7 +292,12 @@ function bindEvents() {
   ui.loginForm.addEventListener('submit', signInWithEmail);
   ui.registerForm.addEventListener('submit', registerWithEmail);
   ui.googleButton.addEventListener('click', signInWithGoogle);
+  ui.appleButton?.addEventListener('click', signInWithApple);
+  ui.appleButtonRegister?.addEventListener('click', signInWithApple);
   ui.signOutButton?.addEventListener('click', signOut);
+
+  // Show Apple button only inside the native iOS app shell
+  setupAppleSignInBridge();
   ui.continueOfflineButton?.addEventListener('click', () => {
     state.offlineMode = true;
     setUserEmail('Offline mode', true);
