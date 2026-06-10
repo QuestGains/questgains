@@ -33,6 +33,23 @@ workflows:
           # Verify signing identity is available
           security find-identity -v -p codesigning
 
+      - name: Debug — verify profile installation
+        script: |
+          echo "--- Installed profiles ---"
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ || echo "(directory empty or missing)"
+          echo "--- Profile name field ---"
+          for p in ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
+            echo "File: $p"
+            security cms -D -i "$p" | grep -A1 "<key>Name</key>"
+          done
+          echo "--- Entitlements check ---"
+          for p in ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
+            echo "File: $p"
+            security cms -D -i "$p" | grep -A2 "applesignin" || echo "(no applesignin entitlement found in this profile)"
+          done
+          echo "--- Signing identities ---"
+          security find-identity -v -p codesigning
+
       - name: Verify iOS project
         script: |
           echo "--- iOS project contents ---"
