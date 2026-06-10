@@ -16,8 +16,15 @@ workflows:
     scripts:
       - name: Install certificate and provisioning profile
         script: |
-          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/distribution.p12
-          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/QuestGains_AppStore.mobileprovision
+          printf '%s' "$CM_CERTIFICATE" | base64 --decode > /tmp/distribution.p12
+          printf '%s' "$CM_PROVISIONING_PROFILE" | base64 --decode > /tmp/QuestGains_AppStore.mobileprovision
+          # Sanity check — a valid .mobileprovision is never tiny
+          PROF_SIZE=$(wc -c < /tmp/QuestGains_AppStore.mobileprovision)
+          echo "Decoded profile size: ${PROF_SIZE} bytes"
+          if [ "$PROF_SIZE" -lt 1000 ]; then
+            echo "ERROR: profile decoded to ${PROF_SIZE} bytes — base64 value is likely truncated or corrupted"
+            exit 1
+          fi
 
           # Use Codemagic keychain CLI
           keychain initialize
