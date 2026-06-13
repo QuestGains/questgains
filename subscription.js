@@ -40,8 +40,8 @@ function isNativeIOSIAP() {
 // Map plan name to App Store product ID
 function planToProductID(plan) {
   return plan === 'yearly'
-    ? 'com.questgains.app.pro.yearly'
-    : 'com.questgains.app.pro.monthly';
+    ? 'com.questgains.app.premium_yearly'
+    : 'com.questgains.app.premium_monthly';
 }
 
 // ── iOS IAP Bridge Setup ──────────────────────────────────────────────────

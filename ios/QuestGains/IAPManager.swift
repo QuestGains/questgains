@@ -3,8 +3,8 @@ import StoreKit
 // MARK: - Product IDs
 // These must match exactly what is configured in App Store Connect.
 enum IAPProductID {
-    static let monthly = "com.questgains.app.pro.monthly"
-    static let yearly  = "com.questgains.app.pro.yearly"
+    static let monthly = "com.questgains.app.premium_monthly"
+    static let yearly  = "com.questgains.app.premium_yearly"
 
     static var all: Set<String> { [monthly, yearly] }
 
