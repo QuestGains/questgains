@@ -196,6 +196,24 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
 extension AppleSignInManager: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        return presentationAnchor ?? UIApplication.shared.windows.first!
+        // Return stored anchor if still alive
+        if let anchor = presentationAnchor {
+            return anchor
+        }
+        // iOS 13+: find the foreground-active key window via connectedScenes.
+        // UIApplication.shared.windows is deprecated in iOS 15+ and unreliable
+        // on iPad (multiple windows / Stage Manager).
+        if let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) {
+            if let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
+            if let anyWindow = windowScene.windows.first {
+                return anyWindow
+            }
+        }
+        // Last-resort fallback: create a temporary window (should never reach here)
+        return UIWindow()
     }
 }

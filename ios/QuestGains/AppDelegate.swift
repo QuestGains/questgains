@@ -22,6 +22,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             _ = state
         }
 
+        // StoreKit 2 — start listening for interrupted/background transactions
+        if #available(iOS 15.0, *) {
+            IAPManager.shared.startTransactionListener()
+            // Preload products so purchase sheet is instant
+            Task {
+                _ = try? await IAPManager.shared.loadProducts()
+            }
+        }
+
         // [START set_messaging_delegate]
         Messaging.messaging().delegate = self
         // [END set_messaging_delegate]

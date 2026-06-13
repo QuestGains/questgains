@@ -30,8 +30,63 @@ async function callFunction(name, data) {
   return json.result;
 }
 
+// ── iOS Native IAP Detection ──────────────────────────────────────────────
+function isNativeIOSIAP() {
+  return !!(window.webkit &&
+            window.webkit.messageHandlers &&
+            window.webkit.messageHandlers['iap-purchase']);
+}
+
+// Map plan name to App Store product ID
+function planToProductID(plan) {
+  return plan === 'yearly'
+    ? 'com.questgains.app.pro.yearly'
+    : 'com.questgains.app.pro.monthly';
+}
+
+// ── iOS IAP Bridge Setup ──────────────────────────────────────────────────
+function setupIAPBridge() {
+  if (!isNativeIOSIAP()) return;
+
+  // Called by native layer on successful purchase or restored transaction
+  window.onIAPPurchaseSuccess = async function(productID) {
+    const uid = getUid();
+    const plan = (productID || '').includes('yearly') ? 'yearly' : 'monthly';
+    if (uid && typeof window.activatePro === 'function') {
+      await window.activatePro(uid, plan);
+    }
+    if (typeof window.updateHeader === 'function') window.updateHeader();
+    if (typeof window.closePaywall === 'function') window.closePaywall();
+    setTimeout(() => alert('\uD83C\uDF89 Welcome to QuestGains Pro! Your ' + plan + ' subscription is now active.'), 300);
+  };
+
+  // User cancelled the App Store sheet — silent, just clear any loading state
+  window.onIAPCancelled = function() {
+    // no-op: user intentionally dismissed, no alert needed
+  };
+
+  // Native layer reports a purchase error
+  window.onIAPError = function(message) {
+    console.error('[IAP] error:', message);
+    alert('Purchase failed: ' + (message || 'Unknown error. Please try again.'));
+  };
+
+  // Restore found nothing
+  window.onIAPRestoreEmpty = function() {
+    alert('No previous QuestGains purchases found on this Apple ID.');
+  };
+}
+
 // ── Upgrade flow ───────────────────────────────────────────────────────────
 window.openUpgradeFlow = async function openUpgradeFlow(plan) {
+  // On iOS, Apple requires native StoreKit IAP for digital subscriptions.
+  // Stripe redirects are not permitted for digital goods.
+  if (isNativeIOSIAP()) {
+    const productID = planToProductID(plan);
+    window.webkit.messageHandlers['iap-purchase'].postMessage({ productID });
+    return;
+  }
+  // Web / Android: use Stripe checkout
   try {
     const result = await callFunction('createCheckoutSession', { plan });
     if (result?.url) {
@@ -41,6 +96,12 @@ window.openUpgradeFlow = async function openUpgradeFlow(plan) {
     console.error('[subscription] openUpgradeFlow failed:', err);
     alert('Unable to start checkout. Please try again.');
   }
+};
+
+// Expose restore function (wire to a "Restore Purchases" button in the paywall UI)
+window.restoreIAPPurchases = function() {
+  if (!isNativeIOSIAP()) return;
+  window.webkit.messageHandlers['iap-restore'].postMessage({});
 };
 
 window.openCustomerPortal = async function openCustomerPortal() {
@@ -268,7 +329,11 @@ window.initSubscription = async function initSubscription(uid) {
     isFoundingMember: false,
     loaded: false
   };
+  // Set up native iOS IAP bridge callbacks (safe to call multiple times)
+  setupIAPBridge();
   await loadSubscriptionState(uid);
-  // Handle Stripe redirect return
-  await window.handleCheckoutReturn();
+  // Handle Stripe redirect return (web/Android only; no-op on iOS)
+  if (!isNativeIOSIAP()) {
+    await window.handleCheckoutReturn();
+  }
 };

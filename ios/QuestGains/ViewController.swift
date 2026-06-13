@@ -276,6 +276,72 @@ extension ViewController: WKScriptMessageHandler {
         if message.name == "sign-in-with-apple" {
             handleAppleSignIn()
         }
+        if message.name == "iap-purchase" {
+            handleIAPPurchase(message: message)
+        }
+        if message.name == "iap-restore" {
+            handleIAPRestore()
+        }
+  }
+
+  // MARK: - In-App Purchase bridge (StoreKit 2)
+
+  func handleIAPPurchase(message: WKScriptMessage) {
+      guard #available(iOS 15.0, *) else {
+          let js = "if(window.onIAPError){window.onIAPError('In-app purchases require iOS 15 or later.');}"
+          QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+          return
+      }
+      // Extract productID from message body; default to monthly
+      let productID: String
+      if let body = message.body as? [String: Any],
+         let pid = body["productID"] as? String {
+          productID = pid
+      } else {
+          productID = IAPProductID.monthly
+      }
+      Task { @MainActor in
+          do {
+              if let transaction = try await IAPManager.shared.purchase(productID: productID) {
+                  let js = "if(window.onIAPPurchaseSuccess){window.onIAPPurchaseSuccess('\(transaction.productID)');}"
+                  QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+              } else {
+                  // User cancelled — notify JS so spinner/loading state can be cleared
+                  let js = "if(window.onIAPCancelled){window.onIAPCancelled();}"
+                  QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+              }
+          } catch {
+              let msg = (error.localizedDescription)
+                  .replacingOccurrences(of: "\\", with: "\\\\")
+                  .replacingOccurrences(of: "'", with: "\\'")
+              let js = "if(window.onIAPError){window.onIAPError('\(msg)');}"
+              QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+          }
+      }
+  }
+
+  func handleIAPRestore() {
+      guard #available(iOS 15.0, *) else { return }
+      Task { @MainActor in
+          do {
+              let transactions = try await IAPManager.shared.restorePurchases()
+              if transactions.isEmpty {
+                  let js = "if(window.onIAPRestoreEmpty){window.onIAPRestoreEmpty();}"
+                  QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+              } else {
+                  for t in transactions {
+                      let js = "if(window.onIAPPurchaseSuccess){window.onIAPPurchaseSuccess('\(t.productID)');}"
+                      QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+                  }
+              }
+          } catch {
+              let msg = (error.localizedDescription)
+                  .replacingOccurrences(of: "\\", with: "\\\\")
+                  .replacingOccurrences(of: "'", with: "\\'")
+              let js = "if(window.onIAPError){window.onIAPError('\(msg)');}"
+              QuestGains.webView?.evaluateJavaScript(js, completionHandler: nil)
+          }
+      }
   }
 
   // MARK: - Sign in with Apple bridge

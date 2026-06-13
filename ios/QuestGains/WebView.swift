@@ -15,6 +15,8 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.add(WKSMH, name: "push-permission-state")
     userContentController.add(WKSMH, name: "push-token")
     userContentController.add(WKSMH, name: "sign-in-with-apple")
+    userContentController.add(WKSMH, name: "iap-purchase")
+    userContentController.add(WKSMH, name: "iap-restore")
 
     config.userContentController = userContentController
 
