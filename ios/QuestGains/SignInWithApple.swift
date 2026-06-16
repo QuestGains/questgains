@@ -77,21 +77,36 @@ class AppleSignInManager: NSObject {
     static let shared = AppleSignInManager()
     static let userIdentifierKey = "appleSignInUserIdentifier"
 
-    private weak var presentationAnchor: ASPresentationAnchor?
+    // Must be strong — ASAuthorizationController is NOT retained by the system on iOS 26+.
+    // If this goes out of scope, the controller is deallocated and the delegate never fires.
+    private var authorizationController: ASAuthorizationController?
+
+    // Strong reference so it is never nil when the presentation anchor is requested.
+    private var presentationAnchorWindow: ASPresentationAnchor?
     var completion: ((Result<[String: String], Error>) -> Void)?
 
     // MARK: - Trigger Sign In
 
     func signIn(from viewController: UIViewController, completion: @escaping (Result<[String: String], Error>) -> Void) {
-        self.presentationAnchor = viewController.view.window
+        // Capture the window strongly so it cannot disappear before the sheet is presented.
+        self.presentationAnchorWindow = viewController.view.window ?? {
+            let foregroundScene = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first { $0.activationState == .foregroundActive }
+            return foregroundScene?.windows.first(where: { $0.isKeyWindow })
+                ?? foregroundScene?.windows.first
+        }()
         self.completion = completion
 
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
 
+        // Store the controller as a property — local variables are deallocated immediately
+        // after this method returns, which silently kills the auth flow on iOS 26+.
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
+        self.authorizationController = controller
         controller.performRequests()
     }
 
@@ -140,9 +155,14 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithAuthorization authorization: ASAuthorization) {
+        // Release the retained controller now that we have a result.
+        defer { self.authorizationController = nil }
+
         guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-            completion?(.failure(NSError(domain: "AppleSignIn", code: -1,
-                                        userInfo: [NSLocalizedDescriptionKey: "Unexpected credential type"])))
+            DispatchQueue.main.async {
+                self.completion?(.failure(NSError(domain: "AppleSignIn", code: -1,
+                                            userInfo: [NSLocalizedDescriptionKey: "Unexpected credential type"])))
+            }
             return
         }
 
@@ -177,18 +197,26 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
             result["authorizationCode"] = codeString
         }
 
-        completion?(.success(result))
+        // Always deliver the result on the main thread — ASAuthorizationController can
+        // call its delegate on a background thread, which would cause evaluateJavaScript
+        // to silently fail on iOS 26.
+        DispatchQueue.main.async {
+            self.completion?(.success(result))
+        }
     }
 
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithError error: Error) {
+        defer { self.authorizationController = nil }
         let authError = error as? ASAuthorizationError
         if authError?.code == .canceled {
             print("AppleSignIn: user cancelled")
         } else {
             print("AppleSignIn: error — \(error.localizedDescription)")
         }
-        completion?(.failure(error))
+        DispatchQueue.main.async {
+            self.completion?(.failure(error))
+        }
     }
 }
 
@@ -196,7 +224,8 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 
 extension AppleSignInManager: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        if let anchor = presentationAnchor {
+        // Return the strongly-held window captured at sign-in time.
+        if let anchor = presentationAnchorWindow {
             return anchor
         }
         // iOS 15+ / iPadOS 26+ compatible: use connectedScenes instead of deprecated .windows
