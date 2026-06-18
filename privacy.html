@@ -1,45 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy Policy - QuestGains</title>
-<style>
-  body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; line-height: 1.6; }
-  h1 { color: #22c55e; } h2 { color: #16a34a; margin-top: 32px; }
-  a { color: #22c55e; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Privacy Policy — QuestGains</title>
+  <style>
+    :root {
+      --green: #22c55e;
+      --green-dark: #16a34a;
+      --bg: #030712;
+      --surface: #111827;
+      --surface2: #1f2937;
+      --border: rgba(34,197,94,0.15);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+    .hero {
+      background: linear-gradient(135deg, rgba(34,197,94,0.15) 0%, var(--bg) 60%);
+      padding: 48px 24px 32px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      width: 64px; height: 64px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      margin: 0 auto 16px;
+      display: block;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-top: 8px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+    p { color: #d1d5db; font-size: 0.9375rem; margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+    ul { padding-left: 0; list-style: none; }
+    ul li {
+      color: #d1d5db;
+      font-size: 0.9375rem;
+      padding: 6px 0 6px 22px;
+      position: relative;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    ul li:last-child { border-bottom: none; }
+    ul li::before {
+      content: '✓';
+      color: var(--green);
+      position: absolute;
+      left: 0;
+      font-size: 0.8rem;
+      top: 8px;
+    }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .updated {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 0.8125rem;
+      border-top: 1px solid var(--border);
+    }
+    .footer a { color: var(--green); }
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-links a {
+      font-size: 0.875rem;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--green); }
+  </style>
 </head>
 <body>
-<h1>Privacy Policy</h1>
-<p><strong>Last updated: June 4, 2026</strong></p>
-<p>QuestGains ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use the QuestGains app.</p>
 
-<h2>Information We Collect</h2>
-<p>We collect the following information when you create an account and use the app:</p>
-<ul>
-  <li><strong>Account Information:</strong> Email address and password (stored securely via Firebase Authentication)</li>
-  <li><strong>Fitness Data:</strong> Workout logs, exercise records, body weight entries, nutrition logs, and progress data you enter</li>
-  <li><strong>App Usage Data:</strong> XP earned, quests completed, streaks, level, and hero class selection</li>
-</ul>
+  <div class="hero">
+    <img src="logo.png" alt="QuestGains" class="logo">
+    <h1>Privacy Policy</h1>
+    <p>How we collect, use, and protect your information</p>
+  </div>
 
-<h2>How We Use Your Information</h2>
-<ul>
-  <li>To provide and sync your fitness data across devices</li>
-  <li>To calculate XP, track streaks, and power app features</li>
-  <li>To send optional push notifications (only with your permission)</li>
-</ul>
+  <nav class="nav-links">
+    <a href="/privacy" class="active">Privacy Policy</a>
+    <a href="/terms">Terms of Use</a>
+    <a href="/">App</a>
+  </nav>
 
-<h2>Data Storage</h2>
-<p>Your data is stored securely using Google Firebase (Firestore and Firebase Authentication). We do not sell or share your personal data with third parties.</p>
+  <div class="container">
+    <p class="updated">Last updated: June 18, 2026</p>
 
-<h2>Data Deletion</h2>
-<p>You may request deletion of your account and all associated data at any time by contacting us at support@questgains.app.</p>
+    <div class="card">
+      <h2>Overview</h2>
+      <p>QuestGains ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the QuestGains mobile application and website (collectively, the "Service").</p>
+      <p>By using the Service, you agree to the collection and use of information in accordance with this policy. If you do not agree, please discontinue use of the Service.</p>
+    </div>
 
-<h2>Children's Privacy</h2>
-<p>QuestGains is not directed to children under the age of 13. We do not knowingly collect information from children under 13.</p>
+    <div class="card">
+      <h2>Information We Collect</h2>
+      <p><strong style="color:#f9fafb">Information you provide directly:</strong></p>
+      <ul>
+        <li>Email address and authentication credentials (via Firebase Auth, Google Sign-In, or Apple Sign-In)</li>
+        <li>Username and hero class selection</li>
+        <li>Workout logs, exercise records, sets, reps, and weight entries</li>
+        <li>Body weight and nutrition data you choose to enter</li>
+        <li>Quest completions, XP history, and streak data</li>
+      </ul>
+      <p style="margin-top:14px"><strong style="color:#f9fafb">Information collected automatically:</strong></p>
+      <ul>
+        <li>Device type, operating system version, and app version</li>
+        <li>Push notification token (only if you grant permission)</li>
+        <li>App usage patterns (features used, screens visited) for improving the app</li>
+        <li>Crash logs and error reports via Firebase Crashlytics</li>
+      </ul>
+    </div>
 
-<h2>Contact Us</h2>
-<p>If you have questions about this Privacy Policy, contact us at: <a href="mailto:support@questgains.app">support@questgains.app</a></p>
+    <div class="card">
+      <h2>How We Use Your Information</h2>
+      <ul>
+        <li>To create and maintain your account and sync data across devices</li>
+        <li>To calculate XP, track quests, and power all app features</li>
+        <li>To send push notifications you've opted into (reminders, milestones)</li>
+        <li>To process subscription payments via Apple In-App Purchase</li>
+        <li>To diagnose bugs and improve app performance</li>
+        <li>To respond to support requests</li>
+        <li>To comply with legal obligations</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Subscriptions &amp; Payments</h2>
+      <p>QuestGains Pro subscriptions are processed entirely through Apple In-App Purchase. We do not collect, store, or process your payment card information. All billing is handled by Apple and subject to <a href="https://www.apple.com/legal/internet-services/itunes/us/terms.html" target="_blank">Apple's Terms of Service</a>.</p>
+      <p>Subscription details, renewal dates, and cancellation are managed through your Apple ID in iOS Settings → [Your Name] → Subscriptions.</p>
+    </div>
+
+    <div class="card">
+      <h2>Data Sharing &amp; Disclosure</h2>
+      <p>We do not sell, trade, or rent your personal information to third parties. We may share information only in these limited circumstances:</p>
+      <ul>
+        <li><strong style="color:#f9fafb">Service Providers:</strong> Google Firebase (authentication, database, analytics, crash reporting) — subject to Google's Privacy Policy</li>
+        <li><strong style="color:#f9fafb">Legal Requirements:</strong> If required by law, court order, or to protect our rights or safety</li>
+        <li><strong style="color:#f9fafb">Business Transfer:</strong> In the event of a merger or acquisition, your data may be transferred with notice provided</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Data Retention &amp; Deletion</h2>
+      <p>We retain your data for as long as your account is active. If you delete your account, we will delete or anonymize your personal data within 30 days, except where retention is required by law.</p>
+      <p>To delete your account and all associated data, use the "Delete Account" option in the app's account settings, or contact us at <a href="mailto:support@questgains.app">support@questgains.app</a>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Children's Privacy</h2>
+      <p>QuestGains is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If we learn that we have collected information from a child under 13, we will delete it promptly. If you believe a child under 13 has provided us information, contact us at <a href="mailto:support@questgains.app">support@questgains.app</a>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Security</h2>
+      <p>We implement industry-standard safeguards including encrypted data transmission (HTTPS/TLS), Firebase Security Rules for database access, and secure authentication tokens. No method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.</p>
+    </div>
+
+    <div class="card">
+      <h2>Your Rights</h2>
+      <p>Depending on your location, you may have the right to access, correct, export, or delete your personal data. To exercise any of these rights, contact us at <a href="mailto:support@questgains.app">support@questgains.app</a>. We will respond within 30 days.</p>
+    </div>
+
+    <div class="card">
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of significant changes by updating the "Last updated" date above and, where appropriate, through in-app notification. Continued use of the Service after changes constitutes acceptance of the revised policy.</p>
+    </div>
+
+    <div class="card">
+      <h2>Contact Us</h2>
+      <p>Questions about this Privacy Policy? Contact us:</p>
+      <p><strong style="color:#f9fafb">Email:</strong> <a href="mailto:support@questgains.app">support@questgains.app</a></p>
+      <p><strong style="color:#f9fafb">Website:</strong> <a href="https://questgains.github.io/questgains">questgains.github.io/questgains</a></p>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2026 QuestGains. All rights reserved.</p>
+    <p style="margin-top:8px"><a href="/privacy">Privacy Policy</a> &nbsp;·&nbsp; <a href="/terms">Terms of Use</a> &nbsp;·&nbsp; <a href="mailto:support@questgains.app">Contact</a></p>
+  </div>
+
 </body>
 </html>

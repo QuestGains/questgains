@@ -38,10 +38,11 @@ function isNativeIOSIAP() {
 }
 
 // Map plan name to App Store product ID
+// Note: the UI uses 'annual' and 'monthly'; 'yearly' is accepted as alias for 'annual'.
 function planToProductID(plan) {
-  return plan === 'yearly'
-    ? 'com.questgains.app.premium_yearly'
-    : 'com.questgains.app.premium_monthly';
+  return (plan === 'yearly' || plan === 'annual')
+    ? 'com.questgains.app.pro.yearly'
+    : 'com.questgains.app.pro.monthly';
 }
 
 // ── iOS IAP Bridge Setup ──────────────────────────────────────────────────
@@ -51,7 +52,7 @@ function setupIAPBridge() {
   // Called by native layer on successful purchase or restored transaction
   window.onIAPPurchaseSuccess = async function(productID) {
     const uid = getUid();
-    const plan = (productID || '').includes('yearly') ? 'yearly' : 'monthly';
+    const plan = (productID || '').includes('yearly') ? 'annual' : 'monthly';
     if (uid && typeof window.activatePro === 'function') {
       await window.activatePro(uid, plan);
     }
