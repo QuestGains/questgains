@@ -89,13 +89,20 @@ class AppleSignInManager: NSObject {
 
     func signIn(from viewController: UIViewController, completion: @escaping (Result<[String: String], Error>) -> Void) {
         // Capture the window strongly so it cannot disappear before the sheet is presented.
-        self.presentationAnchorWindow = viewController.view.window ?? {
-            let foregroundScene = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first { $0.activationState == .foregroundActive }
-            return foregroundScene?.windows.first(where: { $0.isKeyWindow })
-                ?? foregroundScene?.windows.first
-        }()
+        // On iPadOS 26+ / Stage Manager, prefer UIWindowScene.keyWindow (iOS 15+) over
+        // the deprecated UIWindow.isKeyWindow approach.
+        self.presentationAnchorWindow = viewController.view.window
+            ?? viewController.view.window?.windowScene?.keyWindow
+            ?? {
+                let scenes = UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                // Prefer foreground active; fall back to foreground inactive for Stage Manager
+                let targetScene = scenes.first { $0.activationState == .foregroundActive }
+                               ?? scenes.first { $0.activationState == .foregroundInactive }
+                               ?? scenes.first
+                // keyWindow is the correct iOS 15+ API and works in Stage Manager on iPadOS 26+
+                return targetScene?.keyWindow ?? targetScene?.windows.first
+            }()
         self.completion = completion
 
         let request = ASAuthorizationAppleIDProvider().createRequest()
@@ -228,20 +235,16 @@ extension AppleSignInManager: ASAuthorizationControllerPresentationContextProvid
         if let anchor = presentationAnchorWindow {
             return anchor
         }
-        // iOS 15+ / iPadOS 26+ compatible: use connectedScenes instead of deprecated .windows
-        let foregroundScene = UIApplication.shared.connectedScenes
+        // iOS 15+ / iPadOS 26+ compatible: use UIWindowScene.keyWindow instead of
+        // deprecated UIWindow.isKeyWindow. This handles Stage Manager on iPadOS 26+ correctly.
+        let scenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-        if let keyWindow = foregroundScene?.windows.first(where: { $0.isKeyWindow }) {
-            return keyWindow
-        }
-        if let anyWindow = foregroundScene?.windows.first {
-            return anyWindow
-        }
-        // Final fallback: any connected scene
-        let anyScene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first
-        return anyScene?.windows.first ?? UIWindow()
+        let targetScene = scenes.first { $0.activationState == .foregroundActive }
+                       ?? scenes.first { $0.activationState == .foregroundInactive }
+                       ?? scenes.first
+        return targetScene?.keyWindow
+            ?? targetScene?.windows.first
+            ?? scenes.first?.windows.first
+            ?? UIWindow()
     }
 }
