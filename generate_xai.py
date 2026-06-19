@@ -8,7 +8,7 @@ import urllib.request
 import urllib.error
 import sys
 
-XAI_KEY = "REDACTED"
+XAI_KEY = os.environ.get('XAI_API_KEY')
 OUTPUT_DIR = "/data/.openclaw/workspace/questgains/exercise-images"
 
 EXERCISES = [
