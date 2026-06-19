@@ -256,10 +256,18 @@ function setupAppleSignInBridge() {
   };
 }
 
-function signInWithApple() {
+function signInWithApple(e) {
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
   if (!isNativeIOS()) return;
-  // Trigger native ASAuthorizationAppleIDProvider
-  window.webkit.messageHandlers['sign-in-with-apple'].postMessage({});
+  // Log on JS side so we can confirm the handler fires on all iPad models
+  console.log('[SIWA] signInWithApple called — posting to native message handler');
+  try {
+    window.webkit.messageHandlers['sign-in-with-apple'].postMessage({});
+    console.log('[SIWA] postMessage sent successfully');
+  } catch (err) {
+    console.error('[SIWA] postMessage failed:', err);
+  }
 }
 
 async function signInWithGoogle() {

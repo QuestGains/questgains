@@ -91,18 +91,20 @@ class AppleSignInManager: NSObject {
         // Capture the window strongly so it cannot disappear before the sheet is presented.
         // On iPadOS 26+ / Stage Manager, prefer UIWindowScene.keyWindow (iOS 15+) over
         // the deprecated UIWindow.isKeyWindow approach.
+        // Capture the window, iterating scenes defensively for all iPad models
+        // (Air M3, M4, Stage Manager, split-view, background scenes).
+        let allScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         self.presentationAnchorWindow = viewController.view.window
             ?? viewController.view.window?.windowScene?.keyWindow
-            ?? {
-                let scenes = UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                // Prefer foreground active; fall back to foreground inactive for Stage Manager
-                let targetScene = scenes.first { $0.activationState == .foregroundActive }
-                               ?? scenes.first { $0.activationState == .foregroundInactive }
-                               ?? scenes.first
-                // keyWindow is the correct iOS 15+ API and works in Stage Manager on iPadOS 26+
-                return targetScene?.keyWindow ?? targetScene?.windows.first
-            }()
+            ?? allScenes.first(where: { $0.activationState == .foregroundActive })?.keyWindow
+            ?? allScenes.first(where: { $0.activationState == .foregroundActive })?.windows.first
+            ?? allScenes.first(where: { $0.activationState == .foregroundInactive })?.keyWindow
+            ?? allScenes.first(where: { $0.activationState == .foregroundInactive })?.windows.first
+            ?? allScenes.first(where: { $0.activationState == .background })?.keyWindow
+            ?? allScenes.first(where: { $0.activationState == .background })?.windows.first
+            ?? allScenes.first?.keyWindow
+            ?? allScenes.first?.windows.first
+        print("[SIWA] signIn: captured window=\(String(describing: self.presentationAnchorWindow)), scene state=\(String(describing: self.presentationAnchorWindow?.windowScene?.activationState.rawValue))")
         self.completion = completion
 
         let request = ASAuthorizationAppleIDProvider().createRequest()
@@ -233,18 +235,31 @@ extension AppleSignInManager: ASAuthorizationControllerPresentationContextProvid
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         // Return the strongly-held window captured at sign-in time.
         if let anchor = presentationAnchorWindow {
+            print("[SIWA] presentationAnchor: using captured window")
             return anchor
         }
-        // iOS 15+ / iPadOS 26+ compatible: use UIWindowScene.keyWindow instead of
-        // deprecated UIWindow.isKeyWindow. This handles Stage Manager on iPadOS 26+ correctly.
-        let scenes = UIApplication.shared.connectedScenes
+        // Defensive fallback: iterate ALL connected window scenes across all
+        // activation states. Covers iPad Air M3, M4, Stage Manager, and split-view.
+        // Priority: foregroundActive > foregroundInactive > background > any scene.
+        let allScenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
-        let targetScene = scenes.first { $0.activationState == .foregroundActive }
-                       ?? scenes.first { $0.activationState == .foregroundInactive }
-                       ?? scenes.first
-        return targetScene?.keyWindow
-            ?? targetScene?.windows.first
-            ?? scenes.first?.windows.first
-            ?? UIWindow()
+        let targetScene = allScenes.first { $0.activationState == .foregroundActive }
+                       ?? allScenes.first { $0.activationState == .foregroundInactive }
+                       ?? allScenes.first { $0.activationState == .background }
+                       ?? allScenes.first
+        // keyWindow is the preferred iOS 15+ API; fall back through all windows
+        if let window = targetScene?.keyWindow ?? targetScene?.windows.first(where: { $0.isKeyWindow }) ?? targetScene?.windows.first {
+            print("[SIWA] presentationAnchor: found window via scene (state=\(targetScene?.activationState.rawValue ?? -1))")
+            return window
+        }
+        // Last resort: search all windows across all scenes
+        for scene in allScenes {
+            if let window = scene.keyWindow ?? scene.windows.first {
+                print("[SIWA] presentationAnchor: fallback to scene \(scene.activationState.rawValue) window")
+                return window
+            }
+        }
+        print("[SIWA] presentationAnchor: no window found — returning empty UIWindow (last resort)")
+        return UIWindow()
     }
 }

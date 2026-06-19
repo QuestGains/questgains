@@ -1,0 +1,150 @@
+{
+  "success": [
+    {
+      "name": "90_90_Hip_Stretch",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/90_90_Hip_Stretch.jpg"
+    },
+    {
+      "name": "Battle_Ropes",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Battle_Ropes.jpg"
+    },
+    {
+      "name": "Bear_Crawl",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Bear_Crawl.jpg"
+    },
+    {
+      "name": "Box_Jump",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Box_Jump.jpg"
+    },
+    {
+      "name": "Box_Step_Up",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Box_Step_Up.jpg"
+    },
+    {
+      "name": "Burpee",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Burpee.jpg"
+    },
+    {
+      "name": "Cable_Curl",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Cable_Curl.jpg"
+    },
+    {
+      "name": "Cat_Cow",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Cat_Cow.jpg"
+    },
+    {
+      "name": "Clean_and_Jerk",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Clean_and_Jerk.jpg"
+    },
+    {
+      "name": "Close_Grip_Bench_Press",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Close_Grip_Bench_Press.jpg"
+    },
+    {
+      "name": "Couch_Stretch",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Couch_Stretch.jpg"
+    },
+    {
+      "name": "Doorway_Chest_Stretch",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Doorway_Chest_Stretch.jpg"
+    },
+    {
+      "name": "Hang_Clean",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Hang_Clean.jpg"
+    },
+    {
+      "name": "High_Knees",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/High_Knees.jpg"
+    },
+    {
+      "name": "Hip_Flexor_Stretch",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Hip_Flexor_Stretch.jpg"
+    },
+    {
+      "name": "Jump_Lunge",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Jump_Lunge.jpg"
+    },
+    {
+      "name": "Jump_Squat",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Jump_Squat.jpg"
+    },
+    {
+      "name": "Jumping_Jacks",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Jumping_Jacks.jpg"
+    },
+    {
+      "name": "Landmine_Press",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Landmine_Press.jpg"
+    },
+    {
+      "name": "Leg_Extension",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Leg_Extension.jpg"
+    },
+    {
+      "name": "Medicine_Ball_Slam",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Medicine_Ball_Slam.jpg"
+    },
+    {
+      "name": "Nordic_Curl",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Nordic_Curl.jpg"
+    },
+    {
+      "name": "Pallof_Press",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Pallof_Press.jpg"
+    },
+    {
+      "name": "Pigeon_Pose",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Pigeon_Pose.jpg"
+    },
+    {
+      "name": "Plate_Front_Raise",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Plate_Front_Raise.jpg"
+    },
+    {
+      "name": "Power_Snatch",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Power_Snatch.jpg"
+    },
+    {
+      "name": "Push_Press",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Push_Press.jpg"
+    },
+    {
+      "name": "Renegade_Row",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Renegade_Row.jpg"
+    },
+    {
+      "name": "Single_Leg_Press",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Single_Leg_Press.jpg"
+    },
+    {
+      "name": "Single_Leg_RDL",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Single_Leg_RDL.jpg"
+    },
+    {
+      "name": "Skater_Jump",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Skater_Jump.jpg"
+    },
+    {
+      "name": "Skull_Crusher",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Skull_Crusher.jpg"
+    },
+    {
+      "name": "Thoracic_Rotation",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Thoracic_Rotation.jpg"
+    },
+    {
+      "name": "Thruster",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Thruster.jpg"
+    },
+    {
+      "name": "Tuck_Jump",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Tuck_Jump.jpg"
+    },
+    {
+      "name": "Turkish_Get_Up",
+      "path": "/data/.openclaw/workspace/questgains/exercise-images/Turkish_Get_Up.jpg"
+    }
+  ],
+  "failed": [],
+  "total": 36
+}
