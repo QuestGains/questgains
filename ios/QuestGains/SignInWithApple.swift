@@ -94,16 +94,20 @@ class AppleSignInManager: NSObject {
         // Capture the window, iterating scenes defensively for all iPad models
         // (Air M3, M4, Stage Manager, split-view, background scenes).
         let allScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        self.presentationAnchorWindow = viewController.view.window
-            ?? viewController.view.window?.windowScene?.keyWindow
-            ?? allScenes.first(where: { $0.activationState == .foregroundActive })?.keyWindow
-            ?? allScenes.first(where: { $0.activationState == .foregroundActive })?.windows.first
-            ?? allScenes.first(where: { $0.activationState == .foregroundInactive })?.keyWindow
-            ?? allScenes.first(where: { $0.activationState == .foregroundInactive })?.windows.first
-            ?? allScenes.first(where: { $0.activationState == .background })?.keyWindow
-            ?? allScenes.first(where: { $0.activationState == .background })?.windows.first
-            ?? allScenes.first?.keyWindow
-            ?? allScenes.first?.windows.first
+        // Break the ?? chain into explicit steps — the Swift type checker times out on
+        // long nil-coalescing chains in a single expression (SE-0232 / SR-5719).
+        func firstWindow(in states: [UIScene.ActivationState]) -> UIWindow? {
+            for state in states {
+                if let w = allScenes.first(where: { $0.activationState == state })?.keyWindow { return w }
+                if let w = allScenes.first(where: { $0.activationState == state })?.windows.first { return w }
+            }
+            return nil
+        }
+        var capturedWindow: UIWindow? = viewController.view.window
+        if capturedWindow == nil { capturedWindow = viewController.view.window?.windowScene?.keyWindow }
+        if capturedWindow == nil { capturedWindow = firstWindow(in: [.foregroundActive, .foregroundInactive, .background]) }
+        if capturedWindow == nil { capturedWindow = allScenes.first?.keyWindow ?? allScenes.first?.windows.first }
+        self.presentationAnchorWindow = capturedWindow
         print("[SIWA] signIn: captured window=\(String(describing: self.presentationAnchorWindow)), scene state=\(String(describing: self.presentationAnchorWindow?.windowScene?.activationState.rawValue))")
         self.completion = completion
 
