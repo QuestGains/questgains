@@ -270,37 +270,18 @@ window.showPaywall = async function showPaywall(featureName) {
 
   const featureEl = document.getElementById('paywall-feature-name');
   const statusEl = document.getElementById('paywall-status-text');
-  const ctaEl = document.getElementById('paywall-cta-btn');
   const foundingSection = document.getElementById('paywall-founding-section');
   const foundingCountEl = document.getElementById('paywall-founding-count');
 
-  if (featureEl) featureEl.textContent = featureName;
+  if (featureEl) featureEl.textContent = featureName ? `Unlock: ${featureName}` : 'Unlock all Pro features';
 
-  const trialStarted = !!_subscriptionState.trialStartDate;
   const trialExpired = window.isTrialExpired();
-
   if (statusEl) {
-    statusEl.textContent = trialExpired ? "Your trial has expired" : "You're on the Free plan";
+    statusEl.textContent = trialExpired ? 'Your trial has expired' : "You're on the Free plan";
   }
 
-  if (ctaEl) {
-    if (!trialStarted) {
-      ctaEl.textContent = '🎉 Start 14-Day Free Trial';
-      ctaEl.onclick = async () => {
-        const uid = getUid();
-        if (uid) await window.startTrial(uid);
-        closePaywall();
-        if (typeof window.updateHeader === 'function') window.updateHeader();
-        alert('Your 14-day Pro trial has started! Enjoy full access.');
-      };
-    } else {
-      ctaEl.textContent = 'Upgrade to Pro — $4.99/mo';
-      ctaEl.onclick = () => {
-        closePaywall();
-        window.openUpgradeFlow('monthly');
-      };
-    }
-  }
+  // Reset to annual (best value) as default selection
+  window.selectPaywallPlan('annual');
 
   if (foundingSection && foundingCountEl) {
     const count = await window.getFoundingMemberCount();
@@ -319,6 +300,34 @@ window.showPaywall = async function showPaywall(featureName) {
 window.closePaywall = function closePaywall() {
   const modal = document.getElementById('paywall-modal');
   if (modal) modal.classList.add('hidden');
+};
+
+// ── Paywall plan selection ─────────────────────────────────────────────────
+// Tracks the currently highlighted plan in the paywall modal.
+let _paywallSelectedPlan = 'annual';
+
+window.selectPaywallPlan = function selectPaywallPlan(plan) {
+  _paywallSelectedPlan = plan;
+  // Update card borders
+  ['monthly', 'annual', 'founding'].forEach(p => {
+    const el = document.getElementById('paywall-plan-' + p);
+    if (!el) return;
+    el.classList.toggle('border-green-500', p === plan);
+    el.classList.toggle('border-yellow-500', p === plan && p === 'founding');
+    el.classList.toggle('border-transparent', p !== plan);
+  });
+  // Update CTA label
+  const btn = document.getElementById('paywall-cta-btn');
+  if (btn) {
+    if (plan === 'annual')   btn.textContent = 'Subscribe Annual — $39.99/yr';
+    else if (plan === 'founding') btn.textContent = 'Join as Founding Member — $2.99/mo';
+    else                     btn.textContent = 'Subscribe Monthly — $4.99/mo';
+  }
+};
+
+// Called by the paywall CTA button
+window.paywallPurchase = function paywallPurchase() {
+  window.openUpgradeFlow(_paywallSelectedPlan);
 };
 
 // ── Init ──────────────────────────────────────────────────────────────────

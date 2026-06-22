@@ -222,13 +222,45 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
                                  didCompleteWithError error: Error) {
         defer { self.authorizationController = nil }
         let authError = error as? ASAuthorizationError
+        let code = authError?.code.rawValue ?? -9999
+        let desc = error.localizedDescription
         if authError?.code == .canceled {
-            print("AppleSignIn: user cancelled")
-        } else {
-            print("AppleSignIn: error — \(error.localizedDescription)")
+            print("[SIWA] user cancelled (code=\(code))")
+            // Cancellation is intentional — do not fire onAppleSignInError to the WebView.
+            DispatchQueue.main.async { self.completion?(.failure(error)) }
+            return
+        }
+        // Non-cancel error: log everything and send back to WebView for display/debugging.
+        let errorMessage = "ASAuthorizationError code=\(code) — \(desc)"
+        print("[SIWA] didCompleteWithError: \(errorMessage)")
+        // Additional diagnostics for the most common iPad-specific failure modes.
+        if authError?.code == .failed {
+            print("[SIWA] code=failed — possible causes: entitlement missing in provisioning profile, " +
+                  "ASAuthorizationController deallocated before delegate fired, or incorrect bundle ID.")
+        } else if authError?.code == .invalidResponse {
+            print("[SIWA] code=invalidResponse — Apple ID server returned an unexpected response.")
+        } else if authError?.code == .notHandled {
+            print("[SIWA] code=notHandled — request not handled; check entitlement in embedded profile.")
+        } else if authError?.code == .unknown {
+            print("[SIWA] code=unknown — check that com.apple.developer.applesignin entitlement " +
+                  "is present in the built binary and the provisioning profile.")
         }
         DispatchQueue.main.async {
             self.completion?(.failure(error))
+            // Fire error description back to WebView so it can display a user-facing message
+            // and so the error appears in the JS console for review submissions.
+            let escaped = errorMessage
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "'", with: "\\'")
+            QuestGains.webView?.evaluateJavaScript(
+                "if(typeof window.onAppleSignInError==='function'){window.onAppleSignInError('\(escaped)');}" +
+                "console.error('[SIWA-native] \(escaped)');",
+                completionHandler: { _, evalErr in
+                    if let evalErr = evalErr {
+                        print("[SIWA] evaluateJavaScript onAppleSignInError failed: \(evalErr)")
+                    }
+                }
+            )
         }
     }
 }
