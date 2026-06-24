@@ -96,7 +96,7 @@
 	<true/>
 	<key>WKAppBoundDomains</key>
 	<array>
-		<string>questgains.github.io/questgains</string>
+		<string>questgains.github.io</string>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>

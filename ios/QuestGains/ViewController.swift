@@ -23,6 +23,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     
     var htmlIsLoaded = false;
     private var loadingMode = LoadingMode.defaultCachePolicy
+    private var loadTimeoutTimer: Timer?
+    private var retryButton: UIButton?
     
     private var themeObservation: NSKeyValueObservation?
     var currentWebViewTheme: UIUserInterfaceStyle = .unspecified
@@ -44,7 +46,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         loadRootUrl()
     
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification , object: nil)
-        
+
+        addRetryButton()
     }
 
     override func viewDidLayoutSubviews() {
@@ -88,9 +91,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
 
     func createToolbarView() -> UIToolbar{
-        let winScene = UIApplication.shared.connectedScenes.first
-        let windowScene = winScene as! UIWindowScene
-        var statusBarHeight = windowScene.statusBarManager?.statusBarFrame.height ?? 60
+        let windowScene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first(where: { $0.activationState == .foregroundActive })
+            ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        var statusBarHeight = windowScene?.statusBarManager?.statusBarFrame.height ?? 60
         
         #if targetEnvironment(macCatalyst)
         if (statusBarHeight == 0){
@@ -131,7 +136,51 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
     
     @objc func loadRootUrl(cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy) {
+        startLoadTimeout()
         QuestGains.webView.load(URLRequest(url: SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch ?? rootUrl, cachePolicy: cachePolicy))
+    }
+
+    private func addRetryButton() {
+        let btn = UIButton(type: .system)
+        btn.setTitle("Retry", for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        btn.backgroundColor = UIColor.systemBlue
+        btn.setTitleColor(.white, for: .normal)
+        btn.layer.cornerRadius = 10
+        btn.clipsToBounds = true
+        btn.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
+        btn.isHidden = true
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        loadingView.addSubview(btn)
+        NSLayoutConstraint.activate([
+            btn.centerXAnchor.constraint(equalTo: loadingView.centerXAnchor),
+            btn.centerYAnchor.constraint(equalTo: loadingView.centerYAnchor, constant: 60),
+            btn.widthAnchor.constraint(equalToConstant: 140),
+            btn.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        retryButton = btn
+    }
+
+    @objc private func retryButtonTapped() {
+        retryButton?.isHidden = true
+        loadingMode = .defaultCachePolicy
+        reloadWebview()
+    }
+
+    private func startLoadTimeout() {
+        loadTimeoutTimer?.invalidate()
+        loadTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in
+            guard let self = self, !self.htmlIsLoaded else { return }
+            // WebView hasn't finished loading in 10s — show retry
+            self.animateConnectionProblem(true)
+            self.retryButton?.isHidden = false
+            self.setProgress(0.0, false)
+        }
+    }
+
+    private func cancelLoadTimeout() {
+        loadTimeoutTimer?.invalidate()
+        loadTimeoutTimer = nil
     }
     
     func reloadWebview(
@@ -149,10 +198,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!){
+        cancelLoadTimeout()
         htmlIsLoaded = true
-        
+
         self.setProgress(1.0, true)
         self.animateConnectionProblem(false)
+        self.retryButton?.isHidden = true
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             QuestGains.webView.isHidden = false
@@ -165,30 +216,34 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
     
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        htmlIsLoaded = false;
-        
+        cancelLoadTimeout()
+        htmlIsLoaded = false
+
         if (error as NSError)._code == (-999) { return }
         if (error as NSError)._code == 102 { return }
-        
-        self.overrideUIStyle(toDefault: true);
-        webView.isHidden = true;
-        loadingView.isHidden = false;
 
-        if loadingMode == LoadingMode.defaultCachePolicy {
-            DispatchQueue.main.async {
-                self.reloadWebview(loadingMode: LoadingMode.forceCache)
-            }
-        } else {
-            animateConnectionProblem(true);
-            setProgress(0.05, true);
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                self.setProgress(0.1, true);
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    self.reloadWebview()
-                }
-            }
-        }
+        self.overrideUIStyle(toDefault: true)
+        webView.isHidden = true
+        loadingView.isHidden = false
+
+        animateConnectionProblem(true)
+        retryButton?.isHidden = false
+        setProgress(0.0, false)
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        cancelLoadTimeout()
+        htmlIsLoaded = false
+
+        if (error as NSError)._code == (-999) { return }
+
+        self.overrideUIStyle(toDefault: true)
+        webView.isHidden = true
+        loadingView.isHidden = false
+
+        animateConnectionProblem(true)
+        retryButton?.isHidden = false
+        setProgress(0.0, false)
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
