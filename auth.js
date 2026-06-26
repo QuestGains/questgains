@@ -231,26 +231,45 @@ async function registerWithEmail(event) {
 // Sign in with Apple — native iOS bridge
 // ---------------------------------------------------------------------------
 
-// On-screen debug panel — no Safari Web Inspector required.
-// Shows nonce chain values and Firebase error codes on the device screen.
-function siwaDebug(lines) {
+// ── On-screen SIWA debug panel ──────────────────────────────────────────────
+// Appends log lines to the panel (never overwrites) so the full chain is visible.
+// Panel stays open until manually dismissed — no auto-hide.
+
+let _siwaSwiftNonce8 = null; // stores first-8 from Swift for match comparison
+
+function siwaLog(line, style) {
   try {
     const panel = document.getElementById('siwa-debug-panel');
-    const content = document.getElementById('siwa-debug-content');
-    if (!panel || !content) return;
+    const contentEl = document.getElementById('siwa-debug-content');
+    if (!panel || !contentEl) return;
     const ts = new Date().toLocaleTimeString();
-    const text = (Array.isArray(lines) ? lines : [lines]).join('\n');
-    content.textContent = '[' + ts + ']\n' + text;
+    const div = document.createElement('div');
+    div.style.cssText = style || 'color:#e5e7eb; padding:1px 0;';
+    div.textContent = '[' + ts + '] ' + line;
+    contentEl.appendChild(div);
     panel.style.display = 'block';
-    // Auto-hide after 90 seconds
-    clearTimeout(panel._hideTimer);
-    panel._hideTimer = setTimeout(() => { panel.style.display = 'none'; }, 90000);
+    // Scroll to newest line
+    contentEl.scrollTop = contentEl.scrollHeight;
+    // Log to console too
+    console.log('[SIWA-panel]', line);
   } catch(e) { /* never let debug code break auth */ }
 }
 
-// Called from Swift before auth completes — shows nonce first 8 from native side
+function siwaLogError(line) {
+  siwaLog('❌ ' + line,
+    'color:#ef4444; font-weight:bold; font-size:13px; padding:3px 0; border-top:1px solid #7f1d1d; margin-top:4px;');
+}
+
+function siwaLogOk(line) {
+  siwaLog('✅ ' + line, 'color:#4ade80; padding:1px 0;');
+}
+
+// Called from Swift BEFORE auth delegate fires — captures native nonce8 for comparison
 window.siwaDebugFromNative = function(msg) {
-  siwaDebug('📱 Native: ' + msg);
+  // Parse nonce8 out of the message for later comparison
+  const m = msg.match(/Swift nonce\(8\): ([A-Za-z0-9+\/=_-]{8})/);
+  if (m) _siwaSwiftNonce8 = m[1];
+  siwaLog('📱 Native: ' + msg, 'color:#a78bfa; padding:1px 0;');
 };
 
 function isNativeIOS() {
@@ -271,19 +290,20 @@ function setupAppleSignInBridge() {
       showStatus('Signing in with Apple…');
 
       // ── On-screen debug panel (no Web Inspector needed) ──
-      const _dbgNonce8  = payload?.rawNonce?.substring(0, 8) ?? 'MISSING';
-      const _dbgTokLen  = payload?.identityToken?.length ?? 'MISSING';
-      const _dbgKeys    = payload ? Object.keys(payload).join(', ') : 'null payload';
-      siwaDebug([
-        'JS onAppleSignIn called',
-        'payload keys: ' + _dbgKeys,
-        'rawNonce (first 8): ' + _dbgNonce8,
-        'identityToken length: ' + _dbgTokLen,
-        'userIdentifier: ' + (payload?.userIdentifier ?? 'MISSING'),
-        '→ calling signInWithCredential...'
-      ]);
-      // Also log to console for Xcode
-      console.log('[SIWA-JS] onAppleSignIn — nonce8:', _dbgNonce8, 'tokenLen:', _dbgTokLen);
+      const _dbgNonce8 = payload?.rawNonce?.substring(0, 8) ?? 'MISSING';
+      const _dbgTokLen = payload?.identityToken?.length ?? 'MISSING';
+      siwaLog('JS payload keys: ' + (payload ? Object.keys(payload).join(', ') : 'null'));
+      siwaLog('JS identityToken length: ' + _dbgTokLen);
+      siwaLog('JS rawNonce (first 8): ' + _dbgNonce8);
+      // Explicit nonce match check — compare against Swift value
+      if (_siwaSwiftNonce8) {
+        const match = _siwaSwiftNonce8 === _dbgNonce8;
+        if (match) siwaLogOk('Nonce match: YES (' + _dbgNonce8 + ')');
+        else siwaLogError('Nonce match: NO — Swift=' + _siwaSwiftNonce8 + ' JS=' + _dbgNonce8);
+      } else {
+        siwaLog('⚠️ Nonce match: cannot compare (siwaDebugFromNative not called yet)', 'color:#facc15;');
+      }
+      siwaLog('→ calling signInWithCredential...');
       // ── End diagnostics ──
 
       if (!payload || !payload.identityToken) {
@@ -307,22 +327,24 @@ function setupAppleSignInBridge() {
         idToken: payload.identityToken,
         rawNonce: payload.rawNonce
       });
-      console.log('[SIWA-JS] OAuthProvider credential created — calling signInWithCredential');
+      siwaLog('OAuthProvider credential created — calling Firebase...');
       await state.auth.signInWithCredential(credential);
-      console.log('[SIWA-JS] signInWithCredential succeeded');
+      siwaLogOk('signInWithCredential SUCCEEDED');
       // onAuthStateChanged handles login → hideOverlay flow
     } catch(err) {
       console.error('[SIWA] Firebase sign-in error:', err.code, err.message);
+      // Large red error — impossible to miss
+      siwaLogError('Firebase: ' + (err.code || 'unknown-code'));
+      siwaLogError(err.message || 'no message');
+      siwaLog('rawNonce8: ' + (payload?.rawNonce?.substring(0,8) ?? 'nil'));
+      siwaLog('tokenLen:  ' + (payload?.identityToken?.length ?? 'nil'));
+      siwaLog('Firebase SDK ver: 10.14.1 compat');
+      siwaLog('→ Check Firebase Console: Authentication → Apple → Enabled?');
+      siwaLog('  Team ID should be: PBSFS3WLB8');
+      siwaLog('  Bundle ID: com.questgains.mobile');
       const msg = err.code
-        ? `Sign-in failed (${err.code}): ${err.message}`
+        ? 'Sign-in failed (' + err.code + '): ' + err.message
         : (err.message || 'Apple sign-in failed. Please try again.');
-      // Show error on-screen debug panel too
-      siwaDebug([
-        '❌ Firebase error: ' + (err.code || 'unknown'),
-        err.message || '',
-        'rawNonce was: ' + (payload?.rawNonce?.substring(0,8) ?? 'nil'),
-        'tokenLen was: ' + (payload?.identityToken?.length ?? 'nil')
-      ]);
       showStatus('');
       showError(ui.loginError || document.getElementById('auth-status'), msg);
     }
