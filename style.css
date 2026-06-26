@@ -518,6 +518,20 @@ button {
 }
 
 
+/* Landscape paywall fix — ensure modal scrolls and Maybe Later button is always reachable */
+@media (max-height: 600px) {
+  #paywall-modal {
+    align-items: flex-start;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  #paywall-modal > div {
+    max-height: 88vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .gear-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.9rem; }
 .gear-card { border-radius: 1.25rem; border: 1px solid rgba(255,255,255,0.08); padding: 1rem; background: linear-gradient(180deg, rgba(17,24,39,1), rgba(15,23,42,1)); }
 .gear-card.locked { opacity: 0.55; filter: grayscale(0.2); }

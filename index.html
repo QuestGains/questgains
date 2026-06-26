@@ -128,7 +128,7 @@
         <button onclick="showTab(4)"  id="tab4"  class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🦸<br>Hero</button>
         <button onclick="showTab(5)"  id="tab5"  class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">⚔️<br>Quests</button>
       </div>
-      <div class="grid grid-cols-7 gap-1">
+      <div class="grid grid-cols-8 gap-1">
         <button onclick="showTab(6)"  id="tab6"  class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏆<br>Ranks</button>
         <button onclick="showTab(7)"  id="tab7"  class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🥑<br>Nutrition</button>
         <button onclick="showTab(8)"  id="tab8"  class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🍽️<br>Meals</button>
@@ -136,6 +136,7 @@
         <button onclick="showTab(10)" id="tab10" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">📜<br>History</button>
         <button onclick="showTab(11)" id="tab11" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🏃<br>Cardio</button>
         <button onclick="showTab(12)" id="tab12" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">🛡️<br>Gear</button>
+        <button onclick="window.showProScreen()" id="tab14" class="tab-bar-btn py-2 rounded-2xl text-xs font-medium text-center">👑<br>Pro</button>
       </div>
     </div>
 
@@ -298,14 +299,15 @@
 
       <!-- Pro benefits list — always visible, above plan selector so reviewer sees it without scrolling -->
       <div class="bg-gray-900 rounded-3xl p-5 mb-4">
-        <div class="text-xs font-semibold text-green-400 uppercase tracking-widest mb-3">What's Included with Pro</div>
+        <div class="text-xs font-semibold text-green-400 uppercase tracking-widest mb-1">Free → Pro: what you unlock</div>
+        <p class="text-xs text-gray-500 mb-3">Free plan gives you 5 heroes &amp; basic logging. Pro unlocks everything below.</p>
         <ul class="space-y-2 text-sm text-gray-300">
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All 40 heroes + complete skill trees</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Jumpstart, Personal &amp; Boss Battle quests</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Rival system + challenges</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All themes unlocked</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Data export</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Priority support</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">35 additional heroes</strong> — all 40 heroes + full skill trees (free: 5 heroes only)</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">Personal &amp; Boss Battle quests</strong> — advanced challenge types (free: daily &amp; weekly only)</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">Rival Mode</strong> — challenge other players head-to-head (free: leaderboard view only)</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">20+ custom themes</strong> — unlock full theme library (free: default theme only)</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">Full data export</strong> — download your complete workout history (free: view only)</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span><span><strong class="text-white">Priority support</strong> — responses within 24 hours</span></li>
         </ul>
       </div>
 
@@ -740,8 +742,8 @@
   </div>
 
   <!-- Paywall Modal -->
-  <div id="paywall-modal" class="hidden fixed inset-0 z-[160] bg-black/80 flex items-end sm:items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-gray-900 rounded-3xl border border-green-500/20 shadow-2xl shadow-green-500/10 overflow-hidden">
+  <div id="paywall-modal" class="hidden fixed inset-0 z-[160] bg-black/80 flex items-end sm:items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-sm bg-gray-900 rounded-3xl border border-green-500/20 shadow-2xl shadow-green-500/10 overflow-y-auto max-h-[90vh] my-auto">
       <!-- Header -->
       <div class="bg-gradient-to-br from-green-900/40 to-gray-900 px-6 pt-7 pb-5 text-center">
         <div class="text-3xl mb-2">👑</div>
@@ -752,14 +754,12 @@
 
       <!-- Benefits -->
       <div class="px-6 pt-4 pb-3">
-        <div class="text-xs font-semibold text-green-400 uppercase tracking-widest mb-2">Everything included in Pro:</div>
+        <div class="text-xs font-semibold text-green-400 uppercase tracking-widest mb-2">What Pro unlocks for you:</div>
         <ul class="space-y-1.5 text-sm text-gray-300">
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All 40 heroes + complete skill trees</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> All quest types — Jumpstart, Weekly, Personal, Boss battles</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Rival system, challenges, full leaderboard</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Nutrition tracker, meal logger, barcode scanner</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Training plans, cardio tracker, data export</li>
-          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> Priority support</li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> <span><strong class="text-white">35 more heroes</strong> — go from 5 to all 40 + full skill trees</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> <span><strong class="text-white">Personal &amp; Boss Battle quests</strong> — locked on free plan</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> <span><strong class="text-white">Rival Mode</strong> — head-to-head challenges</span></li>
+          <li class="flex items-start gap-2"><span class="text-green-400 mt-0.5">✓</span> <span><strong class="text-white">20+ themes</strong> + full data export</span></li>
         </ul>
       </div>
 

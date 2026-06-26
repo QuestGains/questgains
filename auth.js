@@ -227,19 +227,29 @@ function setupAppleSignInBridge() {
     try {
       showStatus('Signing in with Apple…');
 
-      // Build a Firebase custom-token or use credential directly.
-      // Since this is a WKWebView app we use the identityToken with
-      // firebase.auth.OAuthProvider to create a Firebase credential.
+      if (!payload || !payload.identityToken) {
+        throw new Error('Apple did not return an identity token. Please try again.');
+      }
+
+      if (!state.auth) {
+        throw new Error('Firebase Auth is not initialized. Check your internet connection and try again.');
+      }
+
       const provider = new window.firebase.auth.OAuthProvider('apple.com');
-      const credential = provider.credential({
-        idToken: payload.identityToken,
-        rawNonce: undefined  // nonce not used — add for production hardening
-      });
+      // Pass identityToken only — rawNonce omitted (no nonce generated on native side).
+      // If Firebase is configured to require a nonce, generate one in native
+      // ASAuthorizationAppleIDRequest and pass it back via the payload.
+      const credential = provider.credential({ idToken: payload.identityToken });
       await state.auth.signInWithCredential(credential);
-      // onAuthStateChanged handles the rest
+      // onAuthStateChanged handles login → hideOverlay flow
     } catch(err) {
-      console.error('Apple sign-in error:', err);
-      showError(ui.loginError, err.message || 'Apple sign-in failed.');
+      console.error('[SIWA] Firebase sign-in error:', err.code, err.message);
+      // Surface the Firebase error code so it is visible during review/testing
+      const msg = err.code
+        ? `Sign-in failed (${err.code}): ${err.message}`
+        : (err.message || 'Apple sign-in failed. Please try again.');
+      showStatus('');
+      showError(ui.loginError || document.getElementById('auth-status'), msg);
     }
   };
 
