@@ -364,7 +364,8 @@
       <!-- Restore purchases -->
       <div id="pro-manage-section" class="hidden">
         <a id="pro-manage-link" href="#" onclick="event.preventDefault(); window.openCustomerPortal()" class="flex items-center justify-between bg-gray-900 rounded-3xl px-5 py-4 mb-3 hover:bg-gray-800 transition">
-          <span class="text-sm font-medium text-white">Manage Billing &amp; Subscription</span>
+          <span class="text-sm font-medium text-white">📱 Manage Subscription</span>
+          <span class="text-xs text-gray-500 mr-1">iOS Settings</span>
           <span class="text-gray-400">&rsaquo;</span>
         </a>
       </div>
@@ -858,5 +859,20 @@
       <div id="exercise-search-results" class="overflow-y-auto flex-1 space-y-2 pr-1"></div>
     </div>
   </div>
+  <!-- SIWA Debug Panel — visible on-screen, no Web Inspector needed -->
+  <!-- Activated by SIWA attempts; auto-hides after 60s or on tap -->
+  <div id="siwa-debug-panel"
+       onclick="this.style.display='none'"
+       style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999;
+              background:#0a0a0a; border-top:2px solid #22c55e; padding:12px 16px;
+              font-family:monospace; font-size:11px; color:#e5e7eb;
+              max-height:50vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="color:#22c55e; font-weight:bold; font-size:13px;">🔍 SIWA Debug</span>
+      <span style="color:#6b7280; font-size:10px;">tap to dismiss</span>
+    </div>
+    <div id="siwa-debug-content" style="white-space:pre-wrap; line-height:1.6;"></div>
+  </div>
+
 </body>
 </html>

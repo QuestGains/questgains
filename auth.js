@@ -230,6 +230,29 @@ async function registerWithEmail(event) {
 // ---------------------------------------------------------------------------
 // Sign in with Apple — native iOS bridge
 // ---------------------------------------------------------------------------
+
+// On-screen debug panel — no Safari Web Inspector required.
+// Shows nonce chain values and Firebase error codes on the device screen.
+function siwaDebug(lines) {
+  try {
+    const panel = document.getElementById('siwa-debug-panel');
+    const content = document.getElementById('siwa-debug-content');
+    if (!panel || !content) return;
+    const ts = new Date().toLocaleTimeString();
+    const text = (Array.isArray(lines) ? lines : [lines]).join('\n');
+    content.textContent = '[' + ts + ']\n' + text;
+    panel.style.display = 'block';
+    // Auto-hide after 90 seconds
+    clearTimeout(panel._hideTimer);
+    panel._hideTimer = setTimeout(() => { panel.style.display = 'none'; }, 90000);
+  } catch(e) { /* never let debug code break auth */ }
+}
+
+// Called from Swift before auth completes — shows nonce first 8 from native side
+window.siwaDebugFromNative = function(msg) {
+  siwaDebug('📱 Native: ' + msg);
+};
+
 function isNativeIOS() {
   return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['sign-in-with-apple']);
 }
@@ -247,12 +270,20 @@ function setupAppleSignInBridge() {
     try {
       showStatus('Signing in with Apple…');
 
-      // ── Diagnostic logging — visible in Safari Web Inspector / Xcode console ──
-      console.log('[SIWA-JS] onAppleSignIn called');
-      console.log('[SIWA-JS] payload keys:', payload ? Object.keys(payload) : 'null');
-      console.log('[SIWA-JS] identityToken length:', payload?.identityToken?.length ?? 'MISSING');
-      console.log('[SIWA-JS] rawNonce first 8:', payload?.rawNonce?.substring(0, 8) ?? 'MISSING');
-      console.log('[SIWA-JS] userIdentifier:', payload?.userIdentifier ?? 'MISSING');
+      // ── On-screen debug panel (no Web Inspector needed) ──
+      const _dbgNonce8  = payload?.rawNonce?.substring(0, 8) ?? 'MISSING';
+      const _dbgTokLen  = payload?.identityToken?.length ?? 'MISSING';
+      const _dbgKeys    = payload ? Object.keys(payload).join(', ') : 'null payload';
+      siwaDebug([
+        'JS onAppleSignIn called',
+        'payload keys: ' + _dbgKeys,
+        'rawNonce (first 8): ' + _dbgNonce8,
+        'identityToken length: ' + _dbgTokLen,
+        'userIdentifier: ' + (payload?.userIdentifier ?? 'MISSING'),
+        '→ calling signInWithCredential...'
+      ]);
+      // Also log to console for Xcode
+      console.log('[SIWA-JS] onAppleSignIn — nonce8:', _dbgNonce8, 'tokenLen:', _dbgTokLen);
       // ── End diagnostics ──
 
       if (!payload || !payload.identityToken) {
@@ -282,10 +313,16 @@ function setupAppleSignInBridge() {
       // onAuthStateChanged handles login → hideOverlay flow
     } catch(err) {
       console.error('[SIWA] Firebase sign-in error:', err.code, err.message);
-      // Surface the Firebase error code so it is visible during review/testing
       const msg = err.code
         ? `Sign-in failed (${err.code}): ${err.message}`
         : (err.message || 'Apple sign-in failed. Please try again.');
+      // Show error on-screen debug panel too
+      siwaDebug([
+        '❌ Firebase error: ' + (err.code || 'unknown'),
+        err.message || '',
+        'rawNonce was: ' + (payload?.rawNonce?.substring(0,8) ?? 'nil'),
+        'tokenLen was: ' + (payload?.identityToken?.length ?? 'nil')
+      ]);
       showStatus('');
       showError(ui.loginError || document.getElementById('auth-status'), msg);
     }

@@ -106,9 +106,23 @@ window.restoreIAPPurchases = function() {
 };
 
 window.openCustomerPortal = async function openCustomerPortal() {
-  // Guard: free trial and founding member accounts have no Stripe customer — portal would crash
+  // ── Hard iOS guard — ALWAYS redirect to iOS Settings on native iOS builds ──
+  // On iOS, ALL subscription management (cancel, upgrade, downgrade) goes through
+  // Apple's in-app purchase system and iOS Settings → Subscriptions.
+  // Stripe portal is for web subscribers only. Calling it on iOS causes a crash
+  // because no Stripe customer exists for IAP-sourced subscriptions.
+  if (isNativeIOSIAP()) {
+    alert(
+      'Manage your QuestGains subscription in iOS Settings:\n\n' +
+      'Settings → [Your Name] → Subscriptions → QuestGains\n\n' +
+      'There you can cancel, change plan, or view your renewal date.'
+    );
+    return;
+  }
+
+  // Web-only path: create Stripe portal session
   if (!window._isSavedPaidSubscriber || !window._isSavedPaidSubscriber()) {
-    alert('No active paid subscription found on this account.\n\nIf you subscribed via the App Store, use iOS Settings → Subscriptions to manage your plan.');
+    alert('No active paid subscription found on this account.');
     return;
   }
   try {
@@ -120,8 +134,7 @@ window.openCustomerPortal = async function openCustomerPortal() {
     }
   } catch (err) {
     console.error('[subscription] openCustomerPortal failed:', err);
-    // On iOS, direct to Settings as fallback — Stripe portal is web-only
-    alert('Unable to open billing portal.\n\nTo manage your subscription, go to:\niOS Settings → Apple ID → Subscriptions → QuestGains');
+    alert('Unable to open billing portal. Please try again or contact support@questgains.app');
   }
 };
 
