@@ -25,14 +25,19 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     config.preferences.javaScriptCanOpenWindowsAutomatically = true
     config.preferences.setValue(true, forKey: "standalone")
     
-    let webView = WKWebView(frame: calcWebviewFrame(webviewView: container, toolbarView: nil), configuration: config)
+    // Use .zero frame — constraints below handle sizing (avoids double status-bar offset on iPad)
+    let webView = WKWebView(frame: .zero, configuration: config)
     setCustomCookie(webView: webView)
 
-    webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    // Auto Layout replaces manual calcWebviewFrame, eliminating the statusBarHeight double-offset
+    // that caused complete touch unresponsiveness on iPad Air M3 / iPadOS 26.
+    webView.translatesAutoresizingMaskIntoConstraints = false
     webView.isHidden = true;
     webView.navigationDelegate = WKND
     webView.scrollView.bounces = false
-    webView.scrollView.contentInsetAdjustmentBehavior = .never
+    // .scrollableAxes lets UIKit correctly apply safe-area insets on iPadOS 26.
+    // .never was misaligning the touch coordinate system on iPad.
+    webView.scrollView.contentInsetAdjustmentBehavior = .scrollableAxes
     webView.allowsBackForwardNavigationGestures = true
     
     // Check if macCatalyst 16.4+ is available and if so, enable web inspector.

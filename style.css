@@ -3,9 +3,20 @@
   --theme-bg: #030712;
 }
 
+/* iPad / iPadOS 26 touch fix: ensure full-screen overlays never silently intercept
+   touches when logically hidden. Tailwind .hidden = display:none which already
+   blocks pointer events, but belt-and-suspenders for any visibility-only hide. */
+#login-overlay.hidden,
+#class-overlay.hidden {
+  pointer-events: none !important;
+  visibility: hidden;
+}
+
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
+  /* Ensure the root doesn't consume touch events before they reach elements */
+  touch-action: pan-y;
 }
 
 * {

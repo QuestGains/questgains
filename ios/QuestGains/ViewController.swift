@@ -52,7 +52,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        QuestGains.webView.frame = calcWebviewFrame(webviewView: webviewView, toolbarView: nil)
+        // Frame is managed by Auto Layout constraints set in initWebView().
+        // calcWebviewFrame() removed — it was double-offsetting statusBarHeight on iPad.
     }
     
     @objc func keyboardWillHide(_ notification: NSNotification) {
@@ -62,6 +63,16 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     func initWebView() {
         QuestGains.webView = createWebView(container: webviewView, WKSMH: self, WKND: self, NSO: self, VC: self)
         webviewView.addSubview(QuestGains.webView);
+        
+        // Auto Layout constraints — WebView always fills its container exactly.
+        // This replaces the manual calcWebviewFrame() call that caused touch
+        // unresponsiveness on iPad Air M3 / iPadOS 26 by double-counting statusBarHeight.
+        NSLayoutConstraint.activate([
+            QuestGains.webView.topAnchor.constraint(equalTo: webviewView.topAnchor),
+            QuestGains.webView.bottomAnchor.constraint(equalTo: webviewView.bottomAnchor),
+            QuestGains.webView.leadingAnchor.constraint(equalTo: webviewView.leadingAnchor),
+            QuestGains.webView.trailingAnchor.constraint(equalTo: webviewView.trailingAnchor)
+        ])
         
         QuestGains.webView.uiDelegate = self;
         
