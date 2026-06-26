@@ -235,11 +235,19 @@ function setupAppleSignInBridge() {
         throw new Error('Firebase Auth is not initialized. Check your internet connection and try again.');
       }
 
+      if (!payload.rawNonce) {
+        throw new Error('Apple sign-in is missing the nonce. Ensure the native layer generates a nonce before calling ASAuthorizationAppleIDProvider.');
+      }
+
       const provider = new window.firebase.auth.OAuthProvider('apple.com');
-      // Pass identityToken only — rawNonce omitted (no nonce generated on native side).
-      // If Firebase is configured to require a nonce, generate one in native
-      // ASAuthorizationAppleIDRequest and pass it back via the payload.
-      const credential = provider.credential({ idToken: payload.identityToken });
+      // rawNonce is generated in Swift (SignInWithApple.swift → randomNonceString()),
+      // SHA256-hashed into the ASAuthorizationAppleIDRequest.nonce, and Apple embeds
+      // the hash in the returned identityToken. Firebase verifies the hash matches
+      // rawNonce to confirm the request originated from this app.
+      const credential = provider.credential({
+        idToken: payload.identityToken,
+        rawNonce: payload.rawNonce
+      });
       await state.auth.signInWithCredential(credential);
       // onAuthStateChanged handles login → hideOverlay flow
     } catch(err) {

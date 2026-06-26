@@ -1,6 +1,7 @@
 import UIKit
 import AuthenticationServices
 import Security
+import CryptoKit
 
 // MARK: - Keychain Helper
 
@@ -70,12 +71,41 @@ struct KeychainHelper {
     }
 }
 
+// MARK: - Nonce Helpers (required by Firebase Apple Sign-In)
+
+/// Generates a cryptographically random nonce string.
+private func randomNonceString(length: Int = 32) -> String {
+    precondition(length > 0)
+    var randomBytes = [UInt8](repeating: 0, count: length)
+    let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+    if errorCode != errSecSuccess {
+        fatalError("Unable to generate nonce — SecRandomCopyBytes failed with OSStatus \(errorCode)")
+    }
+    let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+    let nonce = randomBytes.map { byte in
+        charset[Int(byte) % charset.count]
+    }
+    return String(nonce)
+}
+
+/// Returns the SHA256 hex digest of a string (for passing to ASAuthorizationAppleIDRequest.nonce).
+@available(iOS 13.0, *)
+private func sha256(_ input: String) -> String {
+    let inputData = Data(input.utf8)
+    let hashed = SHA256.hash(data: inputData)
+    return hashed.compactMap { String(format: "%02x", $0) }.joined()
+}
+
 // MARK: - Sign In With Apple Manager
 
 class AppleSignInManager: NSObject {
 
     static let shared = AppleSignInManager()
     static let userIdentifierKey = "appleSignInUserIdentifier"
+
+    // Raw nonce generated before each sign-in request.
+    // Must be passed to Firebase credential to prove the request originates from this app.
+    private var currentNonce: String?
 
     // Must be strong — ASAuthorizationController is NOT retained by the system on iOS 26+.
     // If this goes out of scope, the controller is deallocated and the delegate never fires.
@@ -111,8 +141,20 @@ class AppleSignInManager: NSObject {
         print("[SIWA] signIn: captured window=\(String(describing: self.presentationAnchorWindow)), scene state=\(String(describing: self.presentationAnchorWindow?.windowScene?.activationState.rawValue))")
         self.completion = completion
 
+        // Generate nonce — must be set before performRequests() and passed to Firebase
+        let rawNonce = randomNonceString()
+        currentNonce = rawNonce
+        let hashedNonce: String
+        if #available(iOS 13.0, *) {
+            hashedNonce = sha256(rawNonce)
+        } else {
+            // iOS 12 fallback (extremely unlikely for App Store builds targeting iOS 14+)
+            hashedNonce = rawNonce
+        }
+
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
+        request.nonce = hashedNonce
 
         // Store the controller as a property — local variables are deallocated immediately
         // after this method returns, which silently kills the auth flow on iOS 26+.
@@ -189,7 +231,11 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
         }
 
         // Build result dict for the WebView
+        // Include the raw nonce so JS can pass it to Firebase OAuthProvider.credential()
         var result: [String: String] = ["userIdentifier": userIdentifier]
+        if let nonce = self.currentNonce {
+            result["rawNonce"] = nonce
+        }
 
         if let email = credential.email {
             result["email"] = email
