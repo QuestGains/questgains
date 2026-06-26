@@ -1219,7 +1219,7 @@ window.selectPlan = function selectPlan(plan) {
   }
   const upgradeBtn = document.getElementById('pro-upgrade-btn');
   if (upgradeBtn) {
-    const labels = { monthly: 'Upgrade — $4.99/mo', annual: 'Upgrade — $39.99/yr', founding: 'Become a Founding Member' };
+    const labels = { monthly: 'Subscribe — 1 Month · $4.99', annual: 'Subscribe — 1 Year · $39.99', founding: 'Become a Founding Member' };
     upgradeBtn.textContent = labels[plan] || 'Upgrade to Pro';
   }
 };
