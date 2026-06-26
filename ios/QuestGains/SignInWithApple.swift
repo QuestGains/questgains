@@ -148,13 +148,18 @@ class AppleSignInManager: NSObject {
         if #available(iOS 13.0, *) {
             hashedNonce = sha256(rawNonce)
         } else {
-            // iOS 12 fallback (extremely unlikely for App Store builds targeting iOS 14+)
             hashedNonce = rawNonce
         }
+
+        // Diagnostic: confirm nonce generation — first 8 chars visible in Xcode/Console
+        print("[SIWA-nonce] raw nonce (first 8): \(rawNonce.prefix(8))")
+        print("[SIWA-nonce] SHA256 hash (first 8): \(hashedNonce.prefix(8))")
+        print("[SIWA-nonce] nonce length: \(rawNonce.count), hash length: \(hashedNonce.count)")
 
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         request.nonce = hashedNonce
+        print("[SIWA-nonce] request.nonce set — proceeding to performRequests()")
 
         // Store the controller as a property — local variables are deallocated immediately
         // after this method returns, which silently kills the auth flow on iOS 26+.
@@ -235,6 +240,9 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
         var result: [String: String] = ["userIdentifier": userIdentifier]
         if let nonce = self.currentNonce {
             result["rawNonce"] = nonce
+            print("[SIWA-nonce] rawNonce included in payload (first 8): \(nonce.prefix(8))")
+        } else {
+            print("[SIWA-nonce] WARNING: currentNonce is nil — rawNonce will NOT be in payload!")
         }
 
         if let email = credential.email {
@@ -250,6 +258,9 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
         if let identityToken = credential.identityToken,
            let tokenString = String(data: identityToken, encoding: .utf8) {
             result["identityToken"] = tokenString
+            print("[SIWA-nonce] identityToken included, length: \(tokenString.count)")
+        } else {
+            print("[SIWA-nonce] WARNING: identityToken is nil or not UTF-8 encodable!")
         }
         if let authCode = credential.authorizationCode,
            let codeString = String(data: authCode, encoding: .utf8) {

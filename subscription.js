@@ -106,14 +106,22 @@ window.restoreIAPPurchases = function() {
 };
 
 window.openCustomerPortal = async function openCustomerPortal() {
+  // Guard: free trial and founding member accounts have no Stripe customer — portal would crash
+  if (!window._isSavedPaidSubscriber || !window._isSavedPaidSubscriber()) {
+    alert('No active paid subscription found on this account.\n\nIf you subscribed via the App Store, use iOS Settings → Subscriptions to manage your plan.');
+    return;
+  }
   try {
     const result = await callFunction('createPortalSession', {});
     if (result?.url) {
       window.location.href = result.url;
+    } else {
+      throw new Error('Portal session URL not returned');
     }
   } catch (err) {
     console.error('[subscription] openCustomerPortal failed:', err);
-    alert('Unable to open billing portal. Please try again.');
+    // On iOS, direct to Settings as fallback — Stripe portal is web-only
+    alert('Unable to open billing portal.\n\nTo manage your subscription, go to:\niOS Settings → Apple ID → Subscriptions → QuestGains');
   }
 };
 
@@ -178,6 +186,12 @@ window.handleCheckoutReturn = async function handleCheckoutReturn() {
 };
 
 // ── Public API ─────────────────────────────────────────────────────────────
+// Returns true ONLY for real paid subscribers (isPro from Firestore/IAP).
+// Does NOT include free trial users. Use this to gate Stripe portal access.
+window._isSavedPaidSubscriber = function _isSavedPaidSubscriber() {
+  return _subscriptionState.isPro === true || _subscriptionState.isFoundingMember === true;
+};
+
 window.isProUser = function isProUser() {
   if (_subscriptionState.isPro) return true;
   if (_subscriptionState.isFoundingMember) return true;

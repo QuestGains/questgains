@@ -1237,17 +1237,29 @@ async function renderProScreen() {
   const trialDays = typeof window.getTrialDaysRemaining === 'function' ? window.getTrialDaysRemaining() : 0;
   const trialExpired = typeof window.isTrialExpired === 'function' && window.isTrialExpired();
 
+  // isTrial = isProUser() true but only because of free trial, not a paid subscription
+  const isTrial = trialDays > 0 && !_isSavedPaidSubscriber();
   if (isPro) {
-    const planLabel = isFounding ? '👑 Founding Member' : (trialDays > 0 ? `🎉 Free Trial — ${trialDays} day${trialDays !== 1 ? 's' : ''} left` : '✅ QuestGains Pro');
+    const planLabel = isFounding ? '👑 Founding Member'
+      : isTrial ? `🎉 Free Trial — ${trialDays} day${trialDays !== 1 ? 's' : ''} left`
+      : '✅ QuestGains Pro';
     statusCard.innerHTML = `
       <div class="text-center py-2">
-        <div class="text-3xl mb-2">${isFounding ? '👑' : '✅'}</div>
+        <div class="text-3xl mb-2">${isFounding ? '👑' : isTrial ? '🎉' : '✅'}</div>
         <div class="text-lg font-bold text-green-400">${planLabel}</div>
-        <div class="text-sm text-gray-400 mt-1">You have full Pro access</div>
+        <div class="text-sm text-gray-400 mt-1">${isTrial ? 'Free trial active — upgrade to keep access' : 'You have full Pro access'}</div>
       </div>`;
-    if (planSelector) planSelector.classList.add('hidden');
-    if (manageSection) manageSection.classList.remove('hidden');
-    if (heroPropBtn) heroPropBtn.textContent = '👑 Pro Member';
+    if (planSelector) {
+      // Show plan selector for trial users so they can upgrade
+      if (isTrial) planSelector.classList.remove('hidden');
+      else planSelector.classList.add('hidden');
+    }
+    // Only show Stripe billing portal for PAID subscribers — trials have no Stripe customer
+    if (manageSection) {
+      if (isTrial || isFounding) manageSection.classList.add('hidden');
+      else manageSection.classList.remove('hidden');
+    }
+    if (heroPropBtn) heroPropBtn.textContent = isTrial ? '🎉 Free Trial Active' : '👑 Pro Member';
   } else {
     statusCard.innerHTML = `
       <div class="flex items-center gap-3">

@@ -168,6 +168,17 @@ async function handleSignedOut() {
   }
 
   setUserEmail(null);
+
+  // Clear form fields on sign-out so iOS autocomplete doesn't re-fill stale credentials
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const registerEmail = document.getElementById('register-email');
+  const registerPassword = document.getElementById('register-password');
+  if (loginEmail) loginEmail.value = '';
+  if (loginPassword) loginPassword.value = '';
+  if (registerEmail) registerEmail.value = '';
+  if (registerPassword) registerPassword.value = '';
+
   showLogin();
 }
 
@@ -182,7 +193,16 @@ async function signInWithEmail(event) {
   try {
     await state.auth.signInWithEmailAndPassword(email, password);
   } catch (error) {
-    showError(ui.loginError, error.message || 'Unable to sign in.');
+    // Firebase SDK 10.x merges auth/wrong-password + auth/user-not-found into auth/invalid-credential
+    let msg = error.message || 'Unable to sign in.';
+    if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+      msg = 'Email or password is incorrect. If you previously signed in with Apple, use the Apple button instead.';
+    } else if (error.code === 'auth/too-many-requests') {
+      msg = 'Too many failed attempts. Please wait a few minutes and try again.';
+    } else if (error.code === 'auth/network-request-failed') {
+      msg = 'Network error. Check your connection and try again.';
+    }
+    showError(ui.loginError, msg);
   }
 }
 
@@ -227,6 +247,14 @@ function setupAppleSignInBridge() {
     try {
       showStatus('Signing in with Apple…');
 
+      // ── Diagnostic logging — visible in Safari Web Inspector / Xcode console ──
+      console.log('[SIWA-JS] onAppleSignIn called');
+      console.log('[SIWA-JS] payload keys:', payload ? Object.keys(payload) : 'null');
+      console.log('[SIWA-JS] identityToken length:', payload?.identityToken?.length ?? 'MISSING');
+      console.log('[SIWA-JS] rawNonce first 8:', payload?.rawNonce?.substring(0, 8) ?? 'MISSING');
+      console.log('[SIWA-JS] userIdentifier:', payload?.userIdentifier ?? 'MISSING');
+      // ── End diagnostics ──
+
       if (!payload || !payload.identityToken) {
         throw new Error('Apple did not return an identity token. Please try again.');
       }
@@ -248,7 +276,9 @@ function setupAppleSignInBridge() {
         idToken: payload.identityToken,
         rawNonce: payload.rawNonce
       });
+      console.log('[SIWA-JS] OAuthProvider credential created — calling signInWithCredential');
       await state.auth.signInWithCredential(credential);
+      console.log('[SIWA-JS] signInWithCredential succeeded');
       // onAuthStateChanged handles login → hideOverlay flow
     } catch(err) {
       console.error('[SIWA] Firebase sign-in error:', err.code, err.message);
