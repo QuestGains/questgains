@@ -1276,18 +1276,12 @@ async function renderProScreen() {
     }
   }
 
-  // ── Manage Subscription button — show on iOS for ALL users, web for paid only ──
+  // ── Manage Subscription button ──
+  // iOS: always visible for all users — taps open iOS Settings subscriptions path.
+  // Web: visible for paid subscribers only (no Stripe customer for trial/founding).
   if (manageSection) {
-    const onNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
-      (window.webkit.messageHandlers['sign-in-with-apple'] ||
-       window.webkit.messageHandlers['open-subscriptions']));
-    if (onNativeIOS) {
-      manageSection.classList.remove('hidden'); // iOS: always visible — opens Settings
-    } else if (!isTrial && !isFounding && isPro) {
-      manageSection.classList.remove('hidden'); // Web: paid subscribers only
-    } else {
-      manageSection.classList.add('hidden');
-    }
+    const _onNativeIOS = !!(window.webkit && window.webkit.messageHandlers);
+    manageSection.classList.toggle('hidden', !_onNativeIOS && (isTrial || isFounding || !isPro));
   }
 
   const foundingEl = document.getElementById('plan-founding');

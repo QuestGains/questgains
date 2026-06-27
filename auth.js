@@ -128,13 +128,8 @@ async function handleAuthenticatedUser(user) {
       console.warn('initSubscription failed:', err);
     }
   }
-  if (typeof window.startTrial === 'function') {
-    try {
-      await window.startTrial(user.uid);
-    } catch (err) {
-      console.warn('startTrial failed:', err);
-    }
-  }
+  // Auto-trial removed — users start on free plan.
+  // Trial is opt-in only via "Start 14-Day Free Trial" button on paywall.
   if (typeof window.initNotifications === 'function') {
     window.initNotifications(user.uid).catch(() => {});
   }
