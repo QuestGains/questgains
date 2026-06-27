@@ -20,13 +20,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
-  <script src="firebase-config.js?v=63&cb=1782588896"></script>
+  <script src="firebase-config.js?v=70"></script>
   <script src="db.js"></script>
-  <script src="username.js?v=63&cb=1782588896"></script>
-  <script src="subscription.js?v=63&cb=1782588896"></script>
-  <script src="notifications.js?v=63&cb=1782588896"></script>
-  <script src="social.js?v=63&cb=1782588896"></script>
-  <script src="auth.js?v=63&cb=1782588896"></script>
+  <script src="username.js?v=70"></script>
+  <script src="subscription.js?v=70"></script>
+  <script src="notifications.js?v=70"></script>
+  <script src="social.js?v=70"></script>
+  <script src="auth.js?v=70"></script>
 </head>
 <body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
   <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
@@ -363,7 +363,19 @@
 
       <!-- Restore purchases -->
       <div id="pro-manage-section" class="hidden">
-        <a id="pro-manage-link" href="#" onclick="event.preventDefault(); window.openCustomerPortal()" class="flex items-center justify-between bg-gray-900 rounded-3xl px-5 py-4 mb-3 hover:bg-gray-800 transition">
+        <a id="pro-manage-link" href="#" onclick="
+          event.preventDefault();
+          event.stopPropagation();
+          try {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['open-subscriptions']) {
+              window.webkit.messageHandlers['open-subscriptions'].postMessage({});
+            } else if (typeof window.openCustomerPortal === 'function') {
+              window.openCustomerPortal();
+            } else {
+              window.open('https://apps.apple.com/account/subscriptions', '_blank');
+            }
+          } catch(e) { alert('Subscription error: ' + e.message); }
+        " class="flex items-center justify-between bg-gray-900 rounded-3xl px-5 py-4 mb-3 hover:bg-gray-800 transition">
           <span class="text-sm font-medium text-white">📱 Manage Subscription</span>
           <span class="text-xs text-gray-500 mr-1">iOS Settings</span>
           <span class="text-gray-400">&rsaquo;</span>
@@ -656,8 +668,8 @@
     </div>
   </div>
 
-  <script src="data.js?v=63&cb=1782588896"></script>
-  <script src="app.js?v=63&cb=1782588896"></script>
+  <script src="data.js?v=70"></script>
+  <script src="app.js?v=70"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

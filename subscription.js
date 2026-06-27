@@ -1,8 +1,6 @@
-// QuestGains Subscription System v2.0
-// DIAGNOSTIC — remove after confirming cache bust works
-console.log('subscription.js v63 loaded');
-alert('subscription.js v63 loaded — cache bust confirmed');
-// Phase II: Real Stripe checkout via Firebase Cloud Functions
+// QuestGains Subscription — build 70 marker
+window._sqv = "subscription.js v70 loaded";
+Phase II: Real Stripe checkout via Firebase Cloud Functions
 
 // ── Module-level state ────────────────────────────────────────────────────
 let _subscriptionState = {
