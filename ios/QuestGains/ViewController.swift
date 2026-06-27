@@ -149,7 +149,16 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     
     @objc func loadRootUrl(cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy) {
         startLoadTimeout()
-        QuestGains.webView.load(URLRequest(url: SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch ?? rootUrl, cachePolicy: cachePolicy))
+        // Append timestamp query string to bust any disk/memory cache on every load.
+        // deepLink targets (universal/shortcut links) load as-is; only rootUrl gets cb=.
+        let targetUrl: URL
+        if let deepLink = SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch {
+            targetUrl = deepLink
+        } else {
+            let ts = Int(Date().timeIntervalSince1970)
+            targetUrl = URL(string: "\(rootUrl.absoluteString)?cb=\(ts)") ?? rootUrl
+        }
+        QuestGains.webView.load(URLRequest(url: targetUrl, cachePolicy: cachePolicy))
     }
 
     private func addRetryButton() {
