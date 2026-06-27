@@ -226,23 +226,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         self.animateConnectionProblem(false)
         self.retryButton?.isHidden = true
 
-        // DIAGNOSTIC (build 70): confirm WebView loaded and JS version via native alert.
-        // Evaluates document.title + checks subscription.js load marker.
-        webView.evaluateJavaScript(
-            "(window._sqv || 'subscription.js: unknown version') + ' | title: ' + document.title.substring(0,30)"
-        ) { result, _ in
-            DispatchQueue.main.async {
-                let info = result as? String ?? "eval failed"
-                let alert = UIAlertController(
-                    title: "Build 70 — WebView Loaded",
-                    message: info,
-                    preferredStyle: .alert
-                )
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                self.present(alert, animated: true)
-            }
-        }
-
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             QuestGains.webView.isHidden = false
             self.loadingView.isHidden = true
