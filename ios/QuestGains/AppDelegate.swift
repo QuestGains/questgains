@@ -14,6 +14,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         FirebaseApp.configure()
 
+        // DIAGNOSTIC: native launch confirmation — remove after cache issue is resolved
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if let windowScene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+               let rootVC = windowScene.keyWindow?.rootViewController {
+                let alert = UIAlertController(
+                    title: "Build 66 — Native Running",
+                    message: "Cache policy: reloadIgnoringLocalAndRemoteCacheData. Tap OK then check if subscription.js v63 alert appears.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                rootVC.present(alert, animated: true)
+            }
+        }
+
         // Sign in with Apple — check credential state for any previously signed-in user
         AppleSignInManager.checkCredentialState { state in
             // Credential state is handled inside checkCredentialState;

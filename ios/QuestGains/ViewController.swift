@@ -43,7 +43,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         super.viewDidLoad()
         initWebView()
         initToolbarView()
-        loadRootUrl()
+        // Force-bypass cache on every launch — GitHub Pages JS is always fetched fresh.
+        loadRootUrl(cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
     
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification , object: nil)
 
@@ -199,10 +200,10 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     ) {
         switch loadingMode {
         case LoadingMode.defaultCachePolicy:
-            loadRootUrl(cachePolicy: .useProtocolCachePolicy);
+            loadRootUrl(cachePolicy: .reloadIgnoringLocalAndRemoteCacheData);
 
         case LoadingMode.forceCache:
-            loadRootUrl(cachePolicy: .useProtocolCachePolicy);
+            loadRootUrl(cachePolicy: .reloadIgnoringLocalAndRemoteCacheData);
         }
 
         self.loadingMode = loadingMode
