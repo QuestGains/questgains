@@ -356,24 +356,40 @@ extension ViewController: WKScriptMessageHandler {
   // MARK: - Open iOS Subscription Settings
 
   func handleOpenSubscriptions() {
-      // Opens Apple's native subscription management screen directly.
-      // Skip canOpenURL — itms-apps:// always works on device but canOpenURL
-      // returns false unless the scheme is declared in LSApplicationQueriesSchemes.
-      if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions") {
-          UIApplication.shared.open(url, options: [:]) { success in
+      // Layer 1: try itms-apps:// deep link to Apple Subscriptions screen.
+      // Layer 2: fall back to https:// universal link (works on all devices).
+      // Layer 3: always-reliable UIAlertController with instructions.
+      print("[subscriptions] handleOpenSubscriptions called")
+
+      func showFallbackAlert() {
+          let alert = UIAlertController(
+              title: "Manage Subscription",
+              message: "To manage your QuestGains subscription:\n\nSettings → [Your Name] → Subscriptions → QuestGains",
+              preferredStyle: .alert
+          )
+          alert.addAction(UIAlertAction(title: "OK", style: .default))
+          self.present(alert, animated: true)
+      }
+
+      if let itmsURL = URL(string: "itms-apps://apps.apple.com/account/subscriptions") {
+          UIApplication.shared.open(itmsURL, options: [:]) { success in
+              print("[subscriptions] itms-apps:// open success=\(success)")
               if !success {
-                  // Fallback: show Settings path as alert
-                  DispatchQueue.main.async {
-                      let alert = UIAlertController(
-                          title: "Manage Subscription",
-                          message: "Go to Settings → [Your Name] → Subscriptions → QuestGains to manage your subscription.",
-                          preferredStyle: .alert
-                      )
-                      alert.addAction(UIAlertAction(title: "OK", style: .default))
-                      self.present(alert, animated: true)
+                  // Layer 2: https universal link
+                  if let httpsURL = URL(string: "https://apps.apple.com/account/subscriptions") {
+                      UIApplication.shared.open(httpsURL, options: [:]) { success2 in
+                          print("[subscriptions] https:// open success=\(success2)")
+                          if !success2 {
+                              DispatchQueue.main.async { showFallbackAlert() }
+                          }
+                      }
+                  } else {
+                      DispatchQueue.main.async { showFallbackAlert() }
                   }
               }
           }
+      } else {
+          showFallbackAlert()
       }
   }
 

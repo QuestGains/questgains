@@ -107,17 +107,29 @@ window.restoreIAPPurchases = function() {
 
 window.openCustomerPortal = async function openCustomerPortal() {
   // ── Hard iOS guard — ALWAYS redirect to iOS Settings on native iOS builds ──
-  // On iOS, ALL subscription management (cancel, upgrade, downgrade) goes through
-  // Apple's in-app purchase system and iOS Settings → Subscriptions.
-  // Stripe portal is for web subscribers only. Calling it on iOS causes a crash
-  // because no Stripe customer exists for IAP-sourced subscriptions.
-  if (isNativeIOSIAP()) {
+  // Use any webkit.messageHandlers presence as the iOS signal — checking
+  // specifically for 'iap-purchase' can return false if StoreKit hasn't
+  // initialized yet or bracket handler access fails. Any messageHandler
+  // present = we are inside the native WKWebView shell.
+  const isNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
+    (window.webkit.messageHandlers['sign-in-with-apple'] ||
+     window.webkit.messageHandlers['iap-purchase'] ||
+     window.webkit.messageHandlers['open-subscriptions']));
+
+  console.log('[subscription] openCustomerPortal: isNativeIOS=' + isNativeIOS +
+    ' handlers=' + (window.webkit ? Object.keys(window.webkit.messageHandlers || {}).join(',') : 'none'));
+
+  if (isNativeIOS) {
     // Open Apple's native subscription management screen directly via native bridge.
     // Avoids Stripe portal entirely — required for IAP-sourced subscriptions on iOS.
     try {
       window.webkit.messageHandlers['open-subscriptions'].postMessage({});
     } catch (e) {
-      console.error('[subscription] open-subscriptions handler not available:', e);
+      console.error('[subscription] open-subscriptions handler error:', e);
+      // Belt-and-suspenders: handler failed, show instructions directly
+      alert('To manage your QuestGains subscription, go to:
+
+iOS Settings → [Your Name] → Subscriptions → QuestGains');
     }
     return;
   }
