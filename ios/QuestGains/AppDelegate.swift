@@ -12,8 +12,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-// TODO: if we're using Firebase, uncomment next string
-        //FirebaseApp.configure()
+        FirebaseApp.configure()
 
         // Sign in with Apple — check credential state for any previously signed-in user
         AppleSignInManager.checkCredentialState { state in
@@ -45,8 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       //      options: authOptions,
       //      completionHandler: {_, _ in })
 
-// TODO: if we're using Firebase, uncomment next string
-        // application.registerForRemoteNotifications()
+        application.registerForRemoteNotifications()
 
         // [END register_for_notifications]
         return true

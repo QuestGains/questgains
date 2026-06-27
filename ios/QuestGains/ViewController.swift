@@ -348,6 +348,21 @@ extension ViewController: WKScriptMessageHandler {
         if message.name == "iap-restore" {
             handleIAPRestore()
         }
+        if message.name == "open-subscriptions" {
+            handleOpenSubscriptions()
+        }
+  }
+
+  // MARK: - Open iOS Subscription Settings
+
+  func handleOpenSubscriptions() {
+      // Opens Apple's native subscription management screen directly.
+      // This is the required path for all subscription management on iOS —
+      // no Stripe portal, no WebView, no intermediary.
+      if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions"),
+         UIApplication.shared.canOpenURL(url) {
+          UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      }
   }
 
   // MARK: - In-App Purchase bridge (StoreKit 2)

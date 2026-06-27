@@ -159,15 +159,6 @@ class AppleSignInManager: NSObject {
         print("[SIWA-nonce] raw nonce (first 8): \(nonce8)")
         print("[SIWA-nonce] SHA256 hash (first 8): \(hash8)")
         print("[SIWA-nonce] nonce length: \(rawNonce.count), hash length: \(hashedNonce.count)")
-        // Push to JS on-screen debug panel — no Web Inspector needed
-        let debugMsg = "Swift nonce(8): \(nonce8) | hash(8): \(hash8) | len: \(rawNonce.count)"
-        let escapedMsg = debugMsg.replacingOccurrences(of: "'", with: "\\'")
-        DispatchQueue.main.async {
-            QuestGains.webView?.evaluateJavaScript(
-                "if(window.siwaDebugFromNative){window.siwaDebugFromNative('\(escapedMsg)');}",
-                completionHandler: nil)
-        }
-
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         request.nonce = hashedNonce

@@ -17,6 +17,7 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.add(WKSMH, name: "sign-in-with-apple")
     userContentController.add(WKSMH, name: "iap-purchase")
     userContentController.add(WKSMH, name: "iap-restore")
+    userContentController.add(WKSMH, name: "open-subscriptions")
 
     config.userContentController = userContentController
 
@@ -145,6 +146,19 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
 
                 let matchingHostOrigin = allowedOrigins.first(where: { requestHost.range(of: $0) != nil })
                 if (matchingHostOrigin != nil) {
+                    // Intercept user-tapped links to legal/auxiliary pages — open in
+                    // SFSafariViewController so the user can dismiss and return to the app.
+                    let auxiliaryPaths = ["/questgains/terms.html", "/questgains/privacy.html",
+                                          "/questgains/privacy-policy.html", "/questgains/delete-account.html"]
+                    let isAuxiliaryPage = auxiliaryPaths.contains(where: { requestUrl.path == $0 })
+                    let isUserTap = navigationAction.navigationType == .linkActivated
+                    if isAuxiliaryPage || (isUserTap && requestUrl.path != "/questgains/" && requestUrl.path != "/questgains") {
+                        decisionHandler(.cancel)
+                        let safari = SFSafariViewController(url: requestUrl)
+                        safari.modalPresentationStyle = .pageSheet
+                        self.present(safari, animated: true, completion: nil)
+                        return
+                    }
                     // Open in main webview
                     decisionHandler(.allow)
                     if (!toolbarView.isHidden) {

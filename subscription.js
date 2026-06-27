@@ -112,11 +112,13 @@ window.openCustomerPortal = async function openCustomerPortal() {
   // Stripe portal is for web subscribers only. Calling it on iOS causes a crash
   // because no Stripe customer exists for IAP-sourced subscriptions.
   if (isNativeIOSIAP()) {
-    alert(
-      'Manage your QuestGains subscription in iOS Settings:\n\n' +
-      'Settings → [Your Name] → Subscriptions → QuestGains\n\n' +
-      'There you can cancel, change plan, or view your renewal date.'
-    );
+    // Open Apple's native subscription management screen directly via native bridge.
+    // Avoids Stripe portal entirely — required for IAP-sourced subscriptions on iOS.
+    try {
+      window.webkit.messageHandlers['open-subscriptions'].postMessage({});
+    } catch (e) {
+      console.error('[subscription] open-subscriptions handler not available:', e);
+    }
     return;
   }
 
