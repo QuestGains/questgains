@@ -1254,21 +1254,7 @@ async function renderProScreen() {
       if (isTrial) planSelector.classList.remove('hidden');
       else planSelector.classList.add('hidden');
     }
-    // Manage section: on native iOS always show for any pro/trial/founding user —
-    // it opens iOS Settings path, not Stripe. On web, hide for trial/founding
-    // users who have no Stripe customer.
-    if (manageSection) {
-      const onNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
-        (window.webkit.messageHandlers['sign-in-with-apple'] ||
-         window.webkit.messageHandlers['open-subscriptions']));
-      if (onNativeIOS) {
-        manageSection.classList.remove('hidden'); // always show on iOS
-      } else if (isTrial || isFounding) {
-        manageSection.classList.add('hidden');    // no Stripe customer on web trial
-      } else {
-        manageSection.classList.remove('hidden');
-      }
-    }
+    // manageSection handled below (outside isPro gate)
     if (heroPropBtn) heroPropBtn.textContent = isTrial ? '🎉 Free Trial Active' : '👑 Pro Member';
   } else {
     statusCard.innerHTML = `
@@ -1280,13 +1266,27 @@ async function renderProScreen() {
         </div>
       </div>`;
     if (planSelector) planSelector.classList.remove('hidden');
-    if (manageSection) manageSection.classList.add('hidden');
+    // manageSection handled below (outside isPro gate)
     if (trialBtn) {
       if (!trialExpired) {
         trialBtn.classList.remove('hidden');
       } else {
         trialBtn.classList.add('hidden');
       }
+    }
+  }
+
+  // ── Manage Subscription button — show on iOS for ALL users, web for paid only ──
+  if (manageSection) {
+    const onNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
+      (window.webkit.messageHandlers['sign-in-with-apple'] ||
+       window.webkit.messageHandlers['open-subscriptions']));
+    if (onNativeIOS) {
+      manageSection.classList.remove('hidden'); // iOS: always visible — opens Settings
+    } else if (!isTrial && !isFounding && isPro) {
+      manageSection.classList.remove('hidden'); // Web: paid subscribers only
+    } else {
+      manageSection.classList.add('hidden');
     }
   }
 
