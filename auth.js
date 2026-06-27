@@ -360,6 +360,20 @@ function initAuth() {
 
   state.auth = window.auth;
   state.provider = new window.firebase.auth.GoogleAuthProvider();
+
+  // On native iOS, switch Firebase Auth to in-memory persistence.
+  // The WKWebView's IndexedDB connection is lost between sign-in attempts,
+  // causing "IndexedDB connection lost" on the second SIWA attempt.
+  // Native iOS Firebase SDK handles real persistence; the JS SDK only needs
+  // to hold state for the current WebView session.
+  if (window.webkit && window.webkit.messageHandlers) {
+    try {
+      await state.auth.setPersistence(window.firebase.auth.Auth.Persistence.NONE);
+    } catch (e) {
+      console.warn('[auth] setPersistence NONE failed:', e.message);
+    }
+  }
+
   state.auth.onAuthStateChanged(async (user) => {
     if (user) {
       await handleAuthenticatedUser(user);

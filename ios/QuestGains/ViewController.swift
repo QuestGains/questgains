@@ -357,11 +357,23 @@ extension ViewController: WKScriptMessageHandler {
 
   func handleOpenSubscriptions() {
       // Opens Apple's native subscription management screen directly.
-      // This is the required path for all subscription management on iOS —
-      // no Stripe portal, no WebView, no intermediary.
-      if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions"),
-         UIApplication.shared.canOpenURL(url) {
-          UIApplication.shared.open(url, options: [:], completionHandler: nil)
+      // Skip canOpenURL — itms-apps:// always works on device but canOpenURL
+      // returns false unless the scheme is declared in LSApplicationQueriesSchemes.
+      if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions") {
+          UIApplication.shared.open(url, options: [:]) { success in
+              if !success {
+                  // Fallback: show Settings path as alert
+                  DispatchQueue.main.async {
+                      let alert = UIAlertController(
+                          title: "Manage Subscription",
+                          message: "Go to Settings \u2192 [Your Name] \u2192 Subscriptions \u2192 QuestGains to manage your subscription.",
+                          preferredStyle: .alert
+                      )
+                      alert.addAction(UIAlertAction(title: "OK", style: .default))
+                      self.present(alert, animated: true)
+                  }
+              }
+          }
       }
   }
 

@@ -154,7 +154,10 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
                     let isUserTap = navigationAction.navigationType == .linkActivated
                     if isAuxiliaryPage || (isUserTap && requestUrl.path != "/questgains/" && requestUrl.path != "/questgains") {
                         decisionHandler(.cancel)
-                        let safari = SFSafariViewController(url: requestUrl)
+                        let config = SFSafariViewController.Configuration()
+                        config.entersReaderIfAvailable = false
+                        let safari = SFSafariViewController(url: requestUrl, configuration: config)
+                        safari.dismissButtonStyle = .close
                         safari.modalPresentationStyle = .pageSheet
                         self.present(safari, animated: true, completion: nil)
                         return
