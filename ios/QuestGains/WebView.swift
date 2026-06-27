@@ -27,6 +27,14 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     config.preferences.setValue(true, forKey: "standalone")
     
     // Use .zero frame — constraints below handle sizing (avoids double status-bar offset on iPad)
+    // Purge URLCache and WKWebsiteDataStore on every launch so GitHub Pages
+    // JS updates are always picked up — WKWebView aggressively caches resources.
+    URLCache.shared.removeAllCachedResponses()
+    WKWebsiteDataStore.default().removeData(
+        ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+        modifiedSince: Date(timeIntervalSince1970: 0)
+    ) { }
+
     let webView = WKWebView(frame: .zero, configuration: config)
     setCustomCookie(webView: webView)
 
