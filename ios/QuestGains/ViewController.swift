@@ -366,7 +366,7 @@ extension ViewController: WKScriptMessageHandler {
                   DispatchQueue.main.async {
                       let alert = UIAlertController(
                           title: "Manage Subscription",
-                          message: "Go to Settings \u2192 [Your Name] \u2192 Subscriptions \u2192 QuestGains to manage your subscription.",
+                          message: "Go to Settings → [Your Name] → Subscriptions → QuestGains to manage your subscription.",
                           preferredStyle: .alert
                       )
                       alert.addAction(UIAlertAction(title: "OK", style: .default))
