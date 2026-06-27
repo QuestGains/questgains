@@ -27,9 +27,10 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     config.preferences.setValue(true, forKey: "standalone")
     
     // Use .zero frame — constraints below handle sizing (avoids double status-bar offset on iPad)
-    // URLCache cleared synchronously before WebView init.
-    // JS is fetched fresh via .reloadIgnoringLocalAndRemoteCacheData in loadRootUrl().
-    URLCache.shared.removeAllCachedResponses()
+    // Disable HTTP disk/memory cache entirely — prevents WebKit from serving
+    // stale JS sub-resources. localStorage/IndexedDB/cookies are unaffected.
+    // Zero capacity = no caching at all for the lifetime of this app session.
+    URLCache.shared = URLCache(memoryCapacity: 0, diskCapacity: 0, diskPath: nil)
 
     let webView = WKWebView(frame: .zero, configuration: config)
     setCustomCookie(webView: webView)
