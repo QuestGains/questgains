@@ -1254,10 +1254,20 @@ async function renderProScreen() {
       if (isTrial) planSelector.classList.remove('hidden');
       else planSelector.classList.add('hidden');
     }
-    // Only show Stripe billing portal for PAID subscribers — trials have no Stripe customer
+    // Manage section: on native iOS always show for any pro/trial/founding user —
+    // it opens iOS Settings path, not Stripe. On web, hide for trial/founding
+    // users who have no Stripe customer.
     if (manageSection) {
-      if (isTrial || isFounding) manageSection.classList.add('hidden');
-      else manageSection.classList.remove('hidden');
+      const onNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
+        (window.webkit.messageHandlers['sign-in-with-apple'] ||
+         window.webkit.messageHandlers['open-subscriptions']));
+      if (onNativeIOS) {
+        manageSection.classList.remove('hidden'); // always show on iOS
+      } else if (isTrial || isFounding) {
+        manageSection.classList.add('hidden');    // no Stripe customer on web trial
+      } else {
+        manageSection.classList.remove('hidden');
+      }
     }
     if (heroPropBtn) heroPropBtn.textContent = isTrial ? '🎉 Free Trial Active' : '👑 Pro Member';
   } else {
@@ -1285,7 +1295,7 @@ async function renderProScreen() {
   if (foundingEl && typeof window.getFoundingMemberCount === 'function') {
     const count = await window.getFoundingMemberCount();
     const slotsLeft = Math.max(0, 500 - count);
-    if (slotsLeft > 0 && !isPro) {
+    if (slotsLeft > 0 && (!isPro || isTrial)) {
       foundingEl.classList.remove('hidden');
       if (slotsEl) slotsEl.textContent = `Only ${slotsLeft} founding spots remaining — locked forever`;
     } else {
