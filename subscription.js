@@ -119,6 +119,11 @@ window.openCustomerPortal = async function openCustomerPortal() {
   console.log('[subscription] openCustomerPortal: isNativeIOS=' + isNativeIOS +
     ' handlers=' + (window.webkit ? Object.keys(window.webkit.messageHandlers || {}).join(',') : 'none'));
 
+  // DIAGNOSTIC: show handler states on-screen (remove after debugging)
+  alert('Handlers: SIWA=' + !!window.webkit?.messageHandlers?.['sign-in-with-apple'] +
+    ' | IAP=' + !!window.webkit?.messageHandlers?.['iap-purchase'] +
+    ' | SUBS=' + !!window.webkit?.messageHandlers?.['open-subscriptions']);
+
   if (isNativeIOS) {
     // Open Apple's native subscription management screen directly via native bridge.
     // Avoids Stripe portal entirely — required for IAP-sourced subscriptions on iOS.
