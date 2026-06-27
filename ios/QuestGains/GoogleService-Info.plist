@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>000000000000-000000000000000000000000000000.apps.googleusercontent.com</string>
+	<string>830471147283-9m109pbjabdfsfekaul01k1b0tuvpsp6.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.0000000000-00000000000000000000000</string>
+	<string>com.googleusercontent.apps.830471147283-9m109pbjabdfsfekaul01k1b0tuvpsp6</string>
 	<key>API_KEY</key>
-	<string>0000000000000000000000000</string>
+	<string>AIzaSyCGW8lHPRSXlYLpBE0li5SAM-2oWgxg-nQ</string>
 	<key>GCM_SENDER_ID</key>
-	<string>000000000000</string>
+	<string>830471147283</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
@@ -17,18 +17,18 @@
 	<key>PROJECT_ID</key>
 	<string>questgains</string>
 	<key>STORAGE_BUCKET</key>
-	<string>questgains.appspot.com</string>
+	<string>questgains.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_GCM_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:619930292029:ios:f6737372189b8ee9123f54</string>
+	<string>1:830471147283:ios:11412bb78992dc5a1e54e6</string>
 </dict>
 </plist>
