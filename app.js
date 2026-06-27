@@ -1295,7 +1295,12 @@ async function renderProScreen() {
   if (foundingEl && typeof window.getFoundingMemberCount === 'function') {
     const count = await window.getFoundingMemberCount();
     const slotsLeft = Math.max(0, 500 - count);
-    if (slotsLeft > 0 && (!isPro || isTrial)) {
+    // On native iOS, hide founding plan — no IAP product ID exists until v1.1.
+    // Only show on web (Stripe path).
+    const onNativeIOSForFounding = !!(window.webkit && window.webkit.messageHandlers &&
+      (window.webkit.messageHandlers['sign-in-with-apple'] ||
+       window.webkit.messageHandlers['open-subscriptions']));
+    if (!onNativeIOSForFounding && slotsLeft > 0 && (!isPro || isTrial)) {
       foundingEl.classList.remove('hidden');
       if (slotsEl) slotsEl.textContent = `Only ${slotsLeft} founding spots remaining — locked forever`;
     } else {

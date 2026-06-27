@@ -329,7 +329,11 @@ window.showPaywall = async function showPaywall(featureName) {
   // Reset to annual (best value) as default selection
   window.selectPaywallPlan('annual');
 
-  if (foundingSection && foundingCountEl) {
+  // Founding plan: web/Stripe only — no iOS IAP product until v1.1
+  const onNativeIOS = !!(window.webkit && window.webkit.messageHandlers &&
+    (window.webkit.messageHandlers['sign-in-with-apple'] ||
+     window.webkit.messageHandlers['open-subscriptions']));
+  if (!onNativeIOS && foundingSection && foundingCountEl) {
     const count = await window.getFoundingMemberCount();
     const slotsLeft = Math.max(0, 500 - count);
     if (slotsLeft > 0) {
@@ -338,6 +342,8 @@ window.showPaywall = async function showPaywall(featureName) {
     } else {
       foundingSection.classList.add('hidden');
     }
+  } else if (foundingSection) {
+    foundingSection.classList.add('hidden');
   }
 
   modal.classList.remove('hidden');
