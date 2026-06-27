@@ -2,6 +2,8 @@ import UIKit
 import AuthenticationServices
 import Security
 import CryptoKit
+import FirebaseAuth
+import FirebaseFunctions
 
 // MARK: - Keychain Helper
 
@@ -277,11 +279,62 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
             result["authorizationCode"] = codeString
         }
 
-        // Always deliver the result on the main thread — ASAuthorizationController can
-        // call its delegate on a background thread, which would cause evaluateJavaScript
-        // to silently fail on iOS 26.
-        DispatchQueue.main.async {
-            self.completion?(.success(result))
+        // Sign into Firebase natively using the iOS SDK.
+        // This correctly handles Apple ID tokens (no WKWebView JS SDK audience mismatch).
+        guard let tokenString = result["identityToken"],
+              let rawNonce = result["rawNonce"] else {
+            DispatchQueue.main.async {
+                self.completion?(.failure(NSError(domain: "AppleSignIn", code: -2,
+                    userInfo: [NSLocalizedDescriptionKey: "Missing identityToken or rawNonce for Firebase sign-in"])))
+            }
+            return
+        }
+
+        let firebaseCredential = OAuthProvider.appleCredential(
+            withIDToken: tokenString,
+            rawNonce: rawNonce,
+            fullName: credential.fullName
+        )
+
+        Auth.auth().signIn(with: firebaseCredential) { [weak self] authResult, error in
+            guard let self = self else { return }
+            if let error = error {
+                print("[SIWA] Firebase native signIn error: \(error.localizedDescription)")
+                DispatchQueue.main.async { self.completion?(.failure(error)) }
+                return
+            }
+            guard let user = authResult?.user else {
+                DispatchQueue.main.async {
+                    self.completion?(.failure(NSError(domain: "AppleSignIn", code: -3,
+                        userInfo: [NSLocalizedDescriptionKey: "No Firebase user returned after sign-in"])))
+                }
+                return
+            }
+            print("[SIWA] Firebase native signIn success uid=\(user.uid)")
+
+            // Exchange the Firebase session for a custom token that the WKWebView
+            // can consume via signInWithCustomToken() — no audience mismatch possible.
+            let functions = Functions.functions()
+            functions.httpsCallable("exchangeToken").call([:]) { callResult, cfError in
+                if let cfError = cfError {
+                    print("[SIWA] exchangeToken CF error: \(cfError.localizedDescription)")
+                    DispatchQueue.main.async { self.completion?(.failure(cfError)) }
+                    return
+                }
+                guard let data = callResult?.data as? [String: Any],
+                      let customToken = data["customToken"] as? String else {
+                    DispatchQueue.main.async {
+                        self.completion?(.failure(NSError(domain: "AppleSignIn", code: -4,
+                            userInfo: [NSLocalizedDescriptionKey: "exchangeToken returned invalid response"])))
+                    }
+                    return
+                }
+                print("[SIWA] customToken received (len=\(customToken.count))")
+                var finalResult = result
+                finalResult["customToken"] = customToken
+                finalResult["uid"] = user.uid
+                DispatchQueue.main.async { self.completion?(.success(finalResult)) }
+            }
         }
     }
 

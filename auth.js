@@ -231,46 +231,6 @@ async function registerWithEmail(event) {
 // Sign in with Apple — native iOS bridge
 // ---------------------------------------------------------------------------
 
-// ── On-screen SIWA debug panel ──────────────────────────────────────────────
-// Appends log lines to the panel (never overwrites) so the full chain is visible.
-// Panel stays open until manually dismissed — no auto-hide.
-
-let _siwaSwiftNonce8 = null; // stores first-8 from Swift for match comparison
-
-function siwaLog(line, style) {
-  try {
-    const panel = document.getElementById('siwa-debug-panel');
-    const contentEl = document.getElementById('siwa-debug-content');
-    if (!panel || !contentEl) return;
-    const ts = new Date().toLocaleTimeString();
-    const div = document.createElement('div');
-    div.style.cssText = style || 'color:#e5e7eb; padding:1px 0;';
-    div.textContent = '[' + ts + '] ' + line;
-    contentEl.appendChild(div);
-    panel.style.display = 'block';
-    // Scroll to newest line
-    contentEl.scrollTop = contentEl.scrollHeight;
-    // Log to console too
-    console.log('[SIWA-panel]', line);
-  } catch(e) { /* never let debug code break auth */ }
-}
-
-function siwaLogError(line) {
-  siwaLog('❌ ' + line,
-    'color:#ef4444; font-weight:bold; font-size:13px; padding:3px 0; border-top:1px solid #7f1d1d; margin-top:4px;');
-}
-
-function siwaLogOk(line) {
-  siwaLog('✅ ' + line, 'color:#4ade80; padding:1px 0;');
-}
-
-// Called from Swift BEFORE auth delegate fires — captures native nonce8 for comparison
-window.siwaDebugFromNative = function(msg) {
-  // Parse nonce8 out of the message for later comparison
-  const m = msg.match(/Swift nonce\(8\): ([A-Za-z0-9+\/=_-]{8})/);
-  if (m) _siwaSwiftNonce8 = m[1];
-  siwaLog('📱 Native: ' + msg, 'color:#a78bfa; padding:1px 0;');
-};
 
 function isNativeIOS() {
   return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers['sign-in-with-apple']);
@@ -284,64 +244,27 @@ function setupAppleSignInBridge() {
     if (btn) btn.style.display = '';
   });
 
-  // Handle successful sign-in from native layer
+  // Handle successful sign-in from native layer.
+  // The Swift layer (SignInWithApple.swift) now:
+  //   1. Signs into Firebase via the iOS Firebase SDK (no audience mismatch)
+  //   2. Calls the exchangeToken Cloud Function → gets a custom token
+  //   3. Passes payload.customToken to this handler
+  // We call signInWithCustomToken() — bypasses JS SDK Apple audience validation entirely.
   window.onAppleSignIn = async function(payload) {
     try {
       showStatus('Signing in with Apple…');
 
-      // ── On-screen debug panel (no Web Inspector needed) ──
-      const _dbgNonce8 = payload?.rawNonce?.substring(0, 8) ?? 'MISSING';
-      const _dbgTokLen = payload?.identityToken?.length ?? 'MISSING';
-      siwaLog('JS payload keys: ' + (payload ? Object.keys(payload).join(', ') : 'null'));
-      siwaLog('JS identityToken length: ' + _dbgTokLen);
-      siwaLog('JS rawNonce (first 8): ' + _dbgNonce8);
-      // Explicit nonce match check — compare against Swift value
-      if (_siwaSwiftNonce8) {
-        const match = _siwaSwiftNonce8 === _dbgNonce8;
-        if (match) siwaLogOk('Nonce match: YES (' + _dbgNonce8 + ')');
-        else siwaLogError('Nonce match: NO — Swift=' + _siwaSwiftNonce8 + ' JS=' + _dbgNonce8);
-      } else {
-        siwaLog('⚠️ Nonce match: cannot compare (siwaDebugFromNative not called yet)', 'color:#facc15;');
+      if (!payload || !payload.customToken) {
+        throw new Error('Apple sign-in: no custom token from native layer. Check Xcode logs for [SIWA] errors.');
       }
-      siwaLog('→ calling signInWithCredential...');
-      // ── End diagnostics ──
-
-      if (!payload || !payload.identityToken) {
-        throw new Error('Apple did not return an identity token. Please try again.');
-      }
-
       if (!state.auth) {
-        throw new Error('Firebase Auth is not initialized. Check your internet connection and try again.');
+        throw new Error('Firebase Auth not initialized. Check internet connection and try again.');
       }
 
-      if (!payload.rawNonce) {
-        throw new Error('Apple sign-in is missing the nonce. Ensure the native layer generates a nonce before calling ASAuthorizationAppleIDProvider.');
-      }
-
-      const provider = new window.firebase.auth.OAuthProvider('apple.com');
-      // rawNonce is generated in Swift (SignInWithApple.swift → randomNonceString()),
-      // SHA256-hashed into the ASAuthorizationAppleIDRequest.nonce, and Apple embeds
-      // the hash in the returned identityToken. Firebase verifies the hash matches
-      // rawNonce to confirm the request originated from this app.
-      const credential = provider.credential({
-        idToken: payload.identityToken,
-        rawNonce: payload.rawNonce
-      });
-      siwaLog('OAuthProvider credential created — calling Firebase...');
-      await state.auth.signInWithCredential(credential);
-      siwaLogOk('signInWithCredential SUCCEEDED');
-      // onAuthStateChanged handles login → hideOverlay flow
+      await state.auth.signInWithCustomToken(payload.customToken);
+      // onAuthStateChanged handles the rest
     } catch(err) {
-      console.error('[SIWA] Firebase sign-in error:', err.code, err.message);
-      // Large red error — impossible to miss
-      siwaLogError('Firebase: ' + (err.code || 'unknown-code'));
-      siwaLogError(err.message || 'no message');
-      siwaLog('rawNonce8: ' + (payload?.rawNonce?.substring(0,8) ?? 'nil'));
-      siwaLog('tokenLen:  ' + (payload?.identityToken?.length ?? 'nil'));
-      siwaLog('Firebase SDK ver: 10.14.1 compat');
-      siwaLog('→ Check Firebase Console: Authentication → Apple → Enabled?');
-      siwaLog('  Team ID should be: PBSFS3WLB8');
-      siwaLog('  Bundle ID: com.questgains.mobile');
+      console.error('[SIWA] signInWithCustomToken error:', err.code, err.message);
       const msg = err.code
         ? 'Sign-in failed (' + err.code + '): ' + err.message
         : (err.message || 'Apple sign-in failed. Please try again.');
