@@ -19,6 +19,35 @@ html, body {
   touch-action: pan-y;
 }
 
+/* iPad / iPadOS 26: remove 300ms tap delay on all interactive elements */
+button,
+a,
+[role="button"],
+[onclick],
+.plan-option,
+.paywall-plan-card,
+.cursor-pointer {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iPadOS 26 bug: hidden fixed overlays can still intercept touches.
+   Extend the pointer-events:none fix to ALL hidden full-screen modals. */
+#exercise-modal.hidden,
+#plan-modal.hidden,
+#nutrition-modal.hidden,
+#rest-modal.hidden,
+#levelup-overlay.hidden,
+#victory-overlay.hidden,
+#scanner-modal.hidden,
+#paywall-modal.hidden,
+#exercise-search-modal.hidden,
+#achievement-toast.hidden,
+#trial-banner.hidden {
+  pointer-events: none !important;
+  visibility: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
