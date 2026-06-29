@@ -175,7 +175,8 @@ async function loadSubscriptionState(uid) {
     return;
   }
   try {
-    const doc = await db.collection('users').doc(uid).get();
+    // Always fetch from server to avoid stale offline cache serving old Pro/trial state.
+    const doc = await db.collection('users').doc(uid).get({ source: 'server' });
     const data = doc.exists ? doc.data() : {};
     const sub = data.subscription || {};
     _subscriptionState = {
