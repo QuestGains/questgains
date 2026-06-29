@@ -246,23 +246,25 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
             })();
         """, completionHandler: nil)
 
-        // Build 75 — SW diagnostic alert: show active caches + controlling SW URL
+        // Build 77 — Full diagnostic: SW state + subscription state after auth completes
         webView.evaluateJavaScript("""
             Promise.all([
                 caches.keys(),
                 Promise.resolve(navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL : 'no SW')
             ]).then(function(results) {
-                var cacheList = results[0].join(', ') || '(none)';
-                var swUrl = results[1];
-                window.__swDiagnostic = 'Caches: ' + cacheList + '\\nSW: ' + swUrl;
+                window.__swDiagnostic = (results[0].join(', ') || '(none)') + '\\nSW: ' + results[1];
             });
         """, completionHandler: nil)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            webView.evaluateJavaScript("window.__swDiagnostic || 'diagnostic not ready'") { result, _ in
+        // Fire at 6s to allow Firebase auth + initSubscription to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
+            webView.evaluateJavaScript("""
+                (window.__swDiagnostic || 'SW: pending') + '\\n\\n' +
+                (typeof window.__getSubDiagnostic === 'function' ? window.__getSubDiagnostic() : 'sub.js not loaded')
+            """) { result, _ in
                 let msg = result as? String ?? "(no result)"
                 DispatchQueue.main.async {
-                    let alert = UIAlertController(title: "SW Diagnostic (Build 75)", message: msg, preferredStyle: .alert)
+                    let alert = UIAlertController(title: "Diagnostic (Build 77)", message: msg, preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default))
                     self.present(alert, animated: true)
                 }
