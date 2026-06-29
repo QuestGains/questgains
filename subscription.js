@@ -1,6 +1,6 @@
 // QuestGains Subscription — build 70 marker
 window._sqv = "subscription.js v70 loaded";
-Phase II: Real Stripe checkout via Firebase Cloud Functions
+// Phase II: Real Stripe checkout via Firebase Cloud Functions
 
 // ── Module-level state ────────────────────────────────────────────────────
 let _subscriptionState = {
@@ -133,9 +133,7 @@ window.openCustomerPortal = async function openCustomerPortal() {
     } catch (e) {
       console.error('[subscription] open-subscriptions handler error:', e);
       // Belt-and-suspenders: handler failed, show instructions directly
-      alert('To manage your QuestGains subscription, go to:
-
-iOS Settings → [Your Name] → Subscriptions → QuestGains');
+      alert('To manage your QuestGains subscription, go to:\n\niOS Settings → [Your Name] → Subscriptions → QuestGains');
     }
     return;
   }
