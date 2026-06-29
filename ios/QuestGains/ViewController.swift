@@ -226,6 +226,41 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         self.animateConnectionProblem(false)
         self.retryButton?.isHidden = true
 
+        // Build 75 — Force SW update immediately on every launch so stale workers
+        // activate without requiring a manual app kill.
+        webView.evaluateJavaScript("""
+            (function() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        regs.forEach(function(reg) { reg.update(); });
+                    });
+                }
+            })();
+        """, completionHandler: nil)
+
+        // Build 75 — SW diagnostic alert: show active caches + controlling SW URL
+        webView.evaluateJavaScript("""
+            Promise.all([
+                caches.keys(),
+                Promise.resolve(navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL : 'no SW')
+            ]).then(function(results) {
+                var cacheList = results[0].join(', ') || '(none)';
+                var swUrl = results[1];
+                window.__swDiagnostic = 'Caches: ' + cacheList + '\\nSW: ' + swUrl;
+            });
+        """, completionHandler: nil)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            webView.evaluateJavaScript("window.__swDiagnostic || 'diagnostic not ready'") { result, _ in
+                let msg = result as? String ?? "(no result)"
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "SW Diagnostic (Build 75)", message: msg, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            }
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             QuestGains.webView.isHidden = false
             self.loadingView.isHidden = true
