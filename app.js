@@ -1314,11 +1314,36 @@ window.startProCheckout = function startProCheckout() {
 window.startProTrial = async function startProTrial() {
   const uid = window.currentUserId;
   if (!uid) { alert('Please sign in first.'); return; }
-  if (typeof window.startTrial === 'function') {
+  if (typeof window.startTrial !== 'function') return;
+
+  // Confirmation dialog before starting trial
+  if (!window.confirm('Start your free 14-day Pro trial?\n\nYou will get full access to all Pro features. No payment required — upgrade or let it expire at any time.')) {
+    return;
+  }
+
+  // Disable button immediately to prevent double-tap
+  const btn = document.getElementById('pro-trial-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Starting trial\u2026';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+  }
+
+  try {
     await window.startTrial(uid);
-    alert('🎉 Your 14-day Pro trial has started! Enjoy full access.');
+    // Hide button — trial is now active, banner takes over
+    if (btn) btn.classList.add('hidden');
     if (typeof window.updateHeader === 'function') window.updateHeader();
     renderProScreen();
+    alert('\uD83C\uDF89 Your 14-day Pro trial has started! Enjoy full access.');
+  } catch (err) {
+    // Re-enable on failure so user can retry
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Start 14-Day Free Trial';
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+    alert('Could not start trial. Please try again.');
   }
 };
 

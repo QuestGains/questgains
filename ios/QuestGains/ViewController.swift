@@ -246,31 +246,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
             })();
         """, completionHandler: nil)
 
-        // Build 77 — Full diagnostic: SW state + subscription state after auth completes
-        webView.evaluateJavaScript("""
-            Promise.all([
-                caches.keys(),
-                Promise.resolve(navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL : 'no SW')
-            ]).then(function(results) {
-                window.__swDiagnostic = (results[0].join(', ') || '(none)') + '\\nSW: ' + results[1];
-            });
-        """, completionHandler: nil)
-
-        // Fire at 6s to allow Firebase auth + initSubscription to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
-            webView.evaluateJavaScript("""
-                (window.__swDiagnostic || 'SW: pending') + '\\n\\n' +
-                (typeof window.__getSubDiagnostic === 'function' ? window.__getSubDiagnostic() : 'sub.js not loaded')
-            """) { result, _ in
-                let msg = result as? String ?? "(no result)"
-                DispatchQueue.main.async {
-                    let alert = UIAlertController(title: "Diagnostic (Build 77)", message: msg, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    self.present(alert, animated: true)
-                }
-            }
-        }
-
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             QuestGains.webView.isHidden = false
             self.loadingView.isHidden = true

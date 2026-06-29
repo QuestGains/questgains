@@ -224,18 +224,6 @@ window._isSavedPaidSubscriber = function _isSavedPaidSubscriber() {
   return _subscriptionState.isPro === true || _subscriptionState.isFoundingMember === true;
 };
 
-// Build 77 diagnostic — expose raw state for native alert
-window.__getSubDiagnostic = function() {
-  return JSON.stringify({
-    isPro: _subscriptionState.isPro,
-    isFoundingMember: _subscriptionState.isFoundingMember,
-    trialStartDate: _subscriptionState.trialStartDate,
-    trialDaysLeft: typeof getTrialDaysRemaining === 'function' ? getTrialDaysRemaining() : '?',
-    loaded: _subscriptionState.loaded,
-    isProUserResult: window.isProUser ? window.isProUser() : 'fn not ready'
-  });
-};
-
 window.isProUser = function isProUser() {
   if (_subscriptionState.isPro) return true;
   if (_subscriptionState.isFoundingMember) return true;
