@@ -99,11 +99,22 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => Promise.all(
-      cacheNames
-        .filter((cacheName) => cacheName !== CACHE_NAME)
-        .map((cacheName) => caches.delete(cacheName))
-    )).then(() => self.clients.claim())
+    caches.keys()
+      .then((cacheNames) => {
+        console.log('[SW] activate — caches found:', cacheNames);
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName !== CACHE_NAME)
+            .map((cacheName) => {
+              console.log('[SW] deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            })
+        );
+      })
+      .then(() => {
+        console.log('[SW] old caches purged, claiming clients');
+        return self.clients.claim();
+      })
   );
 });
 

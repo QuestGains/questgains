@@ -226,15 +226,23 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         self.animateConnectionProblem(false)
         self.retryButton?.isHidden = true
 
-        // Build 75 — Force SW update immediately on every launch so stale workers
-        // activate without requiring a manual app kill.
+        // Build 76 — Force SW update + purge all non-current caches from page side
         webView.evaluateJavaScript("""
             (function() {
+                var CURRENT = 'questgains-v24';
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function(regs) {
                         regs.forEach(function(reg) { reg.update(); });
                     });
                 }
+                caches.keys().then(function(keys) {
+                    keys.forEach(function(k) {
+                        if (k !== CURRENT) {
+                            console.log('[page] purging stale cache:', k);
+                            caches.delete(k);
+                        }
+                    });
+                });
             })();
         """, completionHandler: nil)
 

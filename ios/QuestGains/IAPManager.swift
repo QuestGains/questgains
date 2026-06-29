@@ -131,7 +131,18 @@ final class IAPManager {
 
     private func handleVerificationResult<T>(_ result: VerificationResult<T>, source: String) async {
         guard let transaction = try? verifyTransaction(result) as? Transaction else { return }
+        // Always finish the transaction so StoreKit stops replaying it.
         await transaction.finish()
+        // Only notify the WebView for explicit user-initiated purchases (source == "purchase").
+        // The background transaction listener (source == "listener") handles subscription
+        // renewals and interrupted transactions — these should NOT call onIAPPurchaseSuccess
+        // because Firestore is the source of truth for Pro status on launch, and calling
+        // activatePro() here would grant Pro to whatever Firebase user is currently signed in,
+        // regardless of whether they made this purchase.
+        guard source == "purchase" else {
+            print("[IAP] background transaction finished silently: \(transaction.productID)")
+            return
+        }
         let productID = transaction.productID
         await notifyWebView(
             "if(window.onIAPPurchaseSuccess){window.onIAPPurchaseSuccess('\(productID)');}"
