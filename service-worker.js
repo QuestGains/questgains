@@ -33,7 +33,7 @@ messaging.onBackgroundMessage(function(payload) {
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v20';
+const CACHE_NAME = 'questgains-v23';  // bumped for build 73 — forces SW reinstall + full cache purge
 const PRECACHE_URLS = [
   './index.html',
   './firebase-config.js',
@@ -111,11 +111,15 @@ self.addEventListener('activate', (event) => {
 const APP_SHELL = [
   './index.html', './app.js', './data.js', './style.css',
   './auth.js', './db.js', './firebase-config.js', './manifest.json',
-  './logo.png', './favicon.png', './apple-touch-icon.png', './service-worker.js'
+  './logo.png', './favicon.png', './apple-touch-icon.png', './service-worker.js',
+  './subscription.js', './username.js', './notifications.js', './social.js'
 ];
 
 function isAppShell(url) {
-  return APP_SHELL.some(file => url.endsWith(file.replace('./', '/'))) ||
+  // Strip query string before matching so versioned URLs (e.g. subscription.js?v=73)
+  // are treated as app shell and fetched network-first.
+  const urlWithoutQuery = url.split('?')[0];
+  return APP_SHELL.some(file => urlWithoutQuery.endsWith(file.replace('./', '/'))) ||
     url.endsWith('/questgains/') || url.endsWith('/questgains');
 }
 
