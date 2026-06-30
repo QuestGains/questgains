@@ -368,12 +368,20 @@ window.selectPaywallPlan = function selectPaywallPlan(plan) {
     el.classList.toggle('border-yellow-500', p === plan && p === 'founding');
     el.classList.toggle('border-transparent', p !== plan);
   });
-  // Update CTA label
+  // Update CTA label + trial subtext
   const btn = document.getElementById('paywall-cta-btn');
+  const sub = document.getElementById('paywall-trial-subtext');
   if (btn) {
-    if (plan === 'annual')   btn.textContent = 'Subscribe Annual — $39.99/yr';
-    else if (plan === 'founding') btn.textContent = 'Join as Founding Member — $2.99/mo';
-    else                     btn.textContent = 'Subscribe Monthly — $4.99/mo';
+    if (plan === 'annual') {
+      btn.textContent = 'Start 14-Day Free Trial';
+      if (sub) sub.textContent = 'After trial: $39.99/year, billed automatically. Cancel anytime.';
+    } else if (plan === 'founding') {
+      btn.textContent = 'Join as Founding Member — $2.99/mo';
+      if (sub) sub.textContent = 'Founding member pricing — billed monthly. Cancel anytime.';
+    } else {
+      btn.textContent = 'Start 14-Day Free Trial';
+      if (sub) sub.textContent = 'After trial: $4.99/month, billed automatically. Cancel anytime.';
+    }
   }
 };
 
