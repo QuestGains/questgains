@@ -349,7 +349,7 @@
         </div>
 
         <button type="button" id="pro-upgrade-btn" onclick="window.startProCheckout()" class="w-full bg-green-500 hover:bg-green-400 py-4 rounded-3xl text-base font-bold text-gray-950 transition mb-3">Upgrade to Pro</button>
-        <button type="button" onclick="window.startProTrial()" id="pro-trial-btn" class="hidden w-full bg-gray-800 hover:bg-gray-700 py-3 rounded-3xl text-sm font-medium text-green-400 transition mb-2">Start 14-Day Free Trial</button>
+        <!-- Free trial button removed: StoreKit handles trial automatically on first subscribe -->
 
         <!-- Full Apple-required auto-renewal disclosure -->
         <p class="text-xs text-gray-400 text-center leading-relaxed mb-3">Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel in <strong class="text-gray-300">iOS Settings → Subscriptions</strong>.</p>
@@ -789,6 +789,7 @@
               <div>
                 <div class="text-sm font-bold text-white">Monthly</div>
                 <div class="text-xs text-gray-400">1-month subscription · billed $4.99/month</div>
+                <div class="text-xs text-green-400 font-semibold mt-0.5">✓ Includes 14-day free trial</div>
               </div>
               <div class="text-2xl font-black text-green-400 leading-none">$4.99<span class="text-sm font-semibold text-gray-400">/mo</span></div>
             </div>
@@ -806,6 +807,7 @@
                   <span class="text-xs bg-green-500 text-gray-950 px-1.5 py-0.5 rounded-full font-bold">Best Value</span>
                 </div>
                 <div class="text-xs text-gray-400">1-year subscription · save 33% vs monthly</div>
+                <div class="text-xs text-green-400 font-semibold mt-0.5">✓ Includes 14-day free trial</div>
               </div>
               <div class="text-2xl font-black text-green-400 leading-none">$39.99<span class="text-sm font-semibold text-gray-400">/yr</span></div>
             </div>
@@ -839,7 +841,7 @@
         <button type="button" id="paywall-cta-btn"
                 onclick="window.paywallPurchase()"
                 class="w-full bg-green-500 hover:bg-green-400 py-4 rounded-3xl text-base font-bold text-gray-950 transition mb-2">
-          Start 14-Day Free Trial
+          Subscribe — 1 Year · $39.99
         </button>
         <p id="paywall-trial-subtext" class="text-center text-xs text-gray-400 mb-3">After trial: $39.99/year, billed automatically. Cancel anytime.</p>
 

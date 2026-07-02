@@ -373,13 +373,13 @@ window.selectPaywallPlan = function selectPaywallPlan(plan) {
   const sub = document.getElementById('paywall-trial-subtext');
   if (btn) {
     if (plan === 'annual') {
-      btn.textContent = 'Start 14-Day Free Trial';
+      btn.textContent = 'Subscribe — 1 Year · $39.99';
       if (sub) sub.textContent = 'After trial: $39.99/year, billed automatically. Cancel anytime.';
     } else if (plan === 'founding') {
       btn.textContent = 'Join as Founding Member — $2.99/mo';
       if (sub) sub.textContent = 'Founding member pricing — billed monthly. Cancel anytime.';
     } else {
-      btn.textContent = 'Start 14-Day Free Trial';
+      btn.textContent = 'Subscribe — 1 Month · $4.99';
       if (sub) sub.textContent = 'After trial: $4.99/month, billed automatically. Cancel anytime.';
     }
   }
