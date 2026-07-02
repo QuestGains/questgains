@@ -1267,13 +1267,8 @@ async function renderProScreen() {
       </div>`;
     if (planSelector) planSelector.classList.remove('hidden');
     // manageSection handled below (outside isPro gate)
-    if (trialBtn) {
-      if (!trialExpired) {
-        trialBtn.classList.remove('hidden');
-      } else {
-        trialBtn.classList.add('hidden');
-      }
-    }
+    // Free trial button permanently removed — StoreKit handles trial natively on first subscribe.
+    if (trialBtn) trialBtn.classList.add('hidden');
   }
 
   // ── Manage Subscription button ──

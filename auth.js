@@ -129,7 +129,7 @@ async function handleAuthenticatedUser(user) {
     }
   }
   // Auto-trial removed — users start on free plan.
-  // Trial is opt-in only via "Start 14-Day Free Trial" button on paywall.
+  // Trial is handled natively by StoreKit on first subscribe — no separate trial button.
   if (typeof window.initNotifications === 'function') {
     window.initNotifications(user.uid).catch(() => {});
   }

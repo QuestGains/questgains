@@ -33,7 +33,7 @@ messaging.onBackgroundMessage(function(payload) {
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v27';  // bumped for build 84 — forces SW reinstall + full cache purge
+const CACHE_NAME = 'questgains-v28';  // bumped for build 85 — forces SW reinstall + full cache purge
 const PRECACHE_URLS = [
   './index.html',
   './firebase-config.js',
