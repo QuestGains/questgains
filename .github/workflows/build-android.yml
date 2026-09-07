@@ -28,15 +28,10 @@ jobs:
         with:
           gradle-version: '8.2'
 
-      - name: Generate keystore
+      - name: Restore keystore from secret
         run: |
-          keytool -genkeypair -v \
-            -keystore $GITHUB_WORKSPACE/questgains-release.keystore \
-            -alias questgains \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass questgains2025 -keypass questgains2025 \
-            -dname "CN=QuestGains, O=QuestGains, L=Clearfield, S=Pennsylvania, C=US"
-
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $GITHUB_WORKSPACE/questgains-release.keystore
+      
       - name: Build AAB
         run: |
           cd twa-android
