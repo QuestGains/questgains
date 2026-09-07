@@ -37,9 +37,10 @@ jobs:
           cd twa-android
           gradle bundleRelease \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/questgains-release.keystore \
-            -Pandroid.injected.signing.store.password=questgains2025 \
-            -Pandroid.injected.signing.key.alias=questgains \
-            -Pandroid.injected.signing.key.password=questgains2025 \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.store.type=PKCS12 \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}" \
             --stacktrace
 
       - name: Find outputs
