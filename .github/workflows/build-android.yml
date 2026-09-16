@@ -6,36 +6,54 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      apk-path: ${{ steps.find-apk.outputs.apk-path }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept SDK licenses and install build tools
+      - name: Install Android SDK components
         run: |
+          # Use sdkmanager directly — no setup-android action (flaky on ubuntu-latest)
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;36.0.0" "platforms;android-36" > /dev/null 2>&1
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "build-tools;36.0.0" \
+            "platforms;android-36" \
+            "platform-tools" > /dev/null 2>&1
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.2'
+      - name: Set up Gradle wrapper
+        run: chmod +x twa-android/gradlew
 
       - name: Restore keystore from secret
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $GITHUB_WORKSPACE/questgains-release.keystore
-      
-      - name: Build AAB
+          # Sanity check
+          SIZE=$(wc -c < $GITHUB_WORKSPACE/questgains-release.keystore)
+          echo "Keystore size: ${SIZE} bytes"
+          if [ "$SIZE" -lt 100 ]; then
+            echo "ERROR: keystore decoded to ${SIZE} bytes — KEYSTORE_BASE64 secret is likely empty or corrupted"
+            exit 1
+          fi
+
+      - name: Build AAB + APK
         run: |
           cd twa-android
-          gradle bundleRelease \
+          # AAB for Play Store upload
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/questgains-release.keystore \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.store.type=PKCS12 \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}" \
+            --stacktrace
+          # APK for emulator smoke test
+          ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/questgains-release.keystore \
             -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
             -Pandroid.injected.signing.store.type=PKCS12 \
@@ -44,11 +62,131 @@ jobs:
             --stacktrace
 
       - name: Find outputs
-        run: find twa-android -name "*.aab" -o -name "*.apk" | head -20
+        id: find-apk
+        run: |
+          AAB=$(find twa-android -name "*.aab" | head -1)
+          APK=$(find twa-android -name "*.apk" | head -1)
+          echo "AAB: $AAB"
+          echo "APK: $APK"
+          echo "apk-path=$APK" >> $GITHUB_OUTPUT
 
-      - name: Upload artifacts
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: questgains-android
-          path: twa-android/app/build/outputs/**/*.aab
+          name: questgains-android-aab
+          path: twa-android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: questgains-android-apk
+          path: twa-android/app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK + emulator
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-34" \
+            "system-images;android-34;google_apis;x86_64" \
+            "emulator" > /dev/null 2>&1
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: questgains-android-apk
+          path: /tmp/apk
+
+      - name: Create AVD
+        run: |
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            --name test_avd \
+            --abi google_apis/x86_64 \
+            --package "system-images;android-34;google_apis;x86_64" \
+            --force
+
+      - name: Start emulator and capture launch logcat
+        timeout-minutes: 10
+        run: |
+          # Enable KVM if available
+          ls /dev/kvm 2>/dev/null && echo "KVM available" || echo "KVM not available"
+
+          # Start emulator in background
+          $ANDROID_HOME/emulator/emulator \
+            -avd test_avd \
+            -no-window \
+            -no-audio \
+            -no-snapshot \
+            -gpu swiftshader_indirect \
+            -memory 2048 \
+            2>/tmp/emulator.log &
+          EMULATOR_PID=$!
+
+          # Wait for device to be ready
+          echo "Waiting for emulator..."
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          # Wait for boot complete
+          for i in $(seq 1 60); do
+            BOOT=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$BOOT" = "1" ]; then
+              echo "Emulator booted after ${i}x5s"
+              break
+            fi
+            sleep 5
+          done
+
+          APK=$(find /tmp/apk -name "*.apk" | head -1)
+          echo "Installing APK: $APK"
+          adb install -r "$APK"
+
+          # Clear logcat and launch the app
+          adb logcat -c
+          adb shell am start -n "com.questgains.mobile/com.google.androidbrowserhelper.trusted.LauncherActivity" \
+            --activity-clear-top
+          
+          # Collect logcat for 15 seconds — enough to capture launch crash
+          echo "=== LOGCAT START ==="
+          timeout 15 adb logcat -v time \
+            AndroidRuntime:E \
+            System.err:W \
+            LauncherActivity:D \
+            TrustedWebActivity:D \
+            CustomTabsConnection:D \
+            ActivityManager:I \
+            *:F \
+            2>&1 | tee /tmp/launch_logcat.txt || true
+          echo "=== LOGCAT END ==="
+
+          # Check for crash patterns
+          if grep -q "FATAL EXCEPTION\|AndroidRuntime.*E\|Force finishing activity" /tmp/launch_logcat.txt; then
+            echo "CRASH DETECTED — see logcat above"
+            cat /tmp/launch_logcat.txt
+            kill $EMULATOR_PID 2>/dev/null || true
+            exit 1
+          else
+            echo "No crash detected in logcat window"
+            cat /tmp/launch_logcat.txt
+            kill $EMULATOR_PID 2>/dev/null || true
+          fi
+
+      - name: Upload logcat as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-logcat
+          path: /tmp/launch_logcat.txt
+          retention-days: 7
