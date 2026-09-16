@@ -98,7 +98,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: questgains-android-apk
-          path: /tmp/apk
+          # lands as app-release.apk in the workspace root
+          path: ${{ github.workspace }}
+
+      - name: Verify APK present
+        run: |
+          find $GITHUB_WORKSPACE -name "*.apk" | head -5
+          ls -lh $GITHUB_WORKSPACE/*.apk 2>/dev/null || echo "no apk at root — check above"
 
       - name: Run smoke test on emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -110,8 +116,14 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
-            APK=$(find /tmp/apk -name "*.apk" | head -1)
+            # APK is in workspace root (downloaded by download-artifact)
+            APK=$(find "$GITHUB_WORKSPACE" -maxdepth 2 -name "*.apk" | head -1)
             echo "Installing: $APK"
+            if [ -z "$APK" ]; then
+              echo "ERROR: no APK found"
+              find / -name "*.apk" 2>/dev/null | grep -v android-sdk | head -10
+              exit 1
+            fi
             adb install -r "$APK"
 
             # Clear buffer, fire launcher, wait 15s
