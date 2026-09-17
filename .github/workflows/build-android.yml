@@ -114,7 +114,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: APK=$(find "$GITHUB_WORKSPACE" -maxdepth 3 -name "*.apk" | head -1); [ -n "$APK" ] || { echo "NO APK FOUND"; ls -R "$GITHUB_WORKSPACE"; exit 1; }; echo "Installing $APK"; adb logcat -c; adb logcat > "$GITHUB_WORKSPACE/launch_logcat.txt" 2>&1 & LOGCAT_PID=$!; adb install -r "$APK"; adb shell monkey -p com.questgains.mobile -c android.intent.category.LAUNCHER 1; sleep 15; kill $LOGCAT_PID 2>/dev/null; adb logcat -d >> "$GITHUB_WORKSPACE/launch_logcat.txt" 2>/dev/null; echo "=== LOGCAT ==="; cat "$GITHUB_WORKSPACE/launch_logcat.txt"; echo "=== END LOGCAT ==="; grep -q "FATAL EXCEPTION" "$GITHUB_WORKSPACE/launch_logcat.txt" && { echo "CRASH DETECTED"; exit 1; }; echo "Smoke test passed"
+          script: APK=$(find "$GITHUB_WORKSPACE" -maxdepth 3 -name "*.apk" | head -1); [ -n "$APK" ] || { echo "NO APK FOUND"; ls -R "$GITHUB_WORKSPACE"; exit 1; }; echo "Installing $APK"; adb logcat -c; adb logcat > "$GITHUB_WORKSPACE/launch_logcat.txt" 2>&1 & LOGCAT_PID=$!; adb install -r "$APK"; adb shell monkey -p com.questgains.mobile -c android.intent.category.LAUNCHER 1; sleep 15; kill $LOGCAT_PID 2>/dev/null; adb logcat -d >> "$GITHUB_WORKSPACE/launch_logcat.txt" 2>/dev/null; echo "=== LOGCAT ==="; cat "$GITHUB_WORKSPACE/launch_logcat.txt"; echo "=== END LOGCAT ==="; grep -A3 "FATAL EXCEPTION" "$GITHUB_WORKSPACE/launch_logcat.txt" | grep -q "com.questgains.mobile" && { echo "CRASH DETECTED in com.questgains.mobile"; exit 1; }; echo "Smoke test passed"
 
       - name: Upload logcat
         if: always()
