@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <!-- TWA splash image transfer requires files-path for twa_splash dir -->
+    <files-path name="twa_splash" path="twa_splash/" />
     <external-path name="external_files" path="."/>
 </paths>
