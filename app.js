@@ -2717,6 +2717,9 @@ function renderHero() {
 
   const unlockedNodes = getUnlockedNodeIds(hero.id);
   const nextNodeIndex = hero.nodes.findIndex((node) => !unlockedNodes.includes(node.id));
+  // Pro-gated heroes (index 5+) must stay tappable for non-Pro users so unlockHeroNode can show the paywall.
+  const heroProLocked = heroRoster.findIndex((h) => h.id === hero.id) >= 5
+    && typeof window.isProUser === 'function' && !window.isProUser();
 
   heroDetail.innerHTML = `
     <div class="skill-tree-header bg-gradient-to-br ${hero.color.from} ${hero.color.to}">
@@ -2755,7 +2758,7 @@ function renderHero() {
               <div class="skill-node-perk">${node.perk.label}</div>
               <div class="skill-node-actions">
                 ${unlocked ? `<button onclick="equipTitle('${hero.id}', '${node.id}')" class="skill-node-btn equip-btn">${isEquipped ? 'Equipped' : 'Equip Title'}</button>` : ''}
-                ${isAvailable ? `<button onclick="unlockHeroNode('${hero.id}', '${node.id}')" class="skill-node-btn unlock-btn" ${character.heroPoints < node.cost ? 'disabled' : ''}>Unlock (${node.cost} pts)</button>` : ''}
+                ${isAvailable ? `<button onclick="unlockHeroNode('${hero.id}', '${node.id}')" class="skill-node-btn unlock-btn" ${!heroProLocked && (character.heroPoints || 0) < node.cost ? 'disabled' : ''}>${heroProLocked ? '🔒 Unlock with Pro' : `Unlock (${node.cost} pts)`}</button>` : ''}
                 ${!unlocked && !isAvailable ? '<div class="skill-node-locked-label">Locked</div>' : ''}
               </div>
             </div>

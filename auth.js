@@ -1,4 +1,3 @@
-const VALID_INVITE_CODE = 'QUESTGAINS2025';
 const state = {
   activeTab: 'login',
   auth: null,
@@ -208,12 +207,6 @@ async function registerWithEmail(event) {
 
   const email = document.getElementById('register-email').value.trim();
   const password = document.getElementById('register-password').value;
-  const inviteCode = document.getElementById('register-invite').value.trim().toUpperCase();
-
-  if (inviteCode !== VALID_INVITE_CODE) {
-    showError(ui.registerError, 'Invalid invite code.');
-    return;
-  }
 
   try {
     await state.auth.createUserWithEmailAndPassword(email, password);
