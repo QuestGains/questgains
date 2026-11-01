@@ -31,6 +31,42 @@ async function callFunction(name, data) {
   return json.result;
 }
 
+// ── Non-blocking UI helpers ────────────────────────────────────────────────
+function showToast(message, kind) {
+  try {
+    const el = document.createElement('div');
+    el.setAttribute('role', 'status');
+    el.className = 'qg-toast fixed top-4 left-1/2 -translate-x-1/2 z-[300] max-w-xs rounded-2xl px-5 py-3 text-sm shadow-xl ' +
+      (kind === 'error' ? 'bg-red-700 text-white' : 'bg-green-600 text-white');
+    el.textContent = message; // textContent: never HTML
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  } catch (e) { console.error('[toast]', e); }
+}
+window.showToast = showToast;
+
+// Disable purchase buttons while the App Store sheet / Stripe redirect is pending.
+const _PURCHASE_BTN_IDS = ['paywall-cta-btn', 'pro-upgrade-btn'];
+let _purchaseTimer = null;
+function setPurchaseLoading(on) {
+  clearTimeout(_purchaseTimer);
+  _PURCHASE_BTN_IDS.forEach((id) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (on) {
+      if (!b.dataset.label) b.dataset.label = b.textContent;
+      b.disabled = true; b.classList.add('opacity-60', 'cursor-wait');
+      b.textContent = 'Processing…';
+    } else {
+      b.disabled = false; b.classList.remove('opacity-60', 'cursor-wait');
+      if (b.dataset.label) { b.textContent = b.dataset.label; delete b.dataset.label; }
+    }
+  });
+  // Safety net: current native builds may not call back in every path (e.g. pending/Ask to Buy).
+  if (on) _purchaseTimer = setTimeout(() => setPurchaseLoading(false), 90000);
+}
+window.setPurchaseLoading = setPurchaseLoading;
+
 // ── iOS Native IAP Detection ──────────────────────────────────────────────
 function isNativeIOSIAP() {
   return !!(window.webkit &&
@@ -59,23 +95,27 @@ function setupIAPBridge() {
     }
     if (typeof window.updateHeader === 'function') window.updateHeader();
     if (typeof window.closePaywall === 'function') window.closePaywall();
-    setTimeout(() => alert('\uD83C\uDF89 Welcome to QuestGains Pro! Your ' + plan + ' subscription is now active.'), 300);
+    setPurchaseLoading(false);
+    showToast('\uD83C\uDF89 Welcome to QuestGains Pro! Your ' + plan + ' subscription is now active.');
   };
 
   // User cancelled the App Store sheet — silent, just clear any loading state
   window.onIAPCancelled = function() {
-    // no-op: user intentionally dismissed, no alert needed
+    // User dismissed the App Store sheet: no message, just restore the buttons.
+    setPurchaseLoading(false);
   };
 
   // Native layer reports a purchase error
   window.onIAPError = function(message) {
     console.error('[IAP] error:', message);
-    alert('Purchase failed: ' + (message || 'Unknown error. Please try again.'));
+    setPurchaseLoading(false);
+    showToast('Purchase failed: ' + (message || 'Unknown error. Please try again.'), 'error');
   };
 
   // Restore found nothing
   window.onIAPRestoreEmpty = function() {
-    alert('No previous QuestGains purchases found on this Apple ID.');
+    setPurchaseLoading(false);
+    showToast('No previous QuestGains purchases found on this Apple ID.', 'error');
   };
 }
 
@@ -85,18 +125,29 @@ window.openUpgradeFlow = async function openUpgradeFlow(plan) {
   // Stripe redirects are not permitted for digital goods.
   if (isNativeIOSIAP()) {
     const productID = planToProductID(plan);
-    window.webkit.messageHandlers['iap-purchase'].postMessage({ productID });
+    setPurchaseLoading(true);
+    try {
+      window.webkit.messageHandlers['iap-purchase'].postMessage({ productID });
+    } catch (e) {
+      setPurchaseLoading(false);
+      console.error('[IAP] postMessage failed:', e);
+      showToast('Unable to open the App Store. Please try again.', 'error');
+    }
     return;
   }
   // Web / Android: use Stripe checkout
+  setPurchaseLoading(true);
   try {
     const result = await callFunction('createCheckoutSession', { plan });
     if (result?.url) {
       window.location.href = result.url;
+    } else {
+      throw new Error('Checkout URL not returned');
     }
   } catch (err) {
     console.error('[subscription] openUpgradeFlow failed:', err);
-    alert('Unable to start checkout. Please try again.');
+    setPurchaseLoading(false);
+    showToast('Unable to start checkout. Please try again.', 'error');
   }
 };
 
@@ -116,14 +167,6 @@ window.openCustomerPortal = async function openCustomerPortal() {
     (window.webkit.messageHandlers['sign-in-with-apple'] ||
      window.webkit.messageHandlers['iap-purchase'] ||
      window.webkit.messageHandlers['open-subscriptions']));
-
-  console.log('[subscription] openCustomerPortal: isNativeIOS=' + isNativeIOS +
-    ' handlers=' + (window.webkit ? Object.keys(window.webkit.messageHandlers || {}).join(',') : 'none'));
-
-  // DIAGNOSTIC: show handler states on-screen (remove after debugging)
-  alert('Handlers: SIWA=' + !!window.webkit?.messageHandlers?.['sign-in-with-apple'] +
-    ' | IAP=' + !!window.webkit?.messageHandlers?.['iap-purchase'] +
-    ' | SUBS=' + !!window.webkit?.messageHandlers?.['open-subscriptions']);
 
   if (isNativeIOS) {
     // Open Apple's native subscription management screen directly via native bridge.
@@ -210,7 +253,7 @@ window.handleCheckoutReturn = async function handleCheckoutReturn() {
     if (typeof window.updateHeader === 'function') window.updateHeader();
     // Show success message
     setTimeout(() => {
-      alert(`🎉 Welcome to QuestGains Pro! Your ${plan || ''} subscription is now active.`);
+      showToast(`🎉 Welcome to QuestGains Pro! Your ${plan || ''} subscription is now active.`);
     }, 500);
   } else if (checkout === 'cancelled') {
     window.history.replaceState({}, '', window.location.pathname);

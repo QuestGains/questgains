@@ -1,6 +1,7 @@
 // Firebase Cloud Messaging support
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+// Self-hosted, same version as the page (was 10.8.0 from gstatic)
+importScripts('./vendor/firebase-10.14.1/firebase-app-compat.js');
+importScripts('./vendor/firebase-10.14.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyB4B4WY32oMm39_W_Nm67_Lvklf27g423w",
@@ -33,138 +34,104 @@ messaging.onBackgroundMessage(function(payload) {
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v28';  // bumped for build 85 — forces SW reinstall + full cache purge
+const CACHE_NAME = 'questgains-v29';          // core shell (bump on every release)
+const RUNTIME_CACHE = 'questgains-runtime-v1';  // sprites / images / CDN — survives shell bumps
+const KEEP_CACHES = [CACHE_NAME, RUNTIME_CACHE];
+
+// Core shell only. Everything here is same-origin, so one flaky third-party
+// host can no longer fail the whole install.
 const PRECACHE_URLS = [
-  './index.html',
-  './firebase-config.js',
-  './auth.js',
-  './db.js',
-  './style.css',
-  './app.js',
-  './data.js',
-  './manifest.json',
-  './logo.png',
-  './favicon.png',
-  './apple-touch-icon.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-aegis-ward.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-astravault.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-brookeflame.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-crownvolt.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-dreadvane.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-duskrender.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-emberveil.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-fangshade.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-freelash.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-goliath-rift.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-gravebulk.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-hexara.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-inevitor.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-iron-vanguard.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-ironwraith.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-lunabelle.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-mad-crown.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-magnetar-reign.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-mimicrow-2.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-mimicrow.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-mythara.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-nightwarden.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-onyx-koro.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-plainstrike.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-razorfen.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-red-mirth.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-riftmage.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-riftron.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-sagebloom.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-solaris-prime.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-stormforged.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-sunscarab.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-threadstrike.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-thunderion.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-tideshard.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-umbrafang.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-valorgiant.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-voidmonk.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-voltflare.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-willlume.png',
-  'https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/sprite-wyrmvolt.png',
+  './', './index.html', './style.css', './manifest.json',
+  './escape.js', './firebase-config.js', './db.js', './username.js', './subscription.js',
+  './notifications.js', './social.js', './auth.js', './data.js', './app.js',
+  './logo.png', './favicon.png', './apple-touch-icon.png',
+  './vendor/firebase-10.14.1/firebase-app-compat.js',
+  './vendor/firebase-10.14.1/firebase-auth-compat.js',
+  './vendor/firebase-10.14.1/firebase-firestore-compat.js',
+  './vendor/firebase-10.14.1/firebase-messaging-compat.js',
+  './vendor/chartjs-4.4.1/chart.umd.min.js',
+  './vendor/zxing-0.21.3/index.min.js',
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Cache each URL independently: a single 404 is logged, not fatal.
+    const results = await Promise.allSettled(
+      PRECACHE_URLS.map((u) => cache.add(new Request(u, { cache: 'reload' })))
+    );
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') console.error('[SW] precache failed:', PRECACHE_URLS[i], r.reason);
+    });
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        console.log('[SW] activate — caches found:', cacheNames);
-        return Promise.all(
-          cacheNames
-            .filter((cacheName) => cacheName !== CACHE_NAME)
-            .map((cacheName) => {
-              console.log('[SW] deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            })
-        );
-      })
-      .then(() => {
-        console.log('[SW] old caches purged, claiming clients');
-        return self.clients.claim();
-      })
-  );
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter((n) => !KEEP_CACHES.includes(n)).map((n) => caches.delete(n)));
+    await self.clients.claim();
+  })());
 });
 
-// App shell files — always try network first, fall back to cache
-const APP_SHELL = [
-  './index.html', './app.js', './data.js', './style.css',
-  './auth.js', './db.js', './firebase-config.js', './manifest.json',
-  './logo.png', './favicon.png', './apple-touch-icon.png', './service-worker.js',
-  './subscription.js', './username.js', './notifications.js', './social.js'
-];
+// App shell: network-first, fall back to cache.
+const APP_SHELL = PRECACHE_URLS.filter((u) => u !== './').concat(['./service-worker.js']);
 
 function isAppShell(url) {
-  // Strip query string before matching so versioned URLs (e.g. subscription.js?v=73)
-  // are treated as app shell and fetched network-first.
-  const urlWithoutQuery = url.split('?')[0];
-  return APP_SHELL.some(file => urlWithoutQuery.endsWith(file.replace('./', '/'))) ||
-    url.endsWith('/questgains/') || url.endsWith('/questgains');
+  const u = new URL(url);
+  if (u.origin !== self.location.origin) return false;
+  const path = u.pathname;
+  return APP_SHELL.some((f) => path.endsWith(f.replace('./', '/'))) ||
+    path.endsWith('/questgains/') || path.endsWith('/questgains');
+}
+
+// Sprites / exercise images / fonts: cache on first use, stale-while-revalidate.
+function isRuntimeAsset(url) {
+  const u = new URL(url);
+  return /\/sprites\/[^/]+\.png$/.test(u.pathname) ||
+    /\.(png|jpe?g|webp|gif|svg|woff2?)$/i.test(u.pathname) ||
+    u.hostname === 'raw.githubusercontent.com';
+}
+
+function staleWhileRevalidate(event) {
+  return caches.open(RUNTIME_CACHE).then((cache) =>
+    cache.match(event.request).then((cached) => {
+      const network = fetch(event.request).then((res) => {
+        if (res && (res.status === 200 || res.type === 'opaque')) cache.put(event.request, res.clone());
+        return res;
+      }).catch(() => cached);
+      if (cached) { event.waitUntil(network); return cached; }
+      return network;
+    })
+  );
 }
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = req.url;
+  if (!url.startsWith('http')) return;
+  // Never cache Firebase/Firestore/Functions/Stripe API traffic.
+  if (/googleapis\.com|firebaseio\.com|cloudfunctions\.net|stripe\.com|identitytoolkit/.test(url)) return;
 
-  const url = event.request.url;
-
-  // Network-first for app shell — always get latest version
-  if (isAppShell(url)) {
+  if (req.mode === 'navigate' || isAppShell(url)) {
     event.respondWith(
-      fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+      fetch(req).then((res) => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(req, clone));
         }
-        return networkResponse;
-      }).catch(() => caches.match(event.request))
+        return res;
+      }).catch(() => caches.match(req, { ignoreSearch: true })
+        .then((r) => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
     );
     return;
   }
 
-  // Cache-first for sprites and other assets
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque')) {
-          return networkResponse;
-        }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
-        return networkResponse;
-      });
-    })
-  );
+  if (isRuntimeAsset(url)) {
+    event.respondWith(staleWhileRevalidate(event));
+    return;
+  }
+  // Everything else: straight to network (browser HTTP cache applies).
 });

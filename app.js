@@ -1551,7 +1551,7 @@ function renderPlans() {
   plDB.forEach((plan) => {
     const div = document.createElement('div');
     div.className = 'bg-gray-900 p-5 rounded-3xl cursor-pointer hover:bg-gray-800 transition-colors';
-    div.innerHTML = `<div class="font-semibold text-lg">${plan.name}</div><div class="text-green-400 text-sm mt-1">${plan.desc}</div>`;
+    div.innerHTML = `<div class="font-semibold text-lg">${escapeHTML(plan.name)}</div><div class="text-green-400 text-sm mt-1">${escapeHTML(plan.desc)}</div>`;
     div.onclick = () => showPlanDetail(plan);
     container.appendChild(div);
   });
@@ -1834,8 +1834,8 @@ function renderCurrentSession() {
     div.innerHTML = `
       <div class="flex justify-between items-start gap-3">
         <div>
-          <div class="font-semibold">${item.exercise.name}</div>
-          <div class="text-xs text-gray-400">${item.exercise.muscles}</div>
+          <div class="font-semibold">${escapeHTML(item.exercise.name)}</div>
+          <div class="text-xs text-gray-400">${escapeHTML(item.exercise.muscles)}</div>
           <div class="text-xs text-green-400 mt-1">Sets logged: ${(item.sets || []).length}</div>
         </div>
         <button onclick="toggleSetForm(${index})" class="text-xs bg-green-600 hover:bg-green-700 px-4 py-2 rounded-2xl">Log Set + Rest</button>
@@ -2603,7 +2603,7 @@ function getSpriteImg(hero, size = 'large') {
     return `<div class="sprite-fallback ${sizeClass}" style="--sprite-color: ${getHeroColor(hero)}"></div>`;
   }
 
-  return `<img src="https://raw.githubusercontent.com/QuestGains/questgains/main/sprites/${filename}" alt="${hero.name}" class="pixel-portrait ${sizeClass}" style="--hero-color: ${getHeroColor(hero)}">`;
+  return `<img src="sprites/${filename}" loading="lazy" alt="${escapeHTML(hero.name)}" class="pixel-portrait ${sizeClass}" style="--hero-color: ${getHeroColor(hero)}">`;
 }
 
 function renderHero() {
@@ -2615,7 +2615,7 @@ function renderHero() {
   const activeNode = getActivePerkNode();
 
   if (activeNode) {
-    titleBar.innerHTML = `<div class="text-sm text-gray-300">⚡ Currently: <span class="text-white font-bold">${character.equippedTitle || activeNode.title}</span></div><div class="text-green-400 text-sm mt-1">${activeNode.perk.label}</div>`;
+    titleBar.innerHTML = `<div class="text-sm text-gray-300">⚡ Currently: <span class="text-white font-bold">${escapeHTML(character.equippedTitle || activeNode.title)}</span></div><div class="text-green-400 text-sm mt-1">${activeNode.perk.label}</div>`;
   } else {
     titleBar.innerHTML = '<div class="text-sm text-gray-300">⚡ Currently: <span class="text-white font-bold">No title equipped.</span></div><div class="text-gray-400 text-sm mt-1">Unlock a node and equip its title to activate a perk.</div>';
   }
@@ -2675,7 +2675,7 @@ function renderHero() {
     if ((character.badges || []).length === 0) {
       badgesContainer.innerHTML = '<p class="text-sm text-gray-400">No badges yet — complete Personal Achievements to earn them.</p>';
     } else {
-      badgesContainer.innerHTML = character.badges.map((badge) => `<span class="achievement-badge">✅ ${badge}</span>`).join('');
+      badgesContainer.innerHTML = character.badges.map((badge) => `<span class="achievement-badge">✅ ${escapeHTML(badge)}</span>`).join('');
     }
   }
 
@@ -3541,12 +3541,12 @@ async function renderLeaderboard() {
         <div class="flex items-center gap-4">
           <div class="text-2xl font-bold ${isMe ? 'text-green-400' : 'text-gray-400'} w-10">${rankEmoji}</div>
           <div>
-            <div class="font-semibold ${isMe ? 'text-green-300' : 'text-white'}">${user.username}${isMe ? ' (You)' : ''}</div>
-            <div class="${isMe ? 'text-green-400' : 'text-gray-400'} text-sm">Level ${user.level}</div>
+            <div class="font-semibold ${isMe ? 'text-green-300' : 'text-white'}">${escapeHTML(user.username)}${isMe ? ' (You)' : ''}</div>
+            <div class="${isMe ? 'text-green-400' : 'text-gray-400'} text-sm">Level ${escapeHTML(user.level)}</div>
           </div>
         </div>
         <div class="text-right">
-          <div class="text-xl font-bold">${user.xp.toLocaleString()} XP</div>
+          <div class="text-xl font-bold">${escapeHTML(Number(user.xp || 0).toLocaleString())} XP</div>
         </div>`;
       container.appendChild(div);
     });
@@ -3687,7 +3687,7 @@ function renderNutrition(foodList = nDB) {
   foodList.forEach((food) => {
     const div = document.createElement('div');
     div.className = 'bg-gray-900 p-4 rounded-3xl cursor-pointer hover:bg-gray-800 transition-colors';
-    div.innerHTML = `<div class="font-semibold text-lg">${food.name}</div><div class="text-green-400 text-sm">Contributes: ${food.contributes}</div><div class="text-gray-400 text-xs mt-1">${food.calories} cal • ${food.protein} g protein per 100 g</div>`;
+    div.innerHTML = `<div class="font-semibold text-lg">${escapeHTML(food.name)}</div><div class="text-green-400 text-sm">Contributes: ${escapeHTML(food.contributes)}</div><div class="text-gray-400 text-xs mt-1">${food.calories} cal • ${food.protein} g protein per 100 g</div>`;
     div.onclick = () => showNutritionDetail(food);
     container.appendChild(div);
   });
@@ -3771,7 +3771,7 @@ function renderMealLogger() {
     todaysMeals.forEach((meal) => {
       const div = document.createElement('div');
       div.className = 'bg-gray-900 p-4 rounded-3xl flex justify-between items-center';
-      div.innerHTML = `<div><span class="font-semibold">${meal.name}</span> × ${meal.quantity}g</div><div class="text-right"><div class="text-green-400 text-sm">${meal.calories} cal</div><div class="text-blue-400 text-xs">${(meal.protein || 0).toFixed(1)}g protein</div></div>`;
+      div.innerHTML = `<div><span class="font-semibold">${escapeHTML(meal.name)}</span> × ${escapeHTML(meal.quantity)}g</div><div class="text-right"><div class="text-green-400 text-sm">${meal.calories} cal</div><div class="text-blue-400 text-xs">${(meal.protein || 0).toFixed(1)}g protein</div></div>`;
       container.appendChild(div);
     });
   }
@@ -3883,7 +3883,7 @@ window.renderConverterFoodList = function renderConverterFoodList() {
   }
   listEl.innerHTML = filtered.map(f => `
     <div onclick="selectConverterFood(${f.id})" class="bg-gray-900 p-3 rounded-2xl cursor-pointer hover:bg-gray-800 transition-colors flex justify-between items-center">
-      <div class="font-medium">${f.name}</div>
+      <div class="font-medium">${escapeHTML(f.name)}</div>
       <div class="text-xs text-gray-400">${f.calories} cal · ${f.protein}g pro</div>
     </div>
   `).join('');
@@ -3924,7 +3924,7 @@ window.convertUnits = function convertUnits() {
   const scaledCal = Math.round(food.calories * (grams / 100));
   const scaledProtein = Math.round(food.protein * (grams / 100) * 10) / 10;
 
-  document.getElementById('converter-result').innerHTML = `<div class="text-green-400 font-semibold mb-2">${food.name} — ${amount} ${fromUnit}</div><div class="grid grid-cols-2 gap-2 text-sm"><div><strong>Grams:</strong> ${grams.toFixed(0)} g</div><div><strong>Ounces:</strong> ${oz} oz</div><div><strong>Cups:</strong> ${cups} cups</div><div><strong>Tablespoons:</strong> ${tbsp} tbsp</div><div><strong>Teaspoons:</strong> ${tsp} tsp</div><div><strong>ml:</strong> ${ml} ml</div></div><div class="mt-4 pt-4 border-t border-gray-700"><div class="font-semibold">Nutrition for this amount:</div><div class="flex justify-between"><span>Calories</span><span class="font-bold">${scaledCal} cal</span></div><div class="flex justify-between"><span>Protein</span><span class="font-bold">${scaledProtein} g</span></div></div>`;
+  document.getElementById('converter-result').innerHTML = `<div class="text-green-400 font-semibold mb-2">${escapeHTML(food.name)} — ${escapeHTML(amount)} ${escapeHTML(fromUnit)}</div><div class="grid grid-cols-2 gap-2 text-sm"><div><strong>Grams:</strong> ${grams.toFixed(0)} g</div><div><strong>Ounces:</strong> ${oz} oz</div><div><strong>Cups:</strong> ${cups} cups</div><div><strong>Tablespoons:</strong> ${tbsp} tbsp</div><div><strong>Teaspoons:</strong> ${tsp} tsp</div><div><strong>ml:</strong> ${ml} ml</div></div><div class="mt-4 pt-4 border-t border-gray-700"><div class="font-semibold">Nutrition for this amount:</div><div class="flex justify-between"><span>Calories</span><span class="font-bold">${scaledCal} cal</span></div><div class="flex justify-between"><span>Protein</span><span class="font-bold">${scaledProtein} g</span></div></div>`;
 };
 
 function renderWorkoutHistory() {
@@ -3939,7 +3939,7 @@ function renderWorkoutHistory() {
   container.innerHTML = workoutLog.map((entry) => {
     const exercises = (entry.session || []).map((item) => `
       <div class="bg-gray-800/60 rounded-2xl p-3">
-        <div class="font-semibold text-white">${item.exercise.name}</div>
+        <div class="font-semibold text-white">${escapeHTML(item.exercise.name)}</div>
         <div class="mt-2 space-y-1">
           ${(item.sets || []).map((set, setIndex) => `<div class="text-sm text-gray-300">${formatCompactSetLine(set, setIndex)}</div>`).join('') || '<div class="text-sm text-gray-500">No set data</div>'}
         </div>
@@ -3948,7 +3948,7 @@ function renderWorkoutHistory() {
     return `
       <div class="history-card bg-gray-900 p-5 rounded-3xl">
         <div class="flex items-center justify-between mb-3 gap-3">
-          <div class="font-semibold text-white">${entry.displayDate || getDisplayDate(entry.date)}</div>
+          <div class="font-semibold text-white">${escapeHTML(entry.displayDate || getDisplayDate(entry.date))}</div>
           <div class="text-xs text-green-400">${(entry.session || []).length} exercise${(entry.session || []).length === 1 ? '' : 's'}</div>
         </div>
         <div class="space-y-3">${exercises}</div>
@@ -4349,23 +4349,24 @@ function showScannedFoodConfirmation(food) {
   const div = document.createElement('div');
   div.id = 'scan-confirm';
   div.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 w-11/12 max-w-sm bg-gray-900 border border-green-500/40 rounded-3xl p-4 z-[140] shadow-xl';
-  const subtitle = food.brand ? `<div class="text-xs text-gray-500 mb-1">${food.brand}</div>` : '';
-  const foodJson = JSON.stringify(food).replace(/\"/g, '&quot;');
+  const subtitle = food.brand ? `<div class="text-xs text-gray-500 mb-1">${escapeHTML(food.brand)}</div>` : '';
   div.innerHTML = `
-    <div class="text-green-400 font-semibold mb-1">📷 ${food.name}</div>
+    <div class="text-green-400 font-semibold mb-1">📷 ${escapeHTML(food.name)}</div>
     ${subtitle}
-    <div class="text-xs text-gray-400 mb-1">${food.basisLabel}:</div>
-    <div class="text-sm text-white mb-3">${food.caloriesPer} cal · ${food.proteinPer}g protein · ${food.carbsPer}g carbs · ${food.fatPer}g fat</div>
+    <div class="text-xs text-gray-400 mb-1">${escapeHTML(food.basisLabel)}:</div>
+    <div class="text-sm text-white mb-3">${escapeHTML(food.caloriesPer)} cal · ${escapeHTML(food.proteinPer)}g protein · ${escapeHTML(food.carbsPer)}g carbs · ${escapeHTML(food.fatPer)}g fat</div>
     <div class="flex gap-2 items-center mb-1">
       <label class="text-xs text-gray-400 flex-shrink-0">Amount (g):</label>
-      <input id="scan-qty" type="number" value="${food.servingQty}" min="1" class="flex-1 bg-gray-800 text-white p-2 rounded-2xl text-sm">
+      <input id="scan-qty" type="number" value="${escapeHTML(food.servingQty)}" min="1" class="flex-1 bg-gray-800 text-white p-2 rounded-2xl text-sm">
     </div>
-    <div class="text-xs text-gray-500 mb-3">Default = 1 serving (${food.servingLabel}). Change to log a different amount.</div>
+    <div class="text-xs text-gray-500 mb-3">Default = 1 serving (${escapeHTML(food.servingLabel)}). Change to log a different amount.</div>
     <div class="flex gap-2">
-      <button onclick="logScannedFood(${foodJson})" class="flex-1 bg-green-500 hover:bg-green-600 py-2 rounded-2xl text-sm font-bold">+ Log Meal</button>
+      <button data-act="log-scanned" class="flex-1 bg-green-500 hover:bg-green-600 py-2 rounded-2xl text-sm font-bold">+ Log Meal</button>
       <button onclick="document.getElementById('scan-confirm').remove()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-2xl text-sm">Cancel</button>
     </div>
   `;
+  // Pass the object directly instead of serializing third-party data into inline JS.
+  div.querySelector('[data-act="log-scanned"]').addEventListener('click', () => window.logScannedFood(food));
   document.body.appendChild(div);
 }
 
@@ -4521,7 +4522,6 @@ window.onload = function onLoad() {
       updateNotifButton();
     }, 4000);
   }
-  console.log(`%c✅ QuestGains v2.14 loaded — ${heroRoster.length} legends, ${getUnlockedNodeCount()} nodes unlocked.`, 'color:#22c55e; font-size:18px; font-weight:bold');
 };
 
 // ─── Delete Account ───────────────────────────────────────────────────────────

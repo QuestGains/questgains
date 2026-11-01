@@ -138,11 +138,15 @@ async function renderFriendRequests() {
       const div = document.createElement('div');
       div.className = 'flex items-center justify-between bg-gray-800 rounded-2xl px-4 py-3 mb-2';
       div.innerHTML =
-        '<span class="text-sm text-white">' + (data.username || 'Unknown') + ' wants to be friends</span>' +
+        '<span class="text-sm text-white">' + escapeHTML(data.username || 'Unknown') + ' wants to be friends</span>' +
         '<div class="flex gap-2">' +
-          '<button onclick="window.acceptFriendRequest(\'' + doc.id + '\')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-xl">Accept</button>' +
-          '<button onclick="window.declineFriendRequest(\'' + doc.id + '\')" class="bg-gray-600 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-xl">Decline</button>' +
+          '<button data-act="accept" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded-xl">Accept</button>' +
+          '<button data-act="decline" class="bg-gray-600 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-xl">Decline</button>' +
         '</div>';
+      // doc.id is chosen by the requester — never put it into inline JS.
+      const reqId = doc.id;
+      div.querySelector('[data-act="accept"]').addEventListener('click', () => window.acceptFriendRequest(reqId));
+      div.querySelector('[data-act="decline"]').addEventListener('click', () => window.declineFriendRequest(reqId));
       container.appendChild(div);
     });
   } catch (err) {
@@ -211,14 +215,18 @@ async function renderFriendsLeaderboard() {
         '<div class="flex items-center gap-4">' +
           '<div class="text-2xl font-bold ' + (user.isUser ? 'text-green-400' : 'text-gray-400') + ' w-10">' + rankEmoji + '</div>' +
           '<div>' +
-            '<div class="font-semibold ' + (user.isUser ? 'text-green-300' : 'text-white') + '">' + user.username + (user.isUser ? ' (You)' : '') + '</div>' +
-            '<div class="text-sm ' + (user.isUser ? 'text-green-400' : 'text-gray-400') + '">Level ' + user.level + '</div>' +
+            '<div class="font-semibold ' + (user.isUser ? 'text-green-300' : 'text-white') + '">' + escapeHTML(user.username) + (user.isUser ? ' (You)' : '') + '</div>' +
+            '<div class="text-sm ' + (user.isUser ? 'text-green-400' : 'text-gray-400') + '">Level ' + escapeHTML(user.level) + '</div>' +
           '</div>' +
         '</div>' +
         '<div class="flex items-center gap-3">' +
-          '<div class="text-xl font-bold">' + user.xp.toLocaleString() + ' XP</div>' +
-          (!user.isUser ? '<button onclick="window.removeFriend(\'' + user.uid + '\')" class="text-gray-600 hover:text-red-400 text-xs">✕</button>' : '') +
+          '<div class="text-xl font-bold">' + escapeHTML(Number(user.xp || 0).toLocaleString()) + ' XP</div>' +
+          (!user.isUser ? '<button data-act="remove" class="text-gray-600 hover:text-red-400 text-xs">✕</button>' : '') +
         '</div>';
+      if (!user.isUser) {
+        const fuid = user.uid;
+        div.querySelector('[data-act="remove"]').addEventListener('click', () => window.removeFriend(fuid));
+      }
       container.appendChild(div);
     });
   } catch (err) {

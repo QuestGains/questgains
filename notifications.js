@@ -1,7 +1,7 @@
 // QuestGains Notifications v1.0 — Phase II Part 2
 // Firebase Cloud Messaging: token registration, permission, preferences
 
-const FUNCTIONS_BASE = 'https://us-central1-questgains.cloudfunctions.net';
+// FUNCTIONS_BASE is declared in subscription.js (a second top-level const threw a SyntaxError and stopped this whole file loading).
 let VAPID_KEY = 'BP1PeF03ad4icaYXrCKjVaWA_uMv4o1EYneM5wLZuVhKvj63Llq3SgKxtR5zmkhtSt0ZH_H2eN_Ju9CjLQQuT9s';
 
 // ── State ─────────────────────────────────────────────────────────────────
@@ -185,7 +185,7 @@ function initFcmForeground() {
 function showNotifToast(title, body) {
   const toast = document.createElement('div');
   toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-indigo-600 text-white rounded-2xl px-5 py-3 shadow-xl max-w-xs text-sm';
-  toast.innerHTML = '<p class="font-semibold">' + title + '</p>' + (body ? '<p class="text-indigo-200 text-xs mt-0.5">' + body + '</p>' : '');
+  toast.innerHTML = '<p class="font-semibold">' + escapeHTML(title) + '</p>' + (body ? '<p class="text-indigo-200 text-xs mt-0.5">' + escapeHTML(body) + '</p>' : '');
   document.body.appendChild(toast);
   setTimeout(function() { toast.remove(); }, 5000);
 }

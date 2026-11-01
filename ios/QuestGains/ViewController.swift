@@ -229,7 +229,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         // Build 76 — Force SW update + purge all non-current caches from page side
         webView.evaluateJavaScript("""
             (function() {
-                var CURRENT = 'questgains-v26';
+                // Keep in sync with service-worker.js CACHE_NAME / RUNTIME_CACHE
+                var KEEP = ['questgains-v29', 'questgains-runtime-v1'];
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function(regs) {
                         regs.forEach(function(reg) { reg.update(); });
@@ -237,8 +238,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
                 }
                 caches.keys().then(function(keys) {
                     keys.forEach(function(k) {
-                        if (k !== CURRENT) {
-                            console.log('[page] purging stale cache:', k);
+                        if (KEEP.indexOf(k) === -1) {
                             caches.delete(k);
                         }
                     });

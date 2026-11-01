@@ -13,20 +13,21 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#000000">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script src="vendor/chartjs-4.4.1/chart.umd.min.js"></script>
+  <script src="vendor/zxing-0.21.3/index.min.js"></script>
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
+  <script src="vendor/firebase-10.14.1/firebase-app-compat.js"></script>
+  <script src="vendor/firebase-10.14.1/firebase-auth-compat.js"></script>
+  <script src="vendor/firebase-10.14.1/firebase-firestore-compat.js"></script>
+  <script src="vendor/firebase-10.14.1/firebase-messaging-compat.js"></script>
+  <script src="escape.js?v=1"></script>
   <script src="firebase-config.js?v=77"></script>
   <script src="db.js"></script>
-  <script src="username.js?v=77"></script>
-  <script src="subscription.js?v=80"></script>
-  <script src="notifications.js?v=77"></script>
-  <script src="social.js?v=77"></script>
-  <script src="auth.js?v=77"></script>
+  <script src="username.js?v=87"></script>
+  <script src="subscription.js?v=87"></script>
+  <script src="notifications.js?v=87"></script>
+  <script src="social.js?v=87"></script>
+  <script src="auth.js?v=87"></script>
 </head>
 <body class="text-white min-h-screen pb-24" style="background-color: var(--theme-bg);">
   <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm px-4">
@@ -665,13 +666,12 @@
   </div>
 
   <script src="data.js?v=77"></script>
-  <script src="app.js?v=77"></script>
+  <script src="app.js?v=87"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
-          .then(reg => console.log('SW registered:', reg.scope))
-          .catch(err => console.log('SW error:', err));
+          .catch(err => console.error('SW registration failed:', err));
       });
     }
   </script>

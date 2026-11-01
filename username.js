@@ -231,7 +231,7 @@ function renderUsernameSettings() {
   const currentName = window.currentUsername || localStorage.getItem('qg_username') || '—';
   container.innerHTML = `
     <div class="text-sm font-semibold text-green-400 mb-3">⚙️ Username Settings</div>
-    <div class="text-xs text-gray-400 mb-2">Current username: <span class="text-white font-semibold">${currentName}</span></div>
+    <div class="text-xs text-gray-400 mb-2">Current username: <span class="text-white font-semibold">${escapeHTML(currentName)}</span></div>
     <div class="flex gap-2 mb-2">
       <input id="username-change-input" type="text" maxlength="20" placeholder="new_username"
         class="flex-1 bg-gray-800 text-white px-3 py-2 rounded-2xl text-sm outline-none border border-gray-700 focus:border-green-500"
