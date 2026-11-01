@@ -18,6 +18,8 @@ workflows:
         BUNDLE_ID: "com.questgains.mobile"
         APP_NAME: "QuestGains"
         PWA_URL: "https://questgains.github.io/questgains/"
+        APP_VERSION: "1.1.0"            # marketing version; bump for each App Store release
+        APP_STORE_APPLE_ID: "6774759983"      # numeric Apple ID (App Store Connect > App Information > Apple ID); step fails until set
       xcode: latest
       cocoapods: default
 
@@ -78,17 +80,24 @@ workflows:
             exit 1
           fi
 
-      - name: Set build number
+      # Version fix: the old step forced CFBundleShortVersionString=1.0 and used
+      # Codemagic's own $BUILD_NUMBER. Once 1.0 (build 85, Jul 2) was approved, App Store
+      # Connect closed the 1.0 train and rejected later uploads. Now: APP_VERSION
+      # (bump per release) and build number = highest App Store Connect build + 1.
+      - name: Set version and build number
         script: |
-          set -e
+          set -euo pipefail
           PLIST="ios/QuestGains/Info.plist"
-          # Use timestamp for guaranteed uniqueness
-          TIMESTAMP=$(date +%s)
-          BUILD_VER="$BUILD_NUMBER.$TIMESTAMP"
-          echo "Setting CFBundleVersion=$BUILD_NUMBER (timestamp=$TIMESTAMP)"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0" "$PLIST"
-          echo "Confirmed:"
+          if ! [[ "${APP_STORE_APPLE_ID:-}" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: set APP_STORE_APPLE_ID (numeric Apple ID: App Store Connect > App Information)"
+            exit 1
+          fi
+          # Credentials come from the 'QuestGains' App Store Connect integration below.
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" --all-versions)
+          NEXT=$(( LATEST + 1 ))
+          echo "ASC latest build=$LATEST -> CFBundleVersion=$NEXT, CFBundleShortVersionString=$APP_VERSION"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$PLIST"
           /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST"
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST"
 
