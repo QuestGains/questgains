@@ -35,6 +35,9 @@ const DEFAULT_CHARACTER = {
   waterRewardedDate: null,
   weightUnit: 'lbs',
   templates: [],
+  customExercises: [],
+  deletedWorkoutIds: [],
+  deletedCustomExerciseIds: [],
   lastSessionVolume: {},
   weeklyVolume: {},
   weeklyVolumeWeek: null,
@@ -108,6 +111,9 @@ let character = {
   waterRewardedDate: savedCharacter.waterRewardedDate || null,
   weightUnit: savedCharacter.weightUnit || 'lbs',
   templates: savedCharacter.templates || [],
+  customExercises: savedCharacter.customExercises || [],
+  deletedWorkoutIds: savedCharacter.deletedWorkoutIds || [],
+  deletedCustomExerciseIds: savedCharacter.deletedCustomExerciseIds || [],
   lastSessionVolume: savedCharacter.lastSessionVolume || {},
   weeklyVolume: savedCharacter.weeklyVolume || {},
   weeklyVolumeWeek: savedCharacter.weeklyVolumeWeek || null,
@@ -154,6 +160,10 @@ if (!savedCharacter.unlockedCharacters && savedCharacter.activePath && Array.isA
 let workoutLog = JSON.parse(localStorage.getItem('workoutLog')) || [];
 let progressHistory = JSON.parse(localStorage.getItem('progressHistory')) || [];
 let currentSession = [];
+try {
+  const draft = JSON.parse(localStorage.getItem('qg_currentSession') || 'null');
+  if (Array.isArray(draft) && draft.length) currentSession = draft;
+} catch (_) {}
 let todaysMeals = JSON.parse(localStorage.getItem('todaysMeals')) || [];
 let cardioLog = JSON.parse(localStorage.getItem('cardioLog')) || character.cardioLog || [];
 let questProgress = JSON.parse(localStorage.getItem('questProgress')) || {
@@ -205,6 +215,9 @@ function buildCharacterState(source = {}) {
     waterRewardedDate: source.waterRewardedDate || null,
     weightUnit: source.weightUnit || 'lbs',
     templates: source.templates || [],
+    customExercises: source.customExercises || [],
+    deletedWorkoutIds: source.deletedWorkoutIds || [],
+    deletedCustomExerciseIds: source.deletedCustomExerciseIds || [],
     lastSessionVolume: source.lastSessionVolume || {},
     weeklyVolume: source.weeklyVolume || {},
     weeklyVolumeWeek: source.weeklyVolumeWeek || null,
@@ -265,14 +278,30 @@ function getQuestGainsData() {
   };
 }
 
+
+function persistCurrentSessionDraft() {
+  try {
+    if (Array.isArray(currentSession) && currentSession.length) {
+      localStorage.setItem('qg_currentSession', JSON.stringify(currentSession));
+    } else {
+      localStorage.removeItem('qg_currentSession');
+    }
+  } catch (_) {}
+}
+
+function clearCurrentSessionDraft() {
+  currentSession = [];
+  try { localStorage.removeItem('qg_currentSession'); } catch (_) {}
+}
+
 function clearQuestGainsLocalData() {
-  ['character', 'workoutLog', 'progressHistory', 'todaysMeals', 'questProgress', 'cardioLog'].forEach((key) => localStorage.removeItem(key));
+  ['character', 'workoutLog', 'progressHistory', 'todaysMeals', 'questProgress', 'cardioLog', 'qg_currentSession'].forEach((key) => localStorage.removeItem(key));
 }
 
 function applyQuestGainsCloudState(payload = {}) {
   const importedCharacter = payload.character || {};
   character = buildCharacterState(importedCharacter);
-  workoutLog = Array.isArray(payload.workoutLog) ? payload.workoutLog : [];
+  workoutLog = (Array.isArray(payload.workoutLog) ? payload.workoutLog : []).map((e) => ensureWorkoutEntryId({ ...e }));
   cardioLog = Array.isArray(payload.cardioLog) ? payload.cardioLog : character.cardioLog || [];
   progressHistory = Array.isArray(payload.progressHistory) ? payload.progressHistory : [];
   todaysMeals = Array.isArray(payload.todaysMeals) ? payload.todaysMeals : [];
@@ -289,7 +318,15 @@ function applyQuestGainsCloudState(payload = {}) {
   character.cardioLog = cardioLog;
   character.totalNodesUnlocked = getUnlockedNodeCount();
   selectedHeroId = character.activeCharId || (heroRoster[0] ? heroRoster[0].id : null);
-  currentSession = [];
+  // Keep an in-progress workout draft across auth/cloud reloads.
+  if (!Array.isArray(currentSession) || currentSession.length === 0) {
+    try {
+      const draft = JSON.parse(localStorage.getItem('qg_currentSession') || 'null');
+      currentSession = Array.isArray(draft) ? draft : [];
+    } catch (_) {
+      currentSession = [];
+    }
+  }
   workoutSuggestionMeta = { note: '', focusMuscles: [] };
   openSetFormIndex = null;
 
@@ -316,6 +353,82 @@ function applyQuestGainsCloudState(payload = {}) {
 window.getQuestGainsData = getQuestGainsData;
 window.applyQuestGainsCloudState = applyQuestGainsCloudState;
 window.clearQuestGainsLocalData = clearQuestGainsLocalData;
+
+function getBuiltinExerciseIds() {
+  return new Set((typeof exDB !== 'undefined' ? exDB : []).map((ex) => ex.id));
+}
+
+function getCustomExercises() {
+  const deleted = new Set(character.deletedCustomExerciseIds || []);
+  return (character.customExercises || []).filter((ex) => ex && ex.id && !deleted.has(ex.id));
+}
+
+/** Built-in catalog plus user-created custom exercises. */
+function getExerciseCatalog() {
+  return (typeof exDB !== 'undefined' ? exDB : []).concat(getCustomExercises());
+}
+
+function isCustomExercise(exerciseOrId) {
+  if (exerciseOrId && typeof exerciseOrId === 'object') {
+    if (exerciseOrId.custom === true) return true;
+    return isCustomExercise(exerciseOrId.id);
+  }
+  const id = exerciseOrId;
+  if (id == null) return false;
+  if (getBuiltinExerciseIds().has(id)) return false;
+  return getCustomExercises().some((ex) => ex.id === id);
+}
+
+function findExerciseById(id) {
+  return getExerciseCatalog().find((ex) => ex.id === id || String(ex.id) === String(id)) || null;
+}
+
+function ensureWorkoutEntryId(entry) {
+  if (!entry) return entry;
+  if (!entry.id) {
+    entry.id = `wl-${entry.dateTime || entry.date || 'x'}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+  return entry;
+}
+
+function scheduleCloudFlush() {
+  if (!window.currentUserId) return;
+  if (typeof window.flushPendingUserData === 'function') {
+    window.flushPendingUserData(window.currentUserId, getQuestGainsData()).catch(() => {});
+  }
+}
+
+function showActionToast(message, { undoLabel = 'Undo', onUndo = null, ms = 5000 } = {}) {
+  const existing = document.getElementById('qg-action-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'qg-action-toast';
+  el.setAttribute('role', 'status');
+  el.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 z-[300] max-w-sm w-[92%] rounded-2xl bg-gray-900 border border-green-500/30 px-4 py-3 shadow-xl flex items-center gap-3';
+  const text = document.createElement('div');
+  text.className = 'text-sm text-gray-100 flex-1';
+  text.textContent = message;
+  el.appendChild(text);
+  if (typeof onUndo === 'function') {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-sm font-semibold text-green-400 hover:text-green-300 shrink-0';
+    btn.textContent = undoLabel;
+    btn.addEventListener('click', () => {
+      clearTimeout(el._tid);
+      el.remove();
+      onUndo();
+    });
+    el.appendChild(btn);
+  }
+  document.body.appendChild(el);
+  el._tid = setTimeout(() => el.remove(), ms);
+}
+
+let _pendingWorkoutUndo = null;
+let _pendingCustomUndo = null;
+
+
 
 function normalizeExtendedState() {
   character.unlockedGear = Array.from(new Set(character.unlockedGear || []));
@@ -1396,14 +1509,88 @@ function formatCompactSetLine(set, index) {
   return `Set ${index + 1}: ${set.reps} × ${load}`;
 }
 
-function renderLibrary(filtered = exDB) {
+function renderLibrary(filtered) {
   const container = document.getElementById('exercise-list');
+  if (!container) return;
+  const list = Array.isArray(filtered) ? filtered : getExerciseCatalog();
   container.innerHTML = '';
-  filtered.forEach((exercise) => {
+
+  // Create-custom panel (always at top)
+  const createWrap = document.createElement('div');
+  createWrap.className = 'bg-gray-900 p-4 rounded-3xl border border-gray-800';
+  const createTitle = document.createElement('div');
+  createTitle.className = 'font-semibold text-white mb-1';
+  createTitle.textContent = 'Your custom exercises';
+  const createHint = document.createElement('div');
+  createHint.className = 'text-xs text-gray-400 mb-3';
+  createHint.textContent = 'Add a movement that is not in the built-in library. Built-ins cannot be deleted.';
+  const toggleBtn = document.createElement('button');
+  toggleBtn.type = 'button';
+  toggleBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-2xl text-sm font-medium mb-3';
+  toggleBtn.textContent = '+ Create Custom Exercise';
+  const form = document.createElement('div');
+  form.className = 'hidden space-y-2 mb-2';
+  form.innerHTML = `
+    <input id="custom-ex-name" type="text" maxlength="60" placeholder="Exercise name" class="w-full bg-gray-800 text-white p-3 rounded-2xl text-sm">
+    <input id="custom-ex-muscles" type="text" maxlength="80" placeholder="Muscles (e.g. Chest, Triceps)" class="w-full bg-gray-800 text-white p-3 rounded-2xl text-sm">
+    <select id="custom-ex-type" class="w-full bg-gray-800 text-white p-3 rounded-2xl text-sm">
+      <option value="gym">Gym Equipment</option>
+      <option value="bodyweight">Bodyweight</option>
+    </select>
+    <textarea id="custom-ex-desc" maxlength="240" rows="2" placeholder="Short description (optional)" class="w-full bg-gray-800 text-white p-3 rounded-2xl text-sm"></textarea>
+    <button type="button" id="custom-ex-save" class="w-full bg-green-600 hover:bg-green-700 py-3 rounded-2xl text-sm font-medium">Save Exercise</button>
+  `;
+  toggleBtn.addEventListener('click', () => form.classList.toggle('hidden'));
+  createWrap.appendChild(createTitle);
+  createWrap.appendChild(createHint);
+  createWrap.appendChild(toggleBtn);
+  createWrap.appendChild(form);
+  container.appendChild(createWrap);
+  form.querySelector('#custom-ex-save').addEventListener('click', () => {
+    window.createCustomExercise();
+  });
+
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'bg-gray-900 p-4 rounded-3xl text-gray-400 text-center text-sm';
+    empty.textContent = 'No exercises match your search.';
+    container.appendChild(empty);
+    return;
+  }
+
+  list.forEach((exercise) => {
     const div = document.createElement('div');
-    div.className = 'bg-gray-900 p-4 rounded-3xl cursor-pointer hover:bg-gray-800 transition-colors';
-    div.innerHTML = `<div class="font-semibold text-lg">${exercise.name}</div><div class="text-green-400 text-sm">Builds: ${exercise.muscles}</div><div class="text-gray-400 text-xs mt-1">${exercise.description.substring(0, 110)}...</div>`;
-    div.onclick = () => showExerciseDetail(exercise.id);
+    div.className = 'bg-gray-900 p-4 rounded-3xl hover:bg-gray-800 transition-colors';
+    const top = document.createElement('div');
+    top.className = 'flex items-start justify-between gap-3 cursor-pointer';
+    const info = document.createElement('div');
+    info.className = 'min-w-0 flex-1';
+    const name = document.createElement('div');
+    name.className = 'font-semibold text-lg';
+    name.textContent = exercise.name + (exercise.custom ? ' · Custom' : '');
+    const muscles = document.createElement('div');
+    muscles.className = 'text-green-400 text-sm';
+    muscles.textContent = 'Builds: ' + (exercise.muscles || '');
+    const desc = document.createElement('div');
+    desc.className = 'text-gray-400 text-xs mt-1';
+    desc.textContent = String(exercise.description || '').substring(0, 110) + (String(exercise.description || '').length > 110 ? '...' : '');
+    info.appendChild(name);
+    info.appendChild(muscles);
+    info.appendChild(desc);
+    top.appendChild(info);
+    top.addEventListener('click', () => showExerciseDetail(exercise.id));
+    div.appendChild(top);
+    if (isCustomExercise(exercise)) {
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'mt-3 w-full bg-red-500/90 hover:bg-red-600 py-2 rounded-2xl text-xs font-medium';
+      del.textContent = 'Delete custom exercise';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.deleteCustomExercise(exercise.id);
+      });
+      div.appendChild(del);
+    }
     container.appendChild(div);
   });
 }
@@ -1412,21 +1599,90 @@ window.filterExercises = function filterExercises() {
   const filter = document.getElementById('equipment-filter').value;
   const searchEl = document.getElementById('exercise-search');
   const searchTerm = searchEl ? searchEl.value.toLowerCase().trim() : '';
-  let filtered = exDB;
+  let filtered = getExerciseCatalog();
   if (filter !== 'all') filtered = filtered.filter((exercise) => exercise.type === filter);
   if (searchTerm) {
     filtered = filtered.filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchTerm) ||
-      exercise.muscles.toLowerCase().includes(searchTerm)
+      (exercise.name || '').toLowerCase().includes(searchTerm) ||
+      (exercise.muscles || '').toLowerCase().includes(searchTerm)
     );
   }
   renderLibrary(filtered);
 };
 
+window.createCustomExercise = function createCustomExercise() {
+  const name = (document.getElementById('custom-ex-name')?.value || '').trim();
+  const muscles = (document.getElementById('custom-ex-muscles')?.value || '').trim() || 'General';
+  const type = document.getElementById('custom-ex-type')?.value || 'gym';
+  const description = (document.getElementById('custom-ex-desc')?.value || '').trim() || 'Custom exercise';
+  if (!name) return alert('Give your exercise a name.');
+  if (typeof window.containsProfanityInUsername === 'function' && window.containsProfanityInUsername(name)) {
+    return alert('That name is not allowed. Please choose a different one.');
+  }
+  const catalog = getExerciseCatalog();
+  if (catalog.some((ex) => (ex.name || '').toLowerCase() === name.toLowerCase())) {
+    return alert('An exercise with that name already exists.');
+  }
+  const exercise = {
+    id: `cx-${Date.now()}`,
+    name,
+    muscles,
+    type,
+    description,
+    image: 'logo.png',
+    cues: ['Use controlled form.', 'Breathe steadily.', 'Stop if you feel sharp pain.'],
+    custom: true
+  };
+  character.customExercises = character.customExercises || [];
+  character.customExercises.unshift(exercise);
+  character.deletedCustomExerciseIds = (character.deletedCustomExerciseIds || []).filter((id) => id !== exercise.id);
+  saveData();
+  scheduleCloudFlush();
+  filterExercises();
+  showActionToast(`Created “${name}”.`);
+};
+
+window.deleteCustomExercise = function deleteCustomExercise(exerciseId) {
+  const exercise = getCustomExercises().find((ex) => ex.id === exerciseId);
+  if (!exercise) return;
+  if (!isCustomExercise(exercise)) {
+    alert('Built-in exercises cannot be deleted.');
+    return;
+  }
+  if (!confirm(`Delete custom exercise “${exercise.name}”? It will be removed from your library. Past workout history that used it is kept.`)) return;
+
+  const snapshot = { ...exercise };
+  character.customExercises = (character.customExercises || []).filter((ex) => ex.id !== exerciseId);
+  character.deletedCustomExerciseIds = Array.from(new Set([...(character.deletedCustomExerciseIds || []), exerciseId]));
+  // Also drop from open session / templates
+  currentSession = currentSession.filter((item) => item.exercise?.id !== exerciseId);
+  persistCurrentSessionDraft();
+  character.templates = (character.templates || []).map((tpl) => ({
+    ...tpl,
+    exercises: (tpl.exercises || []).filter((ex) => ex.id !== exerciseId)
+  }));
+  saveData();
+  scheduleCloudFlush();
+  filterExercises();
+  renderCurrentSession();
+  showActionToast(`Deleted “${snapshot.name}”.`, {
+    onUndo: () => {
+      character.deletedCustomExerciseIds = (character.deletedCustomExerciseIds || []).filter((id) => id !== snapshot.id);
+      character.customExercises = character.customExercises || [];
+      if (!character.customExercises.some((ex) => ex.id === snapshot.id)) {
+        character.customExercises.unshift(snapshot);
+      }
+      saveData();
+      scheduleCloudFlush();
+      filterExercises();
+    }
+  });
+};
+
 let exerciseImageInterval = null;
 
 function showExerciseDetail(id) {
-  const exercise = exDB.find((entry) => entry.id === id);
+  const exercise = findExerciseById(id);
   if (!exercise) return;
   if (!character.exerciseModalOpened) { character.exerciseModalOpened = true; saveData(); }
   document.getElementById('modal-name').textContent = exercise.name;
@@ -1522,7 +1778,7 @@ function renderPlans() {
   container.appendChild(templatesSection);
 
   const optionsWrap = templatesSection.querySelector('#template-exercise-options');
-  optionsWrap.innerHTML = exDB.map((exercise) => `
+  optionsWrap.innerHTML = getExerciseCatalog().map((exercise) => `
     <label class="template-option">
       <input type="checkbox" value="${exercise.id}" class="mr-2">
       <span>${exercise.name}</span>
@@ -1565,14 +1821,14 @@ window.toggleTemplateForm = function toggleTemplateForm() {
 
 window.saveTemplate = function saveTemplate() {
   const name = document.getElementById('template-name').value.trim();
-  const selectedIds = Array.from(document.querySelectorAll('#template-exercise-options input:checked')).map((input) => Number(input.value));
+  const selectedIds = Array.from(document.querySelectorAll('#template-exercise-options input:checked')).map((input) => input.value);
   if (!name) return alert('Give your template a name.');
   if (typeof window.containsProfanityInUsername === 'function' && window.containsProfanityInUsername(name)) {
     return alert('That template name is not allowed. Please choose a different one.');
   }
   if (!selectedIds.length) return alert('Select at least one exercise.');
 
-  const exercises = exDB.filter((exercise) => selectedIds.includes(exercise.id));
+  const exercises = getExerciseCatalog().filter((exercise) => selectedIds.map(String).includes(String(exercise.id)));
   character.templates.unshift({
     id: `tpl-${Date.now()}`,
     name,
@@ -1593,6 +1849,7 @@ window.startTemplateWorkout = function startTemplateWorkout(templateId) {
   const template = (character.templates || []).find((entry) => entry.id === templateId);
   if (!template) return;
   currentSession = template.exercises.map((exercise) => ({ exercise, sets: [] }));
+  persistCurrentSessionDraft();
   workoutSuggestionMeta = {
     note: `📋 Loaded template: ${template.name}`,
     focusMuscles: []
@@ -1714,6 +1971,7 @@ window.suggestWorkout = function suggestWorkout() {
   }
 
   currentSession = pickedExercises.map((exercise) => ({ exercise, sets: [] }));
+  persistCurrentSessionDraft();
   openSetFormIndex = null;
   saveData();
   renderCurrentSession();
@@ -1760,7 +2018,7 @@ window.renderExerciseSearchResults = function renderExerciseSearchResults() {
   if (!container) return;
   const query = (document.getElementById('exercise-search-input')?.value || '').toLowerCase().trim();
 
-  const results = exDB.filter((ex) => {
+  const results = getExerciseCatalog().filter((ex) => {
     const matchesType = !exerciseSearchFilter || (ex.type || '').toLowerCase() === exerciseSearchFilter;
     const matchesQuery = !query ||
       (ex.name || '').toLowerCase().includes(query) ||
@@ -1768,26 +2026,42 @@ window.renderExerciseSearchResults = function renderExerciseSearchResults() {
     return matchesType && matchesQuery;
   });
 
+  container.innerHTML = '';
   if (!results.length) {
-    container.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">No exercises found. Try a different search.</p>';
+    const empty = document.createElement('p');
+    empty.className = 'text-gray-500 text-sm text-center py-6';
+    empty.textContent = 'No exercises found. Try a different search.';
+    container.appendChild(empty);
     return;
   }
 
-  container.innerHTML = results.map((ex) => `
-    <div class="exercise-search-row" onclick="pickExerciseFromSearch(${ex.id})">
-      <div>
-        <div class="text-sm font-semibold text-white">${ex.name}</div>
-        <div class="text-xs text-green-400 mt-0.5">${ex.muscles}</div>
-      </div>
-      <span class="text-xs text-gray-500 capitalize ml-3 shrink-0">${ex.type || ''}</span>
-    </div>
-  `).join('');
+  results.forEach((ex) => {
+    const row = document.createElement('div');
+    row.className = 'exercise-search-row';
+    row.setAttribute('role', 'button');
+    row.tabIndex = 0;
+    const name = document.createElement('div');
+    name.className = 'font-semibold text-white';
+    name.textContent = ex.name + (ex.custom ? ' · Custom' : '');
+    const muscles = document.createElement('div');
+    muscles.className = 'text-xs text-green-400';
+    muscles.textContent = ex.muscles || '';
+    row.appendChild(name);
+    row.appendChild(muscles);
+    const pick = () => window.pickExerciseFromSearch(ex.id);
+    row.addEventListener('click', pick);
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+    });
+    container.appendChild(row);
+  });
 };
 
 window.pickExerciseFromSearch = function pickExerciseFromSearch(id) {
-  const exercise = exDB.find((ex) => ex.id === id);
+  const exercise = findExerciseById(id);
   if (!exercise) return;
   currentSession.push({ exercise, sets: [] });
+  persistCurrentSessionDraft();
   closeExerciseSearchModal();
   renderCurrentSession();
 };
@@ -1822,45 +2096,142 @@ function renderCurrentSession() {
   }
 
   const container = document.getElementById('current-session');
-  container.innerHTML = currentSession.length ? '' : '<p class="text-gray-400 text-center py-8">No exercises yet — add some!</p>';
+  container.innerHTML = '';
+  if (!currentSession.length) {
+    const empty = document.createElement('p');
+    empty.className = 'text-gray-400 text-center py-8';
+    empty.textContent = 'No exercises yet — add some!';
+    container.appendChild(empty);
+    return;
+  }
 
   currentSession.forEach((item, index) => {
-    const setLines = (item.sets || []).map((set, setIndex) => `<div class="text-sm text-gray-300">${formatSetLine(set, setIndex, item.exercise)}</div>`).join('');
     const unit = character.weightUnit || 'lbs';
-    const bodyweightHint = item.exercise.type === 'bodyweight' ? '<div class="text-xs text-gray-400 mt-2">0 weight = Bodyweight</div>' : '';
     const formVisible = openSetFormIndex === index;
     const div = document.createElement('div');
     div.className = 'bg-gray-800 p-4 rounded-3xl';
-    div.innerHTML = `
-      <div class="flex justify-between items-start gap-3">
-        <div>
-          <div class="font-semibold">${escapeHTML(item.exercise.name)}</div>
-          <div class="text-xs text-gray-400">${escapeHTML(item.exercise.muscles)}</div>
-          <div class="text-xs text-green-400 mt-1">Sets logged: ${(item.sets || []).length}</div>
+
+    const header = document.createElement('div');
+    header.className = 'flex justify-between items-start gap-3';
+    const left = document.createElement('div');
+    const name = document.createElement('div');
+    name.className = 'font-semibold';
+    name.textContent = item.exercise?.name || 'Exercise';
+    const muscles = document.createElement('div');
+    muscles.className = 'text-xs text-gray-400';
+    muscles.textContent = item.exercise?.muscles || '';
+    const logged = document.createElement('div');
+    logged.className = 'text-xs text-green-400 mt-1';
+    logged.textContent = `Sets logged: ${(item.sets || []).length}`;
+    left.appendChild(name);
+    left.appendChild(muscles);
+    left.appendChild(logged);
+    header.appendChild(left);
+
+    const actions = document.createElement('div');
+    actions.className = 'flex flex-col gap-2 items-stretch';
+    const logBtn = document.createElement('button');
+    logBtn.type = 'button';
+    logBtn.className = 'text-xs bg-green-600 hover:bg-green-700 px-4 py-2 rounded-2xl';
+    logBtn.textContent = 'Log Set + Rest';
+    logBtn.addEventListener('click', () => window.toggleSetForm(index));
+    const removeExBtn = document.createElement('button');
+    removeExBtn.type = 'button';
+    removeExBtn.className = 'text-xs bg-gray-700 hover:bg-red-600 px-4 py-2 rounded-2xl';
+    removeExBtn.textContent = 'Remove';
+    removeExBtn.addEventListener('click', () => window.removeExerciseFromSession(index));
+    actions.appendChild(logBtn);
+    actions.appendChild(removeExBtn);
+    header.appendChild(actions);
+    div.appendChild(header);
+
+    const setsWrap = document.createElement('div');
+    setsWrap.className = 'mt-3 space-y-2';
+    const sets = item.sets || [];
+    if (!sets.length) {
+      const none = document.createElement('div');
+      none.className = 'text-sm text-gray-500';
+      none.textContent = 'No sets logged yet.';
+      setsWrap.appendChild(none);
+    } else {
+      sets.forEach((set, setIndex) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 text-sm text-gray-300';
+        const line = document.createElement('div');
+        line.textContent = formatSetLine(set, setIndex, item.exercise);
+        const delSet = document.createElement('button');
+        delSet.type = 'button';
+        delSet.className = 'text-xs text-red-400 hover:text-red-300 shrink-0';
+        delSet.textContent = 'Delete set';
+        delSet.addEventListener('click', () => window.removeSetFromSession(index, setIndex));
+        row.appendChild(line);
+        row.appendChild(delSet);
+        setsWrap.appendChild(row);
+      });
+    }
+    div.appendChild(setsWrap);
+
+    if (formVisible) {
+      const form = document.createElement('div');
+      form.className = 'inline-set-form mt-4';
+      form.innerHTML = `
+        <div class="grid grid-cols-2 gap-3">
+          <input id="set-reps-${index}" type="number" min="1" value="10" class="bg-gray-900 text-white p-3 rounded-2xl" placeholder="Reps">
+          <input id="set-weight-${index}" type="number" min="0" step="0.5" value="0" class="bg-gray-900 text-white p-3 rounded-2xl" placeholder="Weight">
         </div>
-        <button onclick="toggleSetForm(${index})" class="text-xs bg-green-600 hover:bg-green-700 px-4 py-2 rounded-2xl">Log Set + Rest</button>
-      </div>
-      <div class="mt-3 space-y-2">${setLines || '<div class="text-sm text-gray-500">No sets logged yet.</div>'}</div>
-      ${formVisible ? `
-        <div class="inline-set-form mt-4">
-          <div class="grid grid-cols-2 gap-3">
-            <input id="set-reps-${index}" type="number" min="1" value="10" class="bg-gray-900 text-white p-3 rounded-2xl" placeholder="Reps">
-            <input id="set-weight-${index}" type="number" min="0" step="0.5" value="0" class="bg-gray-900 text-white p-3 rounded-2xl" placeholder="Weight">
+        <div class="flex items-center justify-between gap-3 mt-3 flex-wrap">
+          <div class="unit-toggle-wrap">
+            <button type="button" data-unit="lbs" class="unit-pill ${unit === 'lbs' ? 'active' : ''}">lbs</button>
+            <button type="button" data-unit="kg" class="unit-pill ${unit === 'kg' ? 'active' : ''}">kg</button>
           </div>
-          <div class="flex items-center justify-between gap-3 mt-3 flex-wrap">
-            <div class="unit-toggle-wrap">
-              <button onclick="setWeightUnit('lbs', ${index})" class="unit-pill ${unit === 'lbs' ? 'active' : ''}">lbs</button>
-              <button onclick="setWeightUnit('kg', ${index})" class="unit-pill ${unit === 'kg' ? 'active' : ''}">kg</button>
-            </div>
-            <button onclick="saveSet(${index})" class="bg-green-500 hover:bg-green-600 px-4 py-3 rounded-2xl text-sm font-medium">Save Set</button>
-          </div>
-          ${bodyweightHint}
+          <button type="button" data-save-set class="bg-green-500 hover:bg-green-600 px-4 py-3 rounded-2xl text-sm font-medium">Save Set</button>
         </div>
-      ` : ''}
-    `;
+        ${item.exercise?.type === 'bodyweight' ? '<div class="text-xs text-gray-400 mt-2">0 weight = Bodyweight</div>' : ''}
+      `;
+      form.querySelectorAll('[data-unit]').forEach((btn) => {
+        btn.addEventListener('click', () => window.setWeightUnit(btn.getAttribute('data-unit'), index));
+      });
+      form.querySelector('[data-save-set]').addEventListener('click', () => window.saveSet(index));
+      div.appendChild(form);
+    }
+
     container.appendChild(div);
   });
 }
+
+window.removeExerciseFromSession = function removeExerciseFromSession(index) {
+  if (index < 0 || index >= currentSession.length) return;
+  const name = currentSession[index]?.exercise?.name || 'Exercise';
+  if (!confirm(`Remove “${name}” from this session? Logged sets for it will be discarded.`)) return;
+  const removed = currentSession.splice(index, 1)[0];
+  if (openSetFormIndex === index) openSetFormIndex = null;
+  else if (openSetFormIndex > index) openSetFormIndex -= 1;
+  persistCurrentSessionDraft();
+  renderCurrentSession();
+  showActionToast(`Removed “${name}” from session.`, {
+    onUndo: () => {
+      currentSession.splice(index, 0, removed);
+      persistCurrentSessionDraft();
+      renderCurrentSession();
+    }
+  });
+};
+
+window.removeSetFromSession = function removeSetFromSession(exerciseIndex, setIndex) {
+  const item = currentSession[exerciseIndex];
+  if (!item || !Array.isArray(item.sets) || setIndex < 0 || setIndex >= item.sets.length) return;
+  if (!confirm('Delete this set?')) return;
+  const removed = item.sets.splice(setIndex, 1)[0];
+  persistCurrentSessionDraft();
+  renderCurrentSession();
+  showActionToast('Set deleted.', {
+    onUndo: () => {
+      currentSession[exerciseIndex].sets.splice(setIndex, 0, removed);
+      persistCurrentSessionDraft();
+      renderCurrentSession();
+    }
+  });
+};
 
 window.toggleSetForm = function toggleSetForm(index) {
   openSetFormIndex = openSetFormIndex === index ? null : index;
@@ -1883,6 +2254,7 @@ window.saveSet = function saveSet(index) {
   currentSession[index].sets = currentSession[index].sets || [];
   currentSession[index].sets.push({ reps, weight, unit });
   openSetFormIndex = null;
+  persistCurrentSessionDraft();
   renderCurrentSession();
   showRestTimer();
 };
@@ -1985,11 +2357,13 @@ window.finishSession = function finishSession() {
   const sessionVolume = calculateSessionVolume(sessionCopy);
   const totalSessionVolume = sumVolumeMap(sessionVolume);
   const entry = {
+    id: `wl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     date: getTodayStamp(),
     displayDate: new Date().toLocaleDateString(),
     dateTime: new Date().toISOString(),
     session: sessionCopy,
-    volume: sessionVolume
+    volume: sessionVolume,
+    xpAwarded: 0
   };
   workoutLog.unshift(entry);
   progressHistory.push({ date: getTodayStamp(), strength: character.strength + currentSession.length });
@@ -2055,14 +2429,16 @@ window.finishSession = function finishSession() {
   }
 
   const earnedXP = awardXP(baseXP, 'workout');
+  entry.xpAwarded = earnedXP;
 
   checkGearUnlocks();
   saveData();
   levelUp();
   checkProgressAchievements();
   saveData();
+  scheduleCloudFlush();
   updateHeader();
-  currentSession = [];
+  clearCurrentSessionDraft();
   openSetFormIndex = null;
   workoutSuggestionMeta = { note: '', focusMuscles: [] };
   scheduleStreakReminder();
@@ -3930,32 +4306,123 @@ window.convertUnits = function convertUnits() {
 function renderWorkoutHistory() {
   const container = document.getElementById('history-list');
   if (!container) return;
+  container.innerHTML = '';
 
   if (workoutLog.length === 0) {
-    container.innerHTML = '<div class="bg-gray-900 p-5 rounded-3xl text-gray-400 text-center">No history yet</div>';
+    const empty = document.createElement('div');
+    empty.className = 'bg-gray-900 p-5 rounded-3xl text-gray-400 text-center';
+    empty.textContent = 'No history yet';
+    container.appendChild(empty);
     return;
   }
 
-  container.innerHTML = workoutLog.map((entry) => {
-    const exercises = (entry.session || []).map((item) => `
-      <div class="bg-gray-800/60 rounded-2xl p-3">
-        <div class="font-semibold text-white">${escapeHTML(item.exercise.name)}</div>
-        <div class="mt-2 space-y-1">
-          ${(item.sets || []).map((set, setIndex) => `<div class="text-sm text-gray-300">${formatCompactSetLine(set, setIndex)}</div>`).join('') || '<div class="text-sm text-gray-500">No set data</div>'}
-        </div>
-      </div>
-    `).join('');
-    return `
-      <div class="history-card bg-gray-900 p-5 rounded-3xl">
-        <div class="flex items-center justify-between mb-3 gap-3">
-          <div class="font-semibold text-white">${escapeHTML(entry.displayDate || getDisplayDate(entry.date))}</div>
-          <div class="text-xs text-green-400">${(entry.session || []).length} exercise${(entry.session || []).length === 1 ? '' : 's'}</div>
-        </div>
-        <div class="space-y-3">${exercises}</div>
-      </div>
-    `;
-  }).join('');
+  workoutLog.forEach((entry, entryIndex) => {
+    ensureWorkoutEntryId(entry);
+    const card = document.createElement('div');
+    card.className = 'history-card bg-gray-900 p-5 rounded-3xl';
+
+    const head = document.createElement('div');
+    head.className = 'flex items-center justify-between mb-3 gap-3';
+    const dateEl = document.createElement('div');
+    dateEl.className = 'font-semibold text-white';
+    dateEl.textContent = entry.displayDate || getDisplayDate(entry.date);
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-green-400';
+    const n = (entry.session || []).length;
+    meta.textContent = `${n} exercise${n === 1 ? '' : 's'}` + (entry.xpAwarded ? ` · +${entry.xpAwarded} XP` : '');
+    head.appendChild(dateEl);
+    head.appendChild(meta);
+    card.appendChild(head);
+
+    const list = document.createElement('div');
+    list.className = 'space-y-3';
+    (entry.session || []).forEach((item) => {
+      const block = document.createElement('div');
+      block.className = 'bg-gray-800/60 rounded-2xl p-3';
+      const title = document.createElement('div');
+      title.className = 'font-semibold text-white';
+      title.textContent = item.exercise?.name || 'Exercise';
+      block.appendChild(title);
+      const sets = document.createElement('div');
+      sets.className = 'mt-2 space-y-1';
+      const setArr = item.sets || [];
+      if (!setArr.length) {
+        const none = document.createElement('div');
+        none.className = 'text-sm text-gray-500';
+        none.textContent = 'No set data';
+        sets.appendChild(none);
+      } else {
+        setArr.forEach((set, setIndex) => {
+          const line = document.createElement('div');
+          line.className = 'text-sm text-gray-300';
+          line.textContent = formatCompactSetLine(set, setIndex);
+          sets.appendChild(line);
+        });
+      }
+      block.appendChild(sets);
+      list.appendChild(block);
+    });
+    card.appendChild(list);
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'mt-4 w-full bg-red-500/90 hover:bg-red-600 py-2 rounded-2xl text-xs font-medium';
+    del.textContent = 'Delete this session';
+    del.addEventListener('click', () => window.deleteWorkoutLogEntry(entry.id || entryIndex));
+    card.appendChild(del);
+    container.appendChild(card);
+  });
 }
+
+window.deleteWorkoutLogEntry = function deleteWorkoutLogEntry(idOrIndex) {
+  let index = -1;
+  if (typeof idOrIndex === 'number') index = idOrIndex;
+  else index = workoutLog.findIndex((e) => e.id === idOrIndex);
+  if (index < 0 || index >= workoutLog.length) return;
+  const entry = ensureWorkoutEntryId(workoutLog[index]);
+  const label = entry.displayDate || getDisplayDate(entry.date) || 'this session';
+  if (!confirm(`Delete the workout from ${label}? XP from that session will be subtracted when known. Level, streak, and achievements are kept.`)) return;
+
+  const removed = workoutLog.splice(index, 1)[0];
+  character.deletedWorkoutIds = Array.from(new Set([...(character.deletedWorkoutIds || []), removed.id]));
+
+  const xp = Number(removed.xpAwarded) || 0;
+  if (xp > 0) {
+    character.xp = Math.max(0, (character.xp || 0) - xp);
+    if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
+      window.incrementWeeklyXP(window.currentUserId, -xp);
+    }
+  }
+
+  // Refresh derived volume stats for the week of the deleted session when possible.
+  try {
+    const week = getWeekStampForDate(removed.date);
+    if (character.weeklyVolumeWeek === week) recalculateWeeklyVolume(week);
+  } catch (_) {}
+
+  saveData();
+  scheduleCloudFlush();
+  updateHeader();
+  renderWorkoutHistory();
+  if (typeof renderHome === 'function' && currentTab === 13) renderHome();
+
+  showActionToast(`Deleted workout (${label}).`, {
+    onUndo: () => {
+      character.deletedWorkoutIds = (character.deletedWorkoutIds || []).filter((id) => id !== removed.id);
+      workoutLog.splice(index, 0, removed);
+      if (xp > 0) {
+        character.xp = (character.xp || 0) + xp;
+        if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
+          window.incrementWeeklyXP(window.currentUserId, xp);
+        }
+      }
+      saveData();
+      scheduleCloudFlush();
+      updateHeader();
+      renderWorkoutHistory();
+    }
+  });
+};
 
 window.logCardio = function logCardio() {
   triggerButtonClickSound();

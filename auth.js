@@ -98,6 +98,11 @@ async function handleAuthenticatedUser(user) {
   const resetBtn = document.getElementById('reset-progress-btn');
   if (resetBtn) resetBtn.classList.remove('hidden');
 
+  // Show the app immediately so Android TWA reloads after Chrome discards a
+  // background tab don't leave users staring at the login form while Firestore loads.
+  showApp();
+  showStatus('');
+
   try {
     const localData = typeof window.getQuestGainsData === 'function' ? window.getQuestGainsData() : {};
     const remoteData = await window.loadUserData(user.uid);
@@ -110,7 +115,6 @@ async function handleAuthenticatedUser(user) {
     showStatus('Signed in, but cloud data could not be loaded. Local data is still available.');
   }
 
-  // Ensure username is set before showing app (prompts on first login)
   if (typeof window.ensureUsername === 'function') {
     try {
       await window.ensureUsername(user.uid);
@@ -119,7 +123,6 @@ async function handleAuthenticatedUser(user) {
     }
   }
 
-  // Load subscription state and auto-start trial on first login
   if (typeof window.initSubscription === 'function') {
     try {
       await window.initSubscription(user.uid);
@@ -127,17 +130,12 @@ async function handleAuthenticatedUser(user) {
       console.warn('initSubscription failed:', err);
     }
   }
-  // Auto-trial removed — users start on free plan.
-  // Trial is handled natively by StoreKit on first subscribe — no separate trial button.
   if (typeof window.initNotifications === 'function') {
     window.initNotifications(user.uid).catch(() => {});
   }
   if (typeof window.initSocial === 'function') {
     window.initSocial(user.uid).catch(() => {});
   }
-
-  showApp();
-  showStatus('');
 }
 
 async function handleSignedOut() {
@@ -293,6 +291,21 @@ async function signInWithGoogle() {
   try {
     await state.auth.signInWithPopup(state.provider);
   } catch (error) {
+    const code = error && error.code;
+    const shouldRedirect = code === 'auth/popup-blocked'
+      || code === 'auth/popup-closed-by-user'
+      || code === 'auth/cancelled-popup-request'
+      || /popup|blocked|cross-origin/i.test(String(error && error.message || ''));
+    if (shouldRedirect) {
+      try {
+        showStatus('Redirecting to Google…');
+        await state.auth.signInWithRedirect(state.provider);
+        return;
+      } catch (redirectErr) {
+        showError(ui.loginError, redirectErr.message || 'Google sign-in failed.');
+        return;
+      }
+    }
     showError(ui.loginError, error.message || 'Google sign-in failed.');
   }
 }
@@ -347,12 +360,18 @@ function initAuth() {
   state.auth = window.auth;
   state.provider = new window.firebase.auth.GoogleAuthProvider();
 
-  // On native iOS, switch Firebase Auth to in-memory persistence.
-  // WKWebView IndexedDB connection is lost between sign-in attempts.
-  // Native iOS Firebase SDK handles real persistence; JS SDK needs
-  // in-memory only. initAuth() is NOT async — use .then() chain.
+  // Always use LOCAL persistence (IndexedDB / localStorage).
+  // Persistence.NONE was previously forced on iOS WKWebView, which meant any
+  // app/WebContent process kill while backgrounded (common when switching to
+  // Music or Messages) wiped the session and sent users back to the login
+  // screen. Native Firebase Auth only mints Apple custom tokens at sign-in —
+  // it does NOT restore the WebView JS session on resume.
+  // Keep the login overlay visible until the first auth callback so we don't
+  // flash the app shell before Firebase finishes restoring from disk.
+  state.authReady = false;
   const startAuthListener = () => {
     state.auth.onAuthStateChanged(async (user) => {
+      state.authReady = true;
       if (user) {
         await handleAuthenticatedUser(user);
       } else {
@@ -361,16 +380,18 @@ function initAuth() {
     });
   };
 
-  if (window.webkit && window.webkit.messageHandlers) {
-    state.auth.setPersistence(window.firebase.auth.Auth.Persistence.NONE)
-      .then(startAuthListener)
-      .catch(e => {
-        console.warn('[auth] setPersistence NONE failed:', e.message);
-        startAuthListener();
-      });
-  } else {
-    startAuthListener();
-  }
+  // Finish any Google redirect sign-in (Android TWA popup fallback) first.
+  const afterRedirect = state.auth.getRedirectResult().catch((e) => {
+    console.warn('[auth] getRedirectResult failed:', e && e.message);
+    return null;
+  });
+
+  afterRedirect
+    .then(() => state.auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL))
+    .catch((e) => {
+      console.warn('[auth] setPersistence LOCAL failed:', e && e.message);
+    })
+    .finally(startAuthListener);
 }
 
 document.addEventListener('DOMContentLoaded', initAuth);

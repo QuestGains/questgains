@@ -159,19 +159,27 @@ function showUsernameSetupModal(uid) {
  * Called from auth.js handleAuthenticatedUser before showApp().
  */
 async function ensureUsername(uid) {
-  if (!window.db) return null;
+  const cached = window.currentUsername || localStorage.getItem('qg_username') || null;
+  if (!window.db) {
+    if (cached) window.currentUsername = cached;
+    return cached;
+  }
   try {
     let username = await loadUsernameFromFirestore(uid);
+    if (!username) username = cached;
+    // Only prompt when we have never known a username for this install.
+    // A failed/empty Firestore read after Chrome reloads the TWA must NOT
+    // block the UI on the setup modal (that felt like being logged out).
     if (!username) {
       username = await showUsernameSetupModal(uid);
     }
-    // Store in localStorage for quick in-app access
     localStorage.setItem('qg_username', username);
     window.currentUsername = username;
     return username;
   } catch (err) {
     console.error('ensureUsername error:', err);
-    return null;
+    if (cached) window.currentUsername = cached;
+    return cached;
   }
 }
 window.ensureUsername = ensureUsername;

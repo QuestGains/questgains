@@ -216,17 +216,24 @@ async function loadSubscriptionState(uid) {
     return;
   }
   try {
-    // Always fetch from server to avoid stale offline cache serving old Pro/trial state.
-    const doc = await db.collection('users').doc(uid).get({ source: 'server' });
-    const data = doc.exists ? doc.data() : {};
-    const sub = data.subscription || {};
-    _subscriptionState = {
-      isPro: sub.isPro === true,
-      plan: sub.plan || null,
-      trialStartDate: sub.trialStartDate || null,
-      isFoundingMember: sub.isFoundingMember === true,
-      loaded: true
+    // Cache-first so Android TWA reloads after Chrome discards the tab don't hang
+    // on a server round-trip (gym Wi‑Fi). Then refresh from server in the background.
+    const cached = await db.collection('users').doc(uid).get();
+    const apply = (data) => {
+      const sub = (data && data.subscription) || {};
+      _subscriptionState = {
+        isPro: sub.isPro === true,
+        plan: sub.plan || null,
+        trialStartDate: sub.trialStartDate || null,
+        isFoundingMember: sub.isFoundingMember === true,
+        loaded: true
+      };
     };
+    apply(cached.exists ? cached.data() : {});
+    db.collection('users').doc(uid).get({ source: 'server' }).then((doc) => {
+      apply(doc.exists ? doc.data() : {});
+      if (typeof window.updateHeader === 'function') window.updateHeader();
+    }).catch(() => {});
   } catch (err) {
     console.warn('[subscription] Failed to load subscription state:', err);
     _subscriptionState.loaded = true;
