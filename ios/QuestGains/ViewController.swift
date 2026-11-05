@@ -226,11 +226,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         self.animateConnectionProblem(false)
         self.retryButton?.isHidden = true
 
-        // Build 76 — Force SW update + purge all non-current caches from page side
+        // Force SW update + purge caches that are not QuestGains caches.
+        // Keep any cache whose name starts with "questgains-" so future SW
+        // version bumps (v30, v31, …) are not deleted by a hardcoded list.
         webView.evaluateJavaScript("""
             (function() {
-                // Keep in sync with service-worker.js CACHE_NAME / RUNTIME_CACHE
-                var KEEP = ['questgains-v29', 'questgains-runtime-v1'];
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function(regs) {
                         regs.forEach(function(reg) { reg.update(); });
@@ -238,7 +238,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
                 }
                 caches.keys().then(function(keys) {
                     keys.forEach(function(k) {
-                        if (KEEP.indexOf(k) === -1) {
+                        if (k.indexOf('questgains-') !== 0) {
                             caches.delete(k);
                         }
                     });
