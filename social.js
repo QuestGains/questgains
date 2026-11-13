@@ -183,10 +183,11 @@ async function renderFriendsLeaderboard() {
       db.collection('users').doc(fuid).get().then(doc => {
         if (!doc.exists) return null;
         const data = doc.data();
+        const lifetime = data?.character?.lifetimeXp;
         return {
           uid: fuid,
           username: data?.profile?.username || '?',
-          xp: data?.character?.xp || 0,
+          xp: typeof lifetime === 'number' ? lifetime : (data?.character?.xp || 0),
           level: data?.character?.level || 1,
           isUser: false
         };
@@ -197,7 +198,7 @@ async function renderFriendsLeaderboard() {
     profiles.push({
       uid,
       username: window.currentUsername || 'You',
-      xp: (typeof character !== 'undefined' ? character.xp : 0) || 0,
+      xp: (typeof character !== 'undefined' ? (Number(character.lifetimeXp) || character.xp) : 0) || 0,
       level: (typeof character !== 'undefined' ? character.level : 1) || 1,
       isUser: true
     });
@@ -238,7 +239,7 @@ window.renderFriendsLeaderboard = renderFriendsLeaderboard;
 
 // ── Social Sharing ────────────────────────────────────────────────────────
 window.shareProgress = function(type) {
-  const xp = (typeof character !== 'undefined' ? character.xp : 0) || 0;
+  const xp = (typeof character !== 'undefined' ? (Number(character.lifetimeXp) || character.xp || 0) : 0);
   const level = (typeof character !== 'undefined' ? character.level : 1) || 1;
   const username = window.currentUsername || 'Hero';
   const streak = (typeof character !== 'undefined' ? character.streak : 0) || 0;

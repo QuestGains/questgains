@@ -1,0 +1,179 @@
+// QuestGains Firestore rules — Spark-compatible XP / leaderboard hardening.
+// NOT deployed by this change. When an owner is logged in:
+//   firebase deploy --only firestore:rules
+// Test on a staging project first. A typo can lock legitimate users out.
+//
+// What this stops:
+//   - writing another user's document
+//   - setting lifetime XP or weekly XP to an arbitrary number in one write
+//   - gaining more than 25,000 XP in one write, or 50,000 XP in any 60 seconds
+//   - jumping more than 60 levels in one write, or past level 500
+//   - client writes to meta/* (the founding-member counter)
+//   - taking someone else's username, or editing a username row in place
+//
+// What this does NOT stop:
+//   - a modified client slowly granting itself the maximum, including by logging fake workouts
+//   - the first write that creates lifetimeXp (migration, or a brand-new doc), which may
+//     set any score up to 10,000,000. After the field exists, the caps apply.
+//     Deleting the user doc and creating it again opens that first write once more.
+//   - client writes to subscription.isPro. Locking that field would break iOS purchases
+//     until receipt checks run on a server. Spark has no Cloud Functions here.
+//
+// Limits (kept above real stacked bonuses: combo 3×, weekend 2×, streak-double 2×):
+//   MAX_XP_PER_WRITE = 25,000
+//   MAX_XP_PER_MINUTE = 50,000
+//   MAX_LIFETIME_XP = 10,000,000
+//   MAX_LEVEL = 500
+//   MAX_LEVEL_DELTA = 60
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function hasLifetime(data) {
+      return data.keys().hasAll(['character'])
+        && data.character is map
+        && data.character.keys().hasAll(['lifetimeXp'])
+        && data.character.lifetimeXp is number;
+    }
+    function hasLevel(data) {
+      return data.keys().hasAll(['character'])
+        && data.character is map
+        && data.character.keys().hasAll(['level'])
+        && data.character.level is number;
+    }
+    function lifetimeOf(data) {
+      return hasLifetime(data) ? data.character.lifetimeXp : 0;
+    }
+    function levelOf(data) {
+      return hasLevel(data) ? data.character.level : 1;
+    }
+    function userWindowOpen() {
+      let start = resource.data.get('xpWindowStart', null);
+      return start is timestamp
+        ? request.time < start + duration.value(60, 's')
+        : false;
+    }
+    function userWindowOk(delta) {
+      let start = resource.data.get('xpWindowStart', null);
+      let open = start is timestamp
+        ? request.time < start + duration.value(60, 's')
+        : false;
+      let used = resource.data.get('xpWindowUsed', 0);
+      let reqStart = request.resource.data.get('xpWindowStart', null);
+      let reqUsed = request.resource.data.get('xpWindowUsed', null);
+      return !(reqUsed is number) ? false
+        : reqUsed > 50000 ? false
+        : (!open && reqStart == request.time && reqUsed == delta)
+          || (open && reqStart == start && reqUsed == used + delta);
+    }
+    function lifetimeUpdateOk() {
+      let next = lifetimeOf(request.resource.data);
+      let prev = lifetimeOf(resource.data);
+      return next >= 0
+        && next <= 10000000
+        && (!hasLifetime(resource.data) || hasLifetime(request.resource.data))
+        && (
+          !hasLifetime(resource.data)
+          || next <= prev
+          || (next <= prev + 25000 && userWindowOk(next - prev))
+        );
+    }
+    function levelUpdateOk() {
+      let next = levelOf(request.resource.data);
+      let prev = levelOf(resource.data);
+      return next >= 1
+        && next <= 500
+        && (
+          !hasLevel(resource.data)
+          || next <= prev + 60
+        );
+    }
+
+    // Public read is required for the leaderboard, rivals, and friend profiles.
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow create: if isOwner(userId)
+        && lifetimeOf(request.resource.data) >= 0
+        && lifetimeOf(request.resource.data) <= 10000000
+        && levelOf(request.resource.data) >= 1
+        && levelOf(request.resource.data) <= 500;
+      allow delete: if isOwner(userId);
+      allow update: if isOwner(userId) && lifetimeUpdateOk() && levelUpdateOk();
+
+      match /weeklyXP/{weekKey} {
+        function weekXp(data) {
+          return data.keys().hasAll(['xp']) && data.xp is number ? data.xp : 0;
+        }
+        function weekWindowOk(delta) {
+          let start = resource.data.get('windowStart', null);
+          let open = start is timestamp
+            ? request.time < start + duration.value(60, 's')
+            : false;
+          let used = resource.data.get('windowUsed', 0);
+          let reqStart = request.resource.data.get('windowStart', null);
+          let reqUsed = request.resource.data.get('windowUsed', null);
+          return !(reqUsed is number) ? false
+            : reqUsed > 50000 ? false
+            : (!open && reqStart == request.time && reqUsed == delta)
+              || (open && reqStart == start && reqUsed == used + delta);
+        }
+
+        allow read: if signedIn();
+        allow create: if isOwner(userId)
+          && request.resource.data.xp is number
+          && request.resource.data.xp >= 0
+          && request.resource.data.xp <= 25000
+          && request.resource.data.windowUsed == request.resource.data.xp
+          && request.resource.data.windowStart == request.time;
+        allow update: if isOwner(userId)
+          && request.resource.data.xp is number
+          && request.resource.data.xp >= 0
+          && request.resource.data.xp <= 5000000
+          && request.resource.data.xp <= weekXp(resource.data) + 25000
+          && (
+            request.resource.data.xp <= weekXp(resource.data)
+            || weekWindowOk(request.resource.data.xp - weekXp(resource.data))
+          );
+        allow delete: if isOwner(userId);
+      }
+
+      // You may write an incoming request on someone else's subcollection
+      // only as yourself. You may only change your own sent list.
+      match /friendRequests/{fromUid} {
+        allow read: if isOwner(userId);
+        allow create: if signedIn() && request.auth.uid == fromUid && userId != fromUid;
+        allow delete: if isOwner(userId) || request.auth.uid == fromUid;
+        allow update: if false;
+      }
+      match /sentRequests/{toUid} {
+        allow read, write: if isOwner(userId);
+      }
+      match /friends/{friendUid} {
+        allow read: if isOwner(userId);
+        allow create, delete: if isOwner(userId) || request.auth.uid == friendUid;
+        allow update: if false;
+      }
+    }
+
+    match /usernames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3
+        && request.resource.data.username.size() <= 20;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /meta/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}

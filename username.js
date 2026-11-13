@@ -73,7 +73,8 @@ async function findUserByUsername(username) {
   return {
     uid,
     username: data?.profile?.username || username,
-    xp: data?.character?.xp || 0,
+    xp: (typeof data?.character?.lifetimeXp === 'number' ? data.character.lifetimeXp : (data?.character?.xp || 0)),
+    lifetimeXp: (typeof data?.character?.lifetimeXp === 'number' ? data.character.lifetimeXp : (data?.character?.xp || 0)),
     level: data?.character?.level || 1
   };
 }
@@ -278,17 +279,77 @@ window.handleUsernameChange = async function() {
  * Increment weekly XP in Firestore (lightweight separate write).
  * Call whenever XP is earned.
  */
-async function incrementWeeklyXP(uid, amount) {
-  if (!uid || !amount || !window.db || !window.firebase?.firestore?.FieldValue) return;
+const WEEKLY_XP_CAP = 25000;
+const _weeklyQueue = new Map();
+let _weeklyTimer = null;
+
+function isWeeklyPermissionDenied(err) {
+  const code = String((err && err.code) || '');
+  return code === 'permission-denied' || code.indexOf('permission-denied') !== -1;
+}
+
+async function writeWeeklyXP(uid, amount) {
   const weekKey = getISOWeekKey();
+  const ref = window.db.collection('users').doc(uid).collection('weeklyXP').doc(weekKey);
+  const FV = window.firebase.firestore.FieldValue;
+  let current = 0;
+  let windowUsed = 0;
+  let startedAt = 0;
   try {
-    await window.db
-      .collection('users').doc(uid)
-      .collection('weeklyXP').doc(weekKey)
-      .set({ xp: window.firebase.firestore.FieldValue.increment(amount) }, { merge: true });
-  } catch (err) {
-    console.warn('incrementWeeklyXP failed:', err);
+    const snap = await ref.get();
+    if (snap.exists) {
+      const data = snap.data() || {};
+      current = Number(data.xp) || 0;
+      windowUsed = Number(data.windowUsed) || 0;
+      if (data.windowStart && typeof data.windowStart.toMillis === 'function') startedAt = data.windowStart.toMillis();
+    }
+  } catch (_) { /* offline: still attempt the increment */ }
+
+  let delta = Math.round(Number(amount) || 0);
+  if (delta > WEEKLY_XP_CAP) delta = WEEKLY_XP_CAP;
+  if (delta < -WEEKLY_XP_CAP) delta = -WEEKLY_XP_CAP;
+  if (delta < 0) delta = Math.max(delta, -Math.max(0, current));
+  if (!delta) return;
+
+  const age = startedAt ? (Date.now() - startedAt) : Infinity;
+  function payload(mode) {
+    const body = { xp: FV.increment(delta), lastWrite: FV.serverTimestamp() };
+    if (delta > 0 && mode === 'fresh') {
+      body.windowStart = FV.serverTimestamp();
+      body.windowUsed = delta;
+    } else if (delta > 0) {
+      body.windowUsed = windowUsed + delta;
+    }
+    return body;
   }
+  const first = delta > 0 && age <= 70000 ? 'continue' : 'fresh';
+  try {
+    await ref.set(payload(first), { merge: true });
+  } catch (err) {
+    if (delta <= 0 || !isWeeklyPermissionDenied(err)) throw err;
+    await ref.set(payload(first === 'fresh' ? 'continue' : 'fresh'), { merge: true });
+  }
+}
+
+async function flushWeeklyXP() {
+  const entries = [..._weeklyQueue.entries()];
+  _weeklyQueue.clear();
+  for (const [uid, amount] of entries) {
+    if (!amount) continue;
+    try {
+      await writeWeeklyXP(uid, amount);
+    } catch (err) {
+      console.warn('incrementWeeklyXP failed:', err);
+    }
+  }
+}
+
+async function incrementWeeklyXP(uid, amount) {
+  const n = Math.round(Number(amount) || 0);
+  if (!uid || !n || !window.db || !window.firebase?.firestore?.FieldValue) return;
+  _weeklyQueue.set(uid, (_weeklyQueue.get(uid) || 0) + n);
+  clearTimeout(_weeklyTimer);
+  _weeklyTimer = setTimeout(() => { flushWeeklyXP(); }, 100);
 }
 window.incrementWeeklyXP = incrementWeeklyXP;
 

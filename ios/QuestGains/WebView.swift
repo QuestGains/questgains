@@ -333,6 +333,24 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
         present(alert, animated: true, completion: nil)
     }
 
+    /// WKWebView denies getUserMedia unless the UI delegate answers.
+    /// Grant camera only for our own origin; the barcode scanner requests video and no microphone.
+    @available(iOS 15.0, *)
+    func webView(_ webView: WKWebView,
+                 requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo,
+                 type: WKMediaCaptureType,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        _ = webView
+        _ = frame
+        let allowedHost = origin.host == "questgains.github.io"
+        if allowedHost && type == .camera {
+            decisionHandler(.grant)
+        } else {
+            decisionHandler(.deny)
+        }
+    }
+
     func downloadAndOpenFile(url: URL){
 
         let destinationFileUrl = url

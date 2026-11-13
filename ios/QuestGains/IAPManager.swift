@@ -62,8 +62,23 @@ final class IAPManager {
     // MARK: - Product Loading
 
     func loadProducts() async throws -> [Product] {
-        products = try await Product.products(for: IAPProductID.all)
-        return products
+        let loaded = try await Product.products(for: IAPProductID.all)
+        await MainActor.run { self.products = loaded }
+        await publishDisplayPrices()
+        return loaded
+    }
+
+    /// Send StoreKit's localized displayPrice strings into the page.
+    /// The web UI falls back to the bundled USD copy when this never arrives.
+    @MainActor
+    func publishDisplayPrices() {
+        let payload: [[String: String]] = products.map { product in
+            ["id": product.id, "displayPrice": product.displayPrice]
+        }
+        guard !payload.isEmpty,
+              let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        notifyWebView("if(window.onIAPProducts){window.onIAPProducts(\(json));}")
     }
 
     // MARK: - Purchase

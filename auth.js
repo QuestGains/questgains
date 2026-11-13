@@ -225,9 +225,13 @@ function isNativeIOS() {
 function setupAppleSignInBridge() {
   if (!isNativeIOS()) return;
 
-  // Show the Apple buttons
-  [ui.appleButton, ui.appleButtonRegister].forEach(btn => {
-    if (btn) btn.style.display = '';
+  // Guideline 4.8 requires Sign in with Apple only when a third-party login
+  // (Google) is offered. Google cannot complete inside this WKWebView, so both
+  // buttons stay hidden and email/password is the iOS sign-in. The Apple button
+  // also depends on the exchangeToken Cloud Function, which is not deployed on
+  // the Spark plan — showing it would be a broken control.
+  [ui.googleButton, ui.appleButton, ui.appleButtonRegister].forEach((btn) => {
+    if (btn) btn.style.display = 'none';
   });
 
   // Handle successful sign-in from native layer.
@@ -488,7 +492,10 @@ window.resetProgress = async function() {
       const preserved = {
         profile: data.profile || {},
         friends: data.friends || [],
-        friendRequests: data.friendRequests || []
+        friendRequests: data.friendRequests || [],
+        // Keep lifetimeXp present so a reset is a decrease, not a fresh migration write.
+        character: { level: 1, xp: 0, xpToNext: 100, lifetimeXp: 0 },
+        xpWindowUsed: 0
       };
       await userRef.set(preserved);
       // Wipe weeklyXP subcollection

@@ -246,6 +246,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
             })();
         """, completionHandler: nil)
 
+        if #available(iOS 15.0, *) {
+            Task { @MainActor in
+                IAPManager.shared.publishDisplayPrices()
+            }
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             QuestGains.webView.isHidden = false
             self.loadingView.isHidden = true
