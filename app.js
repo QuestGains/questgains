@@ -82,10 +82,12 @@ const DEFAULT_CHARACTER = {
   leaderboardTabVisited: false,
   aiSuggestTotal: 0,
   notificationsEnabled: false,
-  notificationPermissionAsked: false
+  notificationPermissionAsked: false,
+  lifetimeXp: 0
 };
 
 const savedCharacter = JSON.parse(localStorage.getItem('character')) || {};
+const hadLocalLifetime = typeof savedCharacter.lifetimeXp === 'number' && Number.isFinite(savedCharacter.lifetimeXp);
 let character = {
   ...DEFAULT_CHARACTER,
   ...savedCharacter,
@@ -158,6 +160,9 @@ if (!savedCharacter.unlockedCharacters && savedCharacter.activePath && Array.isA
 }
 
 let workoutLog = JSON.parse(localStorage.getItem('workoutLog')) || [];
+if (!hadLocalLifetime && typeof window.reconstructLifetimeXp === 'function') {
+  character.lifetimeXp = window.reconstructLifetimeXp(character, workoutLog);
+}
 let progressHistory = JSON.parse(localStorage.getItem('progressHistory')) || [];
 let currentSession = [];
 try {
@@ -300,8 +305,12 @@ function clearQuestGainsLocalData() {
 
 function applyQuestGainsCloudState(payload = {}) {
   const importedCharacter = payload.character || {};
+  const hadLifetime = typeof importedCharacter.lifetimeXp === 'number' && Number.isFinite(importedCharacter.lifetimeXp);
   character = buildCharacterState(importedCharacter);
   workoutLog = (Array.isArray(payload.workoutLog) ? payload.workoutLog : []).map((e) => ensureWorkoutEntryId({ ...e }));
+  if (!hadLifetime && typeof window.reconstructLifetimeXp === 'function') {
+    character.lifetimeXp = window.reconstructLifetimeXp(character, workoutLog);
+  }
   cardioLog = Array.isArray(payload.cardioLog) ? payload.cardioLog : character.cardioLog || [];
   progressHistory = Array.isArray(payload.progressHistory) ? payload.progressHistory : [];
   todaysMeals = Array.isArray(payload.todaysMeals) ? payload.todaysMeals : [];
@@ -598,10 +607,11 @@ function getRivalPlayer() {
   return _cachedRival || getRivalFromStorage();
 }
 
-function checkRivalOvertake(previousXP) {
+function checkRivalOvertake(previousLifetime) {
   const rival = getRivalPlayer();
-  if (!rival) return;
-  if ((previousXP || 0) <= rival.xp && (character.xp || 0) > rival.xp) {
+  if (!rival || typeof rival.lifetimeXp !== 'number') return;
+  const now = Number(character.lifetimeXp) || 0;
+  if ((previousLifetime || 0) <= rival.lifetimeXp && now > rival.lifetimeXp) {
     showAchievement('👊', 'Rival Crushed!', `You overtook ${rival.username || rival.name}!`);
   }
 }
@@ -1014,15 +1024,13 @@ function updateTrialBanner() {
   const trialExpired = typeof window.isTrialExpired === 'function' ? window.isTrialExpired() : false;
 
   if (window.isProUser() && daysLeft > 0) {
-    // Active trial
     banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-green-600 text-white';
-    banner.innerHTML = `🎉 Pro Trial: ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-green-200">Upgrade to keep access</button>`;
+    banner.innerHTML = `Pro access: ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-green-200">Upgrade to keep access</button>`;
     banner.classList.remove('hidden');
     if (appShell) appShell.style.paddingTop = '36px';
   } else if (trialExpired) {
-    // Trial expired, not Pro
     banner.className = 'fixed top-0 left-0 right-0 z-[85] text-center py-2 px-4 text-sm font-semibold bg-red-700 text-white';
-    banner.innerHTML = `Your trial has ended — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-red-200">Upgrade to keep Pro features</button>`;
+    banner.innerHTML = `Your Pro access has ended — <button onclick="window.openUpgradeFlow('monthly')" class="underline hover:text-red-200">Upgrade to keep Pro features</button>`;
     banner.classList.remove('hidden');
     if (appShell) appShell.style.paddingTop = '36px';
   } else {
@@ -1089,17 +1097,24 @@ function getFlatPerkBonus(type) {
   return getTotalBonus(type);
 }
 
+function adjustTrackedXp(delta) {
+  const amount = Math.round(Number(delta) || 0);
+  if (!amount) return 0;
+  character.xp = Math.max(0, (Number(character.xp) || 0) + amount);
+  character.lifetimeXp = Math.max(0, (Number(character.lifetimeXp) || 0) + amount);
+  if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
+    window.incrementWeeklyXP(window.currentUserId, amount);
+  }
+  return amount;
+}
+
 function awardXP(baseXP, context = 'generic') {
-  const previousXP = character.xp || 0;
+  const previousLifetime = Number(character.lifetimeXp) || 0;
   const comboXP = applyCombo(baseXP);
   const finalXP = applyXPMultiplier(comboXP, context);
-  character.xp += finalXP;
+  adjustTrackedXp(finalXP);
   SoundFX.play('xp');
-  checkRivalOvertake(previousXP);
-  // Weekly XP tracking (for leaderboard) — fire-and-forget
-  if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
-    window.incrementWeeklyXP(window.currentUserId, finalXP);
-  }
+  checkRivalOvertake(previousLifetime);
   return finalXP;
 }
 
@@ -1295,7 +1310,7 @@ function renderHome() {
   quickStatsEl.innerHTML = [
     { label: 'Last workout', value: lastDate },
     { label: 'This week', value: `${weekEntries.length} session${weekEntries.length !== 1 ? 's' : ''}` },
-    { label: 'Total XP earned', value: `${xp.toLocaleString()} XP` },
+    { label: 'Total XP earned', value: `${(Number(character.lifetimeXp) || xp).toLocaleString()} XP` },
   ].map((s) => `
     <div class="flex items-center justify-between text-sm">
       <span class="text-gray-400">${s.label}</span>
@@ -1331,9 +1346,11 @@ window.selectPlan = function selectPlan(plan) {
     target.classList.add(highlight);
   }
   const upgradeBtn = document.getElementById('pro-upgrade-btn');
-  if (upgradeBtn) {
-    const labels = { monthly: 'Subscribe — 1 Month · $4.99', annual: 'Subscribe — 1 Year · $39.99', founding: 'Become a Founding Member — $2.99/mo' };
-    upgradeBtn.textContent = labels[plan] || 'Upgrade to Pro';
+  if (upgradeBtn && !upgradeBtn.disabled) {
+    upgradeBtn.dataset.plan = plan;
+    upgradeBtn.textContent = (typeof window.planCheckoutLabel === 'function')
+      ? window.planCheckoutLabel(plan)
+      : 'Upgrade to Pro';
   }
 };
 
@@ -1354,13 +1371,13 @@ async function renderProScreen() {
   const isTrial = trialDays > 0 && !_isSavedPaidSubscriber();
   if (isPro) {
     const planLabel = isFounding ? '👑 Founding Member'
-      : isTrial ? `🎉 Free Trial — ${trialDays} day${trialDays !== 1 ? 's' : ''} left`
+      : isTrial ? `Pro access — ${trialDays} day${trialDays !== 1 ? 's' : ''} left`
       : '✅ QuestGains Pro';
     statusCard.innerHTML = `
       <div class="text-center py-2">
-        <div class="text-3xl mb-2">${isFounding ? '👑' : isTrial ? '🎉' : '✅'}</div>
+        <div class="text-3xl mb-2">${isFounding ? '👑' : '✅'}</div>
         <div class="text-lg font-bold text-green-400">${planLabel}</div>
-        <div class="text-sm text-gray-400 mt-1">${isTrial ? 'Free trial active — upgrade to keep access' : 'You have full Pro access'}</div>
+        <div class="text-sm text-gray-400 mt-1">${isTrial ? 'Upgrade to keep access' : 'You have full Pro access'}</div>
       </div>`;
     if (planSelector) {
       // Show plan selector for trial users so they can upgrade
@@ -1368,13 +1385,13 @@ async function renderProScreen() {
       else planSelector.classList.add('hidden');
     }
     // manageSection handled below (outside isPro gate)
-    if (heroPropBtn) heroPropBtn.textContent = isTrial ? '🎉 Free Trial Active' : '👑 Pro Member';
+    if (heroPropBtn) heroPropBtn.textContent = isTrial ? 'Pro access' : '👑 Pro Member';
   } else {
     statusCard.innerHTML = `
       <div class="flex items-center gap-3">
-        <div class="text-2xl">${trialExpired ? '⏰' : '🆓'}</div>
+        <div class="text-2xl">🆓</div>
         <div>
-          <div class="text-sm font-bold text-white">${trialExpired ? 'Trial Expired' : 'Free Plan'}</div>
+          <div class="text-sm font-bold text-white">Free Plan</div>
           <div class="text-xs text-gray-400">${trialExpired ? 'Upgrade to restore full access' : 'Upgrade anytime to unlock everything'}</div>
         </div>
       </div>`;
@@ -1391,6 +1408,8 @@ async function renderProScreen() {
     const _onNativeIOS = !!(window.webkit && window.webkit.messageHandlers);
     manageSection.classList.toggle('hidden', !_onNativeIOS && (isTrial || isFounding || !isPro));
   }
+
+  selectPlan(_selectedPlan);
 
   const foundingEl = document.getElementById('plan-founding');
   const slotsEl = document.getElementById('pro-founding-slots');
@@ -1409,8 +1428,6 @@ async function renderProScreen() {
       foundingEl.classList.add('hidden');
     }
   }
-
-  selectPlan(_selectedPlan);
 }
 
 window.startProCheckout = function startProCheckout() {
@@ -1419,40 +1436,8 @@ window.startProCheckout = function startProCheckout() {
   }
 };
 
-window.startProTrial = async function startProTrial() {
-  const uid = window.currentUserId;
-  if (!uid) { alert('Please sign in first.'); return; }
-  if (typeof window.startTrial !== 'function') return;
-
-  // Confirmation dialog before starting trial
-  if (!window.confirm('Start your free 14-day Pro trial?\n\nYou will get full access to all Pro features. No payment required — upgrade or let it expire at any time.')) {
-    return;
-  }
-
-  // Disable button immediately to prevent double-tap
-  const btn = document.getElementById('pro-trial-btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Starting trial\u2026';
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
-  }
-
-  try {
-    await window.startTrial(uid);
-    // Hide button — trial is now active, banner takes over
-    if (btn) btn.classList.add('hidden');
-    if (typeof window.updateHeader === 'function') window.updateHeader();
-    renderProScreen();
-    alert('\uD83C\uDF89 Your 14-day Pro trial has started! Enjoy full access.');
-  } catch (err) {
-    // Re-enable on failure so user can retry
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Start 14-Day Free Trial';
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-    alert('Could not start trial. Please try again.');
-  }
+window.startProTrial = function startProTrial() {
+  if (typeof window.showPaywall === 'function') window.showPaywall('QuestGains Pro');
 };
 
 window.toggleThemePanel = function toggleThemePanel() {
@@ -2759,7 +2744,7 @@ window.saveOneRM = function saveOneRM(key) {
   character.oneRMsLastUpdated = new Date().toDateString();
 
   if (value > previousValue && prBonus > 0) {
-    character.xp += prBonus;
+    adjustTrackedXp(prBonus);
     showAchievement('📜', 'PR Bonus!', `+${prBonus} XP from Arcane Scroll`);
   }
 
@@ -3761,8 +3746,9 @@ function renderRivalCard() {
     container.innerHTML = '';
     return;
   }
-  const myXP = character.xp || 0;
-  const gap = myXP - rival.xp;
+  const myXP = Number(character.lifetimeXp) || 0;
+  const rivalXP = typeof rival.lifetimeXp === 'number' ? rival.lifetimeXp : (rival.xp || 0);
+  const gap = myXP - rivalXP;
   const gapText = gap > 0
     ? `You are <strong>${gap.toLocaleString()} XP ahead</strong> of ${rival.username}`
     : gap < 0
@@ -3777,7 +3763,7 @@ function renderRivalCard() {
       <div class="flex items-start justify-between gap-3">
         <div>
           <div class="text-xl font-black text-white">${rival.username}</div>
-          <div class="text-sm text-gray-300">Level ${rival.level} • ${rival.xp.toLocaleString()} XP</div>
+          <div class="text-sm text-gray-300">Level ${rival.level} • ${rivalXP.toLocaleString()} XP</div>
         </div>
         <button onclick="startRivalChallenge()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-2xl text-sm font-medium">Challenge</button>
       </div>
@@ -3806,13 +3792,14 @@ async function renderLeaderboard() {
 
     if (_lbCurrentTab === 'alltime') {
       // All-Time: sort users by total XP
-      const snap = await db.collection('users').orderBy('character.xp', 'desc').limit(50).get();
+      const snap = await db.collection('users').orderBy('character.lifetimeXp', 'desc').limit(50).get();
       entries = snap.docs.map((doc) => {
         const data = doc.data();
+        const lifetime = data?.character?.lifetimeXp;
         return {
           uid: doc.id,
           username: data?.profile?.username || '—',
-          xp: data?.character?.xp || 0,
+          xp: typeof lifetime === 'number' ? lifetime : (data?.character?.xp || 0),
           level: data?.character?.level || 1,
           isUser: doc.id === myUid
         };
@@ -3935,12 +3922,13 @@ async function renderLeaderboard() {
 window.startRivalChallenge = function startRivalChallenge() {
   const rival = getRivalPlayer();
   if (!rival) return;
+  const rivalXP = typeof rival.lifetimeXp === 'number' ? rival.lifetimeXp : (rival.xp || 0);
   character.rivalId = rival.uid || rival.id || null;
   character.rivalChallengeStart = getTodayStamp();
-  character.rivalChallengeGoalXP = rival.xp + 1;
+  character.rivalChallengeGoalXP = rivalXP + 1;
   saveData();
   renderRivalCard();
-  alert(`Challenge accepted! Beat ${rival.username} (${rival.xp.toLocaleString()} XP) within 7 days.`);
+  alert(`Challenge accepted! Beat ${rival.username} (${rivalXP.toLocaleString()} XP) within 7 days.`);
 };
 
 // Rival search box toggle
@@ -3991,15 +3979,14 @@ window.setRandomRival = async function setRandomRival() {
   }
   const db = window.db;
   if (!db) { alert('Not connected to Firebase.'); return; }
-  const myXP = character.xp || 0;
+  const myXP = Number(character.lifetimeXp) || 0;
   const myUid = window.currentUserId;
   const low = Math.floor(myXP * 0.8);
-  const high = Math.ceil(myXP * 1.2);
+  const high = Math.ceil(Math.max(myXP, 1) * 1.2);
   try {
-    // Query users with XP in range
     const snap = await db.collection('users')
-      .where('character.xp', '>=', low)
-      .where('character.xp', '<=', high)
+      .where('character.lifetimeXp', '>=', low)
+      .where('character.lifetimeXp', '<=', high)
       .limit(20)
       .get();
     const candidates = [];
@@ -4008,10 +3995,12 @@ window.setRandomRival = async function setRandomRival() {
       const data = doc.data();
       const username = data?.profile?.username;
       if (!username) return;
+      const lifetime = data?.character?.lifetimeXp;
       candidates.push({
         uid: doc.id,
         username,
-        xp: data?.character?.xp || 0,
+        xp: typeof lifetime === 'number' ? lifetime : (data?.character?.xp || 0),
+        lifetimeXp: typeof lifetime === 'number' ? lifetime : (data?.character?.xp || 0),
         level: data?.character?.level || 1
       });
     });
@@ -4387,12 +4376,7 @@ window.deleteWorkoutLogEntry = function deleteWorkoutLogEntry(idOrIndex) {
   character.deletedWorkoutIds = Array.from(new Set([...(character.deletedWorkoutIds || []), removed.id]));
 
   const xp = Number(removed.xpAwarded) || 0;
-  if (xp > 0) {
-    character.xp = Math.max(0, (character.xp || 0) - xp);
-    if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
-      window.incrementWeeklyXP(window.currentUserId, -xp);
-    }
-  }
+  if (xp > 0) adjustTrackedXp(-xp);
 
   // Refresh derived volume stats for the week of the deleted session when possible.
   try {
@@ -4410,12 +4394,7 @@ window.deleteWorkoutLogEntry = function deleteWorkoutLogEntry(idOrIndex) {
     onUndo: () => {
       character.deletedWorkoutIds = (character.deletedWorkoutIds || []).filter((id) => id !== removed.id);
       workoutLog.splice(index, 0, removed);
-      if (xp > 0) {
-        character.xp = (character.xp || 0) + xp;
-        if (window.currentUserId && typeof window.incrementWeeklyXP === 'function') {
-          window.incrementWeeklyXP(window.currentUserId, xp);
-        }
-      }
+      if (xp > 0) adjustTrackedXp(xp);
       saveData();
       scheduleCloudFlush();
       updateHeader();
@@ -4843,7 +4822,7 @@ window.logScannedFood = function(food) {
   const scaledProtein = Math.round((food.pro100g || food.protein || 0) * (qty / 100) * 10) / 10;
   todaysMeals.push({ name: food.name + ' (scanned)', quantity: qty, calories: scaledCal, protein: scaledProtein });
   const xpBase = applyCombo(getClassBonus(20, 'meal') + getTotalBonus('meal_xp_bonus'));
-  character.xp += xpBase;
+  adjustTrackedXp(xpBase);
   character.totalMealsEver = (character.totalMealsEver || 0) + 1;
   saveData();
   levelUp();

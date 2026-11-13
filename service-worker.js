@@ -34,14 +34,14 @@ messaging.onBackgroundMessage(function(payload) {
  * QuestGains service worker
  * Cache-first app shell and sprite assets for offline support.
  */
-const CACHE_NAME = 'questgains-v30';          // core shell (bump on every release)
+const CACHE_NAME = 'questgains-v31';          // core shell (bump on every release)
 const RUNTIME_CACHE = 'questgains-runtime-v1';  // sprites / images / CDN — survives shell bumps
 const KEEP_CACHES = [CACHE_NAME, RUNTIME_CACHE];
 
 // Core shell only. Everything here is same-origin, so one flaky third-party
 // host can no longer fail the whole install.
 const PRECACHE_URLS = [
-  './', './index.html', './style.css', './manifest.json',
+  './', './index.html', './qg.css', './manifest.json',
   './escape.js', './firebase-config.js', './db.js', './username.js', './subscription.js',
   './notifications.js', './social.js', './auth.js', './data.js', './app.js',
   './logo.png', './favicon.png', './apple-touch-icon.png',

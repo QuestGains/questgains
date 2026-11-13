@@ -121,7 +121,9 @@ const PAYLOADS = [
     const sw = loadSW(['social.js']);
     let p; sw.listeners.install({ waitUntil: (x) => { p = x; } });
     await p;
-    const cached = [...sw.stores['questgains-v29'].entries.keys()];
+    const swText = fs.readFileSync(path.join(ROOT, 'service-worker.js'), 'utf8');
+    const cacheName = (swText.match(/const CACHE_NAME = '([^']+)'/) || [])[1];
+    const cached = [...sw.stores[cacheName].entries.keys()];
     assert.ok(cached.some((u) => u.includes('subscription.js')));
     assert.ok(cached.some((u) => u.includes('vendor/firebase-10.14.1/firebase-auth-compat.js')));
     assert.ok(!cached.some((u) => u.includes('raw.githubusercontent')), 'no remote sprites in install');
@@ -157,9 +159,43 @@ const PAYLOADS = [
   });
 
   await t('every sprite referenced in old precache exists locally in sprites/', () => {
-    const old = fs.readFileSync('/workspace/qg/repo/service-worker.js', 'utf8');
+    const oldPath = '/workspace/qg/repo/service-worker.js';
+    if (!fs.existsSync(oldPath)) return;
+    const old = fs.readFileSync(oldPath, 'utf8');
     const names = [...old.matchAll(/sprites\/(sprite-[\w-]+\.png)/g)].map((m) => m[1]);
     for (const n of names) assert.ok(fs.existsSync(path.join(ROOT, 'sprites', n)), n);
+  });
+
+  await t('served shell drops the Tailwind CDN and the free-trial claim', () => {
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const terms = fs.readFileSync(path.join(ROOT, 'terms.html'), 'utf8');
+    const sw = fs.readFileSync(path.join(ROOT, 'service-worker.js'), 'utf8');
+    assert.ok(!html.includes('cdn.tailwindcss.com'), 'tailwind cdn');
+    assert.ok(html.includes('qg.css'), 'qg.css link');
+    assert.ok(html.includes('Restore Purchases'), 'restore button');
+    assert.ok(!/14-day free trial/i.test(html), 'trial claim');
+    assert.ok(!/After trial/i.test(html), 'after trial');
+    assert.ok(!/free trial/i.test(terms), 'terms trial');
+    assert.ok(sw.includes("const CACHE_NAME = 'questgains-v31'"), 'sw version');
+    assert.ok(sw.includes("'./qg.css'"), 'sw precache');
+    assert.ok(fs.existsSync(path.join(ROOT, 'qg.css')), 'qg.css missing from served path');
+    assert.ok(fs.existsSync(path.join(ROOT, 'firestore.rules')), 'rules file');
+  });
+
+  await t('lifetime XP reconstruction uses the level curve and workout floor', () => {
+    const window = { addEventListener() {}, firebase: {} };
+    const ctx = {
+      window, console, Math, Number, Date, Array, Object, JSON, parseInt, parseFloat, isNaN, isFinite,
+      setTimeout, clearTimeout,
+      localStorage: { getItem() { return null; }, setItem() {} }
+    };
+    vm.createContext(ctx);
+    vm.runInContext(fs.readFileSync(path.join(ROOT, 'db.js'), 'utf8'), ctx);
+    const xp = ctx.window.reconstructLifetimeXp;
+    assert.strictEqual(xp({ level: 1, xp: 40, xpToNext: 100 }, []), 40);
+    assert.strictEqual(xp({ level: 2, xp: 20, xpToNext: 130 }, []), 120);
+    assert.strictEqual(xp({ level: 1, xp: 0, xpToNext: 100 }, [{ xpAwarded: 500 }]), 500);
+    assert.strictEqual(xp({ level: 1, xp: 999999999, xpToNext: 100 }, []), 10000000);
   });
 
   console.log(`\n${pass} passed, ${fail} failed`);

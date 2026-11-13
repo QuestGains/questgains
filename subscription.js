@@ -154,7 +154,68 @@ window.openUpgradeFlow = async function openUpgradeFlow(plan) {
 // Expose restore function (wire to a "Restore Purchases" button in the paywall UI)
 window.restoreIAPPurchases = function() {
   if (!isNativeIOSIAP()) return;
-  window.webkit.messageHandlers['iap-restore'].postMessage({});
+  setPurchaseLoading(true);
+  try {
+    window.webkit.messageHandlers['iap-restore'].postMessage({});
+  } catch (e) {
+    setPurchaseLoading(false);
+    showToast('Unable to restore purchases. Please try again.', 'error');
+  }
+};
+
+const FALLBACK_PRICES = { monthly: '$4.99', annual: '$39.99', founding: '$2.99' };
+
+function planPrice(plan) {
+  const map = window._iapDisplayPrices || {};
+  const key = (plan === 'yearly' || plan === 'annual') ? 'annual' : (plan === 'founding' ? 'founding' : 'monthly');
+  if (key !== 'founding' && isNativeIOSIAP()) {
+    const id = planToProductID(key);
+    if (map[id]) return map[id];
+  }
+  return FALLBACK_PRICES[key] || FALLBACK_PRICES.monthly;
+}
+
+window.planCheckoutLabel = function planCheckoutLabel(plan) {
+  if (plan === 'founding') return 'Become a Founding Member — $2.99/mo';
+  if (plan === 'annual' || plan === 'yearly') return 'Subscribe — 1 Year · ' + planPrice('annual');
+  return 'Subscribe — 1 Month · ' + planPrice('monthly');
+};
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+function applyStoreKitPrices() {
+  const monthly = planPrice('monthly');
+  const annual = planPrice('annual');
+  const live = !!(window._iapDisplayPrices && Object.keys(window._iapDisplayPrices).length);
+  setText('pro-price-monthly', monthly);
+  setText('pro-price-annual', annual);
+  setText('paywall-price-monthly', monthly);
+  setText('paywall-price-annual', annual);
+  if (live) {
+    setText('pro-annual-note', 'Billed ' + annual + ' per year. Cancel anytime.');
+    setText('paywall-monthly-note', '1-month subscription · billed ' + monthly + ' each month');
+    setText('paywall-annual-note', '1-year subscription · billed ' + annual + ' each year');
+  }
+  const upgrade = document.getElementById('pro-upgrade-btn');
+  if (upgrade && upgrade.dataset.plan && !upgrade.disabled) {
+    upgrade.textContent = window.planCheckoutLabel(upgrade.dataset.plan);
+  }
+  if (typeof window.selectPaywallPlan === 'function') {
+    window.selectPaywallPlan(_paywallSelectedPlan);
+  }
+}
+window.applyStoreKitPrices = applyStoreKitPrices;
+
+window.onIAPProducts = function onIAPProducts(products) {
+  const map = {};
+  (products || []).forEach((product) => {
+    if (product && product.id && product.displayPrice) map[product.id] = String(product.displayPrice);
+  });
+  window._iapDisplayPrices = map;
+  applyStoreKitPrices();
 };
 
 window.openCustomerPortal = async function openCustomerPortal() {
@@ -371,9 +432,8 @@ window.showPaywall = async function showPaywall(featureName) {
 
   if (featureEl) featureEl.textContent = featureName ? `Unlock: ${featureName}` : 'Unlock all Pro features';
 
-  const trialExpired = window.isTrialExpired();
   if (statusEl) {
-    statusEl.textContent = trialExpired ? 'Your trial has expired' : "You're on the Free plan";
+    statusEl.textContent = "You're on the Free plan";
   }
 
   // Reset to annual (best value) as default selection
@@ -418,19 +478,18 @@ window.selectPaywallPlan = function selectPaywallPlan(plan) {
     el.classList.toggle('border-yellow-500', p === plan && p === 'founding');
     el.classList.toggle('border-transparent', p !== plan);
   });
-  // Update CTA label + trial subtext
   const btn = document.getElementById('paywall-cta-btn');
-  const sub = document.getElementById('paywall-trial-subtext');
-  if (btn) {
+  const sub = document.getElementById('paywall-price-subtext');
+  if (btn && !btn.disabled) {
     if (plan === 'annual') {
-      btn.textContent = 'Subscribe — 1 Year · $39.99';
-      if (sub) sub.textContent = 'After trial: $39.99/year, billed automatically. Cancel anytime.';
+      btn.textContent = window.planCheckoutLabel('annual');
+      if (sub) sub.textContent = planPrice('annual') + ' per year, billed automatically. Cancel anytime.';
     } else if (plan === 'founding') {
       btn.textContent = 'Join as Founding Member — $2.99/mo';
       if (sub) sub.textContent = 'Founding member pricing — billed monthly. Cancel anytime.';
     } else {
-      btn.textContent = 'Subscribe — 1 Month · $4.99';
-      if (sub) sub.textContent = 'After trial: $4.99/month, billed automatically. Cancel anytime.';
+      btn.textContent = window.planCheckoutLabel('monthly');
+      if (sub) sub.textContent = planPrice('monthly') + ' per month, billed automatically. Cancel anytime.';
     }
   }
 };

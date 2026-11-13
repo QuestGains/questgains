@@ -36,8 +36,8 @@ await t('(a) SW installs; offline reload loads app shell with no script errors',
   const { page, errors } = await open(ctx, '/questgains/');
   await waitSW(page);
   const keys = await page.evaluate(() => caches.keys());
-  assert(keys.includes('questgains-v29'), 'cache v29 missing: ' + keys);
-  const n = await page.evaluate(async () => (await (await caches.open('questgains-v29')).keys()).length);
+  assert(keys.includes('questgains-v31'), 'cache v31 missing: ' + keys);
+  const n = await page.evaluate(async () => (await (await caches.open('questgains-v31')).keys()).length);
   assert(n >= 20, 'precached entries ' + n);
   await ctx.setOffline(true);
   errors.length = 0;
